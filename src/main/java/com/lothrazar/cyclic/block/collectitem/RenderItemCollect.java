@@ -15,7 +15,7 @@ public class RenderItemCollect extends TileEntityRenderer<TileItemCollector> {
 
   @Override
   public void render(TileItemCollector te, float v, MatrixStack matrix,
-      IRenderTypeBuffer ibuffer, int partialTicks, int destroyStage) {
+                     IRenderTypeBuffer ibuffer, int partialTicks, int destroyStage) {
     if (1 == te.getField(TileItemCollector.Fields.RENDER.ordinal())) {
       UtilRender.renderOutline(te.getPos(), te.getShape(), matrix, 0.7F, ClientConfigCyclic.getColor(te));
     }

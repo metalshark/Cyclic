@@ -67,8 +67,7 @@ public class BlockExpPylon extends BlockBase {
           world.playSound((PlayerEntity) null, pos, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.NEUTRAL, 0.5F, world.rand.nextFloat());
         }
         return ActionResultType.SUCCESS;
-      }
-      else if (player.getHeldItemMainhand().getItem() == ItemRegistry.experience_food) {
+      } else if (player.getHeldItemMainhand().getItem() == ItemRegistry.experience_food) {
         if (pylon.tank.getFluidAmount() + fluidPerAction < pylon.tank.getCapacity()) {
           pylon.tank.fill(new FluidStack(FluidXpJuiceHolder.STILL.get(), fluidPerAction), IFluidHandler.FluidAction.EXECUTE);
           player.getHeldItemMainhand().shrink(1);

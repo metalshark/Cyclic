@@ -15,6 +15,6 @@ public class StunEffect extends TickableEffect {
 
   @Override
   public void tick(LivingUpdateEvent event) {
-    // delete me i guess 
+    // delete me i guess
   }
 }

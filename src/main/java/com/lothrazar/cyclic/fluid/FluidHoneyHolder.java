@@ -26,6 +26,13 @@ public class FluidHoneyHolder {
   private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, ModCyclic.MODID);
   private static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(ForgeRegistries.FLUIDS, ModCyclic.MODID);
   private static final String id = "honey";
+
+  public FluidHoneyHolder(IEventBus modEventBus) {
+    BLOCKS.register(modEventBus);
+    ITEMS.register(modEventBus);
+    FLUIDS.register(modEventBus);
+  }
+
   public static RegistryObject<FlowingFluid> STILL = FLUIDS.register(id, () -> new ForgeFlowingFluid.Source(FluidHoneyHolder.properties));
   public static RegistryObject<FlowingFluid> FLOWING = FLUIDS.register(id + "_flowing", () -> new ForgeFlowingFluid.Flowing(FluidHoneyHolder.properties));
   public static RegistryObject<FlowingFluidBlock> BLOCK = BLOCKS.register(id + "_block",
@@ -38,11 +45,7 @@ public class FluidHoneyHolder {
       FluidAttributes.builder(
           new ResourceLocation("minecraft:block/honey_block_top"),
           new ResourceLocation("minecraft:block/honey_block_side")))
-              .bucket(BUCKET).block(BLOCK);
+      .bucket(BUCKET).block(BLOCK);
 
-  public FluidHoneyHolder(IEventBus modEventBus) {
-    BLOCKS.register(modEventBus);
-    ITEMS.register(modEventBus);
-    FLUIDS.register(modEventBus);
-  }
+
 }

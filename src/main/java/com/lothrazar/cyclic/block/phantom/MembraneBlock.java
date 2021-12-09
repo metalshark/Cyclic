@@ -55,7 +55,7 @@ public class MembraneBlock extends BlockBase {
       //      BlockState blockstate = worldIn.getBlockState(blockpos1);
       FluidState fluidstate = worldIn.getFluidState(blockpos1);
       if (fluidstate.isTagged(FluidTags.WATER)) {
-        //water! 
+        //water!
         iamDry = false;
         break;
       }

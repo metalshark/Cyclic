@@ -48,9 +48,13 @@ import org.lwjgl.opengl.GL11;
  */
 public class UtilRender {
 
+  // Replace various usages of this with the getter for calculating glow light, at least if we end up making it only
+  // effect block light for the glow rather than having it actually become full light
+  public static final int FULL_LIGHT = 0xF000F0;
+
   /**
    * used by fluid gui screen rendering Thanks to Mekanism https://github.com/mekanism/Mekanism which uses compatible MIT License
-   * 
+   *
    * @param xPosition
    * @param yPosition
    * @param yOffset
@@ -62,7 +66,7 @@ public class UtilRender {
    * @param zLevel
    */
   public static void drawTiledSprite(Matrix4f matrix, int xPosition, int yPosition, int yOffset, int desiredWidth, int desiredHeight, TextureAtlasSprite sprite, int textureWidth,
-      int textureHeight, int zLevel) {
+                                     int textureHeight, int zLevel) {
     if (desiredWidth == 0 || desiredHeight == 0 || textureWidth == 0 || textureHeight == 0) {
       return;
     }
@@ -150,20 +154,18 @@ public class UtilRender {
 
   /**
    * This block-rendering function from direwolf20 MIT open source project https://github.com/Direwolf20-MC/BuildingGadgets/blob/1.15/LICENSE.md
-   *
    */
   private static void renderModelBrightnessColorQuads(MatrixStack.Entry matrixEntry, IVertexBuilder builder, float red, float green, float blue, float alpha, List<BakedQuad> quads,
-      int combinedLights, int combinedOverlay) {
+                                                      int combinedLights, int combinedOverlay) {
     for (BakedQuad bakedquad : quads) {
       float r;
       float g;
       float b;
       if (bakedquad.hasTintIndex()) {
-        r = red * 1f;
-        g = green * 1f;
-        b = blue * 1f;
-      }
-      else {
+        r = red;
+        g = green;
+        b = blue;
+      } else {
         r = 1f;
         g = 1f;
         b = 1f;
@@ -174,9 +176,9 @@ public class UtilRender {
 
   /**
    * Used for in-world fluid rendering Source reference from MIT open source https://github.com/mekanism/Mekanism/tree/1.15x
-   * 
+   * <p>
    * https://github.com/mekanism/Mekanism/blob/1.15x/LICENSE
-   * 
+   * <p>
    * See MekanismRenderer.
    **/
   public static void renderObject(Model3D object, MatrixStack matrix, IVertexBuilder buffer, int argb, int light) {
@@ -187,7 +189,7 @@ public class UtilRender {
 
   /**
    * used for fluid in-world render lighting
-   * 
+   *
    * @param light
    * @param fluid
    * @return
@@ -195,10 +197,6 @@ public class UtilRender {
   public static int calculateGlowLight(int light, FluidStack fluid) {
     return fluid.isEmpty() ? light : calculateGlowLight(light, fluid.getFluid().getAttributes().getLuminosity(fluid));
   }
-
-  // Replace various usages of this with the getter for calculating glow light, at least if we end up making it only
-  // effect block light for the glow rather than having it actually become full light
-  public static final int FULL_LIGHT = 0xF000F0;
 
   public static int calculateGlowLight(int light, int glow) {
     if (glow >= 15) {
@@ -246,11 +244,10 @@ public class UtilRender {
 
   /**
    * Render this BLOCK right here in the world, start with alpha and scale near 1. Call from TESR perspective
-   * 
    */
   public static void renderAsBlock(final BlockPos centerPos, final List<BlockPos> shape, MatrixStack matrix, BlockState renderBlockState, float alpha, float scale) {
     World world = Minecraft.getInstance().world;
-    //render 
+    //render
     Minecraft.getInstance().getTextureManager().bindTexture(PlayerContainer.LOCATION_BLOCKS_TEXTURE);
     //
     //    double range = 6F;
@@ -313,7 +310,6 @@ public class UtilRender {
 
   /**
    * Used by TESRs
-   * 
    */
   public static void renderOutline(BlockPos view, List<BlockPos> coords, MatrixStack matrix, float scale, Color color) {
     //    IRenderTypeBuffer.getImpl(ibuffer);
@@ -352,7 +348,7 @@ public class UtilRender {
 
   /**
    * for ITEMS held by the PLAYER rendering cubes in world
-   * 
+   *
    * @param evt
    * @param coords
    * @param alpha
@@ -387,9 +383,8 @@ public class UtilRender {
 
   /**
    * Box OUTLINE that you can see thru blocks.
-   * 
+   * <p>
    * From https://github.com/Lothrazar/SimpleTomb/blob/trunk/1.16/src/main/java/com/lothrazar/simpletomb/event/ClientEvents.java
-   * 
    */
   @SuppressWarnings("deprecation")
   public static void createBox(MatrixStack matrixStack, BlockPos pos) {
@@ -459,7 +454,7 @@ public class UtilRender {
 
   /**
    * From https://github.com/Lothrazar/SimpleTomb/blob/704bad5a33731125285d700c489bfe2c3a9e387d/src/main/java/com/lothrazar/simpletomb/helper/WorldHelper.java#L163
-   * 
+   *
    * @param hue
    * @param saturation
    * @param brightness
@@ -471,8 +466,7 @@ public class UtilRender {
     int b = 0;
     if (saturation == 0.0F) {
       r = g = b = (int) (brightness * 255.0F + 0.5F);
-    }
-    else {
+    } else {
       float h = (hue - (float) Math.floor(hue)) * 6.0F;
       float f = h - (float) Math.floor(h);
       float p = brightness * (1.0F - saturation);
@@ -483,27 +477,27 @@ public class UtilRender {
           r = (int) (brightness * 255.0F + 0.5F);
           g = (int) (t * 255.0F + 0.5F);
           b = (int) (p * 255.0F + 0.5F);
-        break;
+          break;
         case 1:
           r = (int) (q * 255.0F + 0.5F);
           g = (int) (brightness * 255.0F + 0.5F);
           b = (int) (p * 255.0F + 0.5F);
-        break;
+          break;
         case 2:
           r = (int) (p * 255.0F + 0.5F);
           g = (int) (brightness * 255.0F + 0.5F);
           b = (int) (t * 255.0F + 0.5F);
-        break;
+          break;
         case 3:
           r = (int) (p * 255.0F + 0.5F);
           g = (int) (q * 255.0F + 0.5F);
           b = (int) (brightness * 255.0F + 0.5F);
-        break;
+          break;
         case 4:
           r = (int) (t * 255.0F + 0.5F);
           g = (int) (p * 255.0F + 0.5F);
           b = (int) (brightness * 255.0F + 0.5F);
-        break;
+          break;
         case 5:
           r = (int) (brightness * 255.0F + 0.5F);
           g = (int) (p * 255.0F + 0.5F);

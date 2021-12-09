@@ -48,7 +48,7 @@ public class WaterSpreaderItem extends ItemBase {
   @Override
   public ActionResultType onItemUse(ItemUseContext context) {
     PlayerEntity player = context.getPlayer();
-    // 
+    //
     BlockPos pos = context.getPos();
     Direction side = context.getFace();
     if (side != null) {
@@ -65,11 +65,10 @@ public class WaterSpreaderItem extends ItemBase {
       if (world.hasWater(pos) && world.getBlockState(pos).getBlock() == Blocks.WATER) {
         world.setBlockState(pos, Blocks.WATER.getDefaultState());
         count++;
-      }
-      else {
+      } else {
         BlockState state = world.getBlockState(pos);
         if (state.hasProperty(BlockStateProperties.WATERLOGGED)
-            && !state.get(BlockStateProperties.WATERLOGGED).booleanValue()
+            && !state.get(BlockStateProperties.WATERLOGGED)
             && this.isWaterNextdoor(world, pos)) {
           //  flow it into the loggable
           state = state.with(BlockStateProperties.WATERLOGGED, true);

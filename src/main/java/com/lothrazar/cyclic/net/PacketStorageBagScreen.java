@@ -23,13 +23,14 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 public class PacketStorageBagScreen extends PacketBase {
 
+  int slot;
   private ItemStack stack;
   private byte type;
-  int slot;
   private StringNBT nbtKey;
   private INBT nbtValue;
 
-  public PacketStorageBagScreen() {}
+  public PacketStorageBagScreen() {
+  }
 
   public PacketStorageBagScreen(ItemStack stack, int slot, byte type, StringNBT nbtKey, INBT nbtValue) {
     this.stack = stack;
@@ -47,7 +48,7 @@ public class PacketStorageBagScreen extends PacketBase {
         if (0 <= message.slot && message.slot < player.inventory.getSizeInventory()) {
           serverStack = player.inventory.getStackInSlot(message.slot);
         }
-        //TODO: fix refactor this whole thing with a RefilMode Enum 
+        //TODO: fix refactor this whole thing with a RefilMode Enum
         String key = message.nbtKey.getString();
         if (!serverStack.isEmpty()
             && serverStack.getItem() == ItemRegistry.storage_bag
@@ -69,43 +70,43 @@ public class PacketStorageBagScreen extends PacketBase {
     switch (packet.type) {
       case 1: //Byte
         packet.nbtValue = ByteNBT.valueOf(buffer.readByte());
-      break;
+        break;
       case 2: //Short
         packet.nbtValue = ShortNBT.valueOf(buffer.readShort());
-      break;
+        break;
       case 3: //Int
         packet.nbtValue = IntNBT.valueOf(buffer.readInt());
-      break;
+        break;
       case 4: //Long
         packet.nbtValue = LongNBT.valueOf(buffer.readLong());
-      break;
+        break;
       case 5: //Float
         packet.nbtValue = FloatNBT.valueOf(buffer.readFloat());
-      break;
+        break;
       case 6: //Double
         packet.nbtValue = DoubleNBT.valueOf(buffer.readDouble());
-      break;
+        break;
       case 7: //ByteArray
         packet.nbtValue = new ByteArrayNBT(buffer.readByteArray());
-      break;
+        break;
       case 8: //String
         packet.nbtValue = StringNBT.valueOf(buffer.readString(32767));
-      break;
+        break;
       case 9: //List... not sure of best way to handle this one since there's no constructor/setter. Look at other implementations?
         packet.nbtValue = new ListNBT();
-      break;
+        break;
       case 10: //CompoundNBT
         packet.nbtValue = buffer.readCompoundTag();
-      break;
+        break;
       case 11: //IntArray
         packet.nbtValue = new IntArrayNBT(buffer.readVarIntArray());
-      break;
+        break;
       case 12: //LongArray
         packet.nbtValue = new LongArrayNBT(buffer.readLongArray(null));
-      break;
+        break;
       default: //0 is EndNBT, shouldn't ever happen, I don't think.
         packet.nbtValue = StringNBT.valueOf("");
-      break;
+        break;
     }
     return packet;
   }
@@ -118,40 +119,40 @@ public class PacketStorageBagScreen extends PacketBase {
     switch (message.type) {
       case 1: //Byte
         buffer.writeByte(((ByteNBT) message.nbtValue).getByte());
-      break;
+        break;
       case 2: //Short
         buffer.writeShort(((ShortNBT) message.nbtValue).getShort());
-      break;
+        break;
       case 3: //Int
         buffer.writeInt(((IntNBT) message.nbtValue).getInt());
-      break;
+        break;
       case 4: //Long
         buffer.writeLong(((LongNBT) message.nbtValue).getLong());
-      break;
+        break;
       case 5: //Float
         buffer.writeFloat(((FloatNBT) message.nbtValue).getFloat());
-      break;
+        break;
       case 6: //Double
         buffer.writeDouble(((DoubleNBT) message.nbtValue).getDouble());
-      break;
+        break;
       case 7: //ByteArray
         buffer.writeByteArray(((ByteArrayNBT) message.nbtValue).getByteArray());
-      break;
+        break;
       case 8: //String
         buffer.writeString(((StringNBT) message.nbtValue).getString());
-      break;
+        break;
       case 9: //List... not sure of best way to handle this one since there's no constructor/setter. Look at other implementations?
         buffer.writeString("There could have been a list here, if I knew how to process it.");
-      break;
+        break;
       case 10: //CompoundNBT
         buffer.writeCompoundTag(((CompoundNBT) message.nbtValue));
-      break;
+        break;
       case 11: //IntArray
         buffer.writeVarIntArray(((IntArrayNBT) message.nbtValue).getIntArray());
-      break;
+        break;
       case 12: //LongArray
         buffer.writeLongArray(((LongArrayNBT) message.nbtValue).getAsLongArray());
-      break;
+        break;
       default: //0 is EndNBT, shouldn't ever happen, I don't think.
         buffer.writeString("");
     }

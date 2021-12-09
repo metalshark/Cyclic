@@ -32,31 +32,12 @@ public class GlowingHelmetItem extends ArmorItem implements IHasClickToggle {
     super(materialIn, slot, builderIn);
   }
 
-  @Override
-  public void onArmorTick(ItemStack stack, World world, PlayerEntity player) {
-    boolean isTurnedOn = this.isOn(stack);
-    removeNightVision(player, isTurnedOn);
-    if (isTurnedOn) {
-      addNightVision(player);
-    }
-  }
-
-  @Override
-  public void addInformation(ItemStack stack, World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-    tooltip.add(new TranslationTextComponent(UtilChat.lang(this.getTranslationKey() + ".tooltip")).mergeStyle(TextFormatting.GRAY));
-    String onoff = this.isOn(stack) ? "on" : "off";
-    TranslationTextComponent t = new TranslationTextComponent(UtilChat.lang("item.cantoggle.tooltip.info") + " " + UtilChat.lang("item.cantoggle.tooltip." + onoff));
-    t.mergeStyle(TextFormatting.DARK_GRAY);
-    tooltip.add(t);
-    super.addInformation(stack, worldIn, tooltip, flagIn);
-  }
-
   private static void addNightVision(PlayerEntity player) {
     player.addPotionEffect(new EffectInstance(Effects.NIGHT_VISION, 20 * Const.TICKS_PER_SEC, 0));
   }
 
   public static void removeNightVision(PlayerEntity player, boolean hidden) {
-    //flag it so we know the purple glow was from this item, not something else 
+    //flag it so we know the purple glow was from this item, not something else
     player.removeActivePotionEffect(Effects.NIGHT_VISION);
   }
 
@@ -66,18 +47,6 @@ public class GlowingHelmetItem extends ArmorItem implements IHasClickToggle {
       //turn it off once, from the message
       removeNightVision(player, false);
     }
-  }
-
-  @Override
-  public void toggle(PlayerEntity player, ItemStack held) {
-    CompoundNBT tags = UtilNBT.getItemStackNBT(held);
-    int vnew = isOn(held) ? 0 : 1;
-    tags.putInt(NBT_STATUS, vnew);
-  }
-
-  @Override
-  public boolean isOn(ItemStack held) {
-    return isOnStatic(held);
   }
 
   private static boolean isOnStatic(ItemStack held) {
@@ -100,11 +69,41 @@ public class GlowingHelmetItem extends ArmorItem implements IHasClickToggle {
       if (!helm.isEmpty()) {
         if (isOnStatic(helm)) {
           addNightVision(player);
-        }
-        else {
+        } else {
           removeNightVision(player, false);
         }
       }
     }
+  }
+
+  @Override
+  public void onArmorTick(ItemStack stack, World world, PlayerEntity player) {
+    boolean isTurnedOn = this.isOn(stack);
+    removeNightVision(player, isTurnedOn);
+    if (isTurnedOn) {
+      addNightVision(player);
+    }
+  }
+
+  @Override
+  public void addInformation(ItemStack stack, World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
+    tooltip.add(new TranslationTextComponent(UtilChat.lang(this.getTranslationKey() + ".tooltip")).mergeStyle(TextFormatting.GRAY));
+    String onoff = this.isOn(stack) ? "on" : "off";
+    TranslationTextComponent t = new TranslationTextComponent(UtilChat.lang("item.cantoggle.tooltip.info") + " " + UtilChat.lang("item.cantoggle.tooltip." + onoff));
+    t.mergeStyle(TextFormatting.DARK_GRAY);
+    tooltip.add(t);
+    super.addInformation(stack, worldIn, tooltip, flagIn);
+  }
+
+  @Override
+  public void toggle(PlayerEntity player, ItemStack held) {
+    CompoundNBT tags = UtilNBT.getItemStackNBT(held);
+    int vnew = isOn(held) ? 0 : 1;
+    tags.putInt(NBT_STATUS, vnew);
+  }
+
+  @Override
+  public boolean isOn(ItemStack held) {
+    return isOnStatic(held);
   }
 }

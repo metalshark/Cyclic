@@ -39,7 +39,12 @@ import net.minecraft.world.World;
 public class BlockConveyor extends BlockBase implements IWaterLoggable {
 
   public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
-  private static final int MAX_CONNECTED_UPDATE = 16;
+  // PROPERTIES
+  public static final EnumProperty<DyeColor> COLOUR = EnumProperty.create("colour", DyeColor.class);
+  public static final EnumProperty<ConveyorType> TYPE = EnumProperty.create("type", ConveyorType.class);
+  public static final EnumProperty<ConveyorSpeed> SPEED = EnumProperty.create("speed", ConveyorSpeed.class);
+  //javafx.util class doesnt compile into minecraft with ./gradlew build, swapped to SimpleEntry https://www.baeldung.com/java-pairs
+  public static final List<SimpleImmutableEntry<ConveyorType, Direction>> STATE_PAIRS = generateStatePairs();
   //main flat shape
   protected static final VoxelShape SHAPE = Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
   //Sub-shapes for angles
@@ -68,12 +73,7 @@ public class BlockConveyor extends BlockBase implements IWaterLoggable {
       flipx(AG06), flipx(AG07), flipx(AG08), flipx(AG09), flipx(AG10), flipx(AG11), flipx(AG12), flipx(AG13), flipx(AG14), flipx(AG15), flipx(AG16));
   protected static final VoxelShape ANGLEWEST = VoxelShapes.or(flipz(AG00), flipz(AG01), flipz(AG02), flipz(AG03), flipz(AG04), flipz(AG05),
       flipz(AG06), flipz(AG07), flipz(AG08), flipz(AG09), flipz(AG10), flipz(AG11), flipz(AG12), flipz(AG13), flipz(AG14), flipz(AG15), flipz(AG16));
-  // PROPERTIES
-  public static final EnumProperty<DyeColor> COLOUR = EnumProperty.create("colour", DyeColor.class);
-  public static final EnumProperty<ConveyorType> TYPE = EnumProperty.create("type", ConveyorType.class);
-  public static final EnumProperty<ConveyorSpeed> SPEED = EnumProperty.create("speed", ConveyorSpeed.class);
-  //javafx.util class doesnt compile into minecraft with ./gradlew build, swapped to SimpleEntry https://www.baeldung.com/java-pairs
-  public static final List<SimpleImmutableEntry<ConveyorType, Direction>> STATE_PAIRS = generateStatePairs();
+  private static final int MAX_CONNECTED_UPDATE = 16;
 
   public BlockConveyor(Properties properties) {
     super(properties.hardnessAndResistance(0.6F).notSolid());
@@ -87,15 +87,13 @@ public class BlockConveyor extends BlockBase implements IWaterLoggable {
    */
   /**
    * Rotates the given {@link VoxelShape} along the horizontal plane according to the given rotation direction.
-   *
+   * <p>
    * Assumes the given shape is within the bounds of 1 unit on each axis.
-   * 
+   * <p>
    * https://gist.github.com/sciwhiz12/0852b629e7a3d0200ffc03ec7edab187
-   * 
-   * @param shape
-   *          The shape to rotate
-   * @param rotationDir
-   *          The rotation direction
+   *
+   * @param shape       The shape to rotate
+   * @param rotationDir The rotation direction
    * @return The rotated shape
    */
   public static VoxelShape rot(final VoxelShape shape) {
@@ -150,11 +148,48 @@ public class BlockConveyor extends BlockBase implements IWaterLoggable {
     double z1 = shape.getStart(Direction.Axis.Z);
     double z2 = shape.getEnd(Direction.Axis.Z);
     //flip
-    x1 = 1 - x1; //  
+    x1 = 1 - x1; //
     x2 = 1 - x2;
-    z1 = 1 - z1; //  
+    z1 = 1 - z1; //
     z2 = 1 - z2;
     return VoxelShapes.create(x1, y1, z1, x2, y2, z2);
+  }
+
+  public static SimpleImmutableEntry<ConveyorType, Direction> nextState(ConveyorType t, Direction d) {
+    SimpleImmutableEntry<ConveyorType, Direction> pair = new SimpleImmutableEntry<>(t, d);
+    if (STATE_PAIRS.contains(pair)) {
+      int index = STATE_PAIRS.indexOf(pair) + 1;
+      return nextState(STATE_PAIRS, index);
+    }
+    return pair;
+  }
+
+  public static SimpleImmutableEntry<ConveyorType, Direction> nextConnectedState(ConveyorType t, Direction d) {
+    List<SimpleImmutableEntry<ConveyorType, Direction>> connectedStates = STATE_PAIRS.stream().filter(pair -> pair.getValue() == d).collect(Collectors.toList());
+    SimpleImmutableEntry<ConveyorType, Direction> pair = new SimpleImmutableEntry<>(t, d);
+    if (connectedStates.contains(pair)) {
+      int index = connectedStates.indexOf(pair) + 1;
+      return nextState(connectedStates, index);
+    }
+    return pair;
+  }
+
+  private static SimpleImmutableEntry<ConveyorType, Direction> nextState(List<SimpleImmutableEntry<ConveyorType, Direction>> list, int index) {
+    return list.get(nextIndex(list, index));
+  }
+
+  private static int nextIndex(List<SimpleImmutableEntry<ConveyorType, Direction>> list, int index) {
+    return index >= list.size() ? index % list.size() : index;
+  }
+
+  public static List<SimpleImmutableEntry<ConveyorType, Direction>> generateStatePairs() {
+    List<SimpleImmutableEntry<ConveyorType, Direction>> pairs = new LinkedList<>();
+    for (ConveyorType t : ConveyorType.values()) {
+      for (Direction d : BlockStateProperties.HORIZONTAL_FACING.getAllowedValues()) {
+        pairs.add(new SimpleImmutableEntry<>(t, d));
+      }
+    }
+    return pairs;
   }
 
   @Override
@@ -173,7 +208,7 @@ public class BlockConveyor extends BlockBase implements IWaterLoggable {
           return ANGLEWEST;
         case DOWN:
         case UP:
-        break;
+          break;
       }
       if (state.get(TYPE) == ConveyorType.DOWN) {
         switch (facing) {
@@ -187,7 +222,7 @@ public class BlockConveyor extends BlockBase implements IWaterLoggable {
             return ANGLEEAST;
           case DOWN:
           case UP:
-          break;
+            break;
         }
       }
     }
@@ -216,16 +251,14 @@ public class BlockConveyor extends BlockBase implements IWaterLoggable {
       this.setConnectedColour(world, pos, newc, 0);
       return ActionResultType.SUCCESS;
       //  }
-    }
-    else if (heldItem == Items.REDSTONE_TORCH) {
+    } else if (heldItem == Items.REDSTONE_TORCH) {
       //speed toggle
       ConveyorSpeed speed = state.get(SPEED);
       if (world.setBlockState(pos, state.with(SPEED, speed.getNext()))) {
         this.setConnectedSpeed(world, pos, speed.getNext(), 0);
         return ActionResultType.SUCCESS;
       }
-    }
-    else if (heldItem.isIn(DataTags.WRENCH)) {
+    } else if (heldItem.isIn(DataTags.WRENCH)) {
       SimpleImmutableEntry<ConveyorType, Direction> nextState = nextConnectedState(state.get(TYPE), state.get(BlockStateProperties.HORIZONTAL_FACING));
       boolean success = world.setBlockState(pos, state.with(TYPE, nextState.getKey()).with(BlockStateProperties.HORIZONTAL_FACING, nextState.getValue()));
       if (success) {
@@ -246,6 +279,24 @@ public class BlockConveyor extends BlockBase implements IWaterLoggable {
     }
     return null;
   }
+  //  @Override
+  //  public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
+  //    if (!world.isRemote && entity instanceof ItemEntity && !(entity instanceof ConveyorItemEntity)) {
+  //      ItemEntity e = (ItemEntity) entity;
+  //      //I wanted to make it a custom entity that will just ride on the conveyor somewhat stationary but it's proving problematic
+  //      //ConveyorItemEntity c = new ConveyorItemEntity(world, e.getPosX(), e.getPosY(), e.getPosZ(), e.getItem());
+  //      //ItemEntity e2 = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(Blocks.PUMPKIN, 1));
+  //      //world.addEntity(e2);
+  //      //world.addEntity(c);
+  //      //c.setThrowerId(e.getThrowerId());
+  //      //c.setMotion(e.getMotion());
+  //      //c.setNoDespawn();
+  //      //c.setDefaultPickupDelay();
+  //      //e.setItem(ItemStack.EMPTY);
+  //      //e.remove();
+  //    }
+  //    super.onEntityCollision(state, world, pos, entity);
+  //  }
 
   private void setConnectedColour(World world, BlockPos pos, DyeColor speedIn, int maxRecursive) {
     if (maxRecursive > MAX_CONNECTED_UPDATE) {
@@ -309,24 +360,6 @@ public class BlockConveyor extends BlockBase implements IWaterLoggable {
     world.setBlockState(pos, state.with(BlockStateProperties.HORIZONTAL_FACING, facing).with(SPEED, speed).with(TYPE, type).with(COLOUR, col), 2);
     super.onBlockPlacedBy(world, pos, state, placer, stack);
   }
-  //  @Override
-  //  public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
-  //    if (!world.isRemote && entity instanceof ItemEntity && !(entity instanceof ConveyorItemEntity)) {
-  //      ItemEntity e = (ItemEntity) entity;
-  //      //I wanted to make it a custom entity that will just ride on the conveyor somewhat stationary but it's proving problematic
-  //      //ConveyorItemEntity c = new ConveyorItemEntity(world, e.getPosX(), e.getPosY(), e.getPosZ(), e.getItem());
-  //      //ItemEntity e2 = new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(Blocks.PUMPKIN, 1));
-  //      //world.addEntity(e2);
-  //      //world.addEntity(c);
-  //      //c.setThrowerId(e.getThrowerId());
-  //      //c.setMotion(e.getMotion());
-  //      //c.setNoDespawn();
-  //      //c.setDefaultPickupDelay();
-  //      //e.setItem(ItemStack.EMPTY);
-  //      //e.remove();
-  //    }
-  //    super.onEntityCollision(state, world, pos, entity);
-  //  }
 
   @Override
   protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
@@ -352,42 +385,5 @@ public class BlockConveyor extends BlockBase implements IWaterLoggable {
       worldIn.getPendingFluidTicks().scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(worldIn));
     }
     return super.updatePostPlacement(stateIn, facing, facingState, worldIn, currentPos, facingPos);
-  }
-
-  public static SimpleImmutableEntry<ConveyorType, Direction> nextState(ConveyorType t, Direction d) {
-    SimpleImmutableEntry<ConveyorType, Direction> pair = new SimpleImmutableEntry<>(t, d);
-    if (STATE_PAIRS.contains(pair)) {
-      int index = STATE_PAIRS.indexOf(pair) + 1;
-      return nextState(STATE_PAIRS, index);
-    }
-    return pair;
-  }
-
-  public static SimpleImmutableEntry<ConveyorType, Direction> nextConnectedState(ConveyorType t, Direction d) {
-    List<SimpleImmutableEntry<ConveyorType, Direction>> connectedStates = STATE_PAIRS.stream().filter(pair -> pair.getValue() == d).collect(Collectors.toList());
-    SimpleImmutableEntry<ConveyorType, Direction> pair = new SimpleImmutableEntry<>(t, d);
-    if (connectedStates.contains(pair)) {
-      int index = connectedStates.indexOf(pair) + 1;
-      return nextState(connectedStates, index);
-    }
-    return pair;
-  }
-
-  private static SimpleImmutableEntry<ConveyorType, Direction> nextState(List<SimpleImmutableEntry<ConveyorType, Direction>> list, int index) {
-    return list.get(nextIndex(list, index));
-  }
-
-  private static int nextIndex(List<SimpleImmutableEntry<ConveyorType, Direction>> list, int index) {
-    return index >= list.size() ? index % list.size() : index;
-  }
-
-  public static List<SimpleImmutableEntry<ConveyorType, Direction>> generateStatePairs() {
-    List<SimpleImmutableEntry<ConveyorType, Direction>> pairs = new LinkedList<>();
-    for (ConveyorType t : ConveyorType.values()) {
-      for (Direction d : BlockStateProperties.HORIZONTAL_FACING.getAllowedValues()) {
-        pairs.add(new SimpleImmutableEntry<>(t, d));
-      }
-    }
-    return pairs;
   }
 }

@@ -108,7 +108,7 @@ public class BlockFluidTank extends BlockBase {
 
   @Override
   public List<ItemStack> getDrops(BlockState state, net.minecraft.loot.LootContext.Builder builder) {
-    //because harvestBlock manually forces a drop 
+    //because harvestBlock manually forces a drop
     return new ArrayList<>();
   }
 
@@ -123,8 +123,7 @@ public class BlockFluidTank extends BlockBase {
           storageTile.fill(storage.getFluidInTank(0), FluidAction.EXECUTE);
         }
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       ModCyclic.LOGGER.error("Error during fill from item ", e);
     }
     //set default state
@@ -141,12 +140,12 @@ public class BlockFluidTank extends BlockBase {
       // note a DIFFERENT cap here for the item
       IFluidHandler fluidInStack = tankStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).orElse(null);
       if (fluidInStack != null) {
-        //now give 
+        //now give
         FluidStack fs = fluidInTile.getFluidInTank(0);
         ((FluidHandlerCapabilityStack) fluidInStack).setFluid(fs);
       }
     }
-    if (world.isRemote == false) {
+    if (!world.isRemote) {
       world.addEntity(new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), tankStack));
     }
   }

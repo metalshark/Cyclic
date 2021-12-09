@@ -46,6 +46,44 @@ public class EnderBookItem extends ItemBase {
     super(properties);
   }
 
+  public static void cancelTeleport(ItemStack stack) {
+    stack.getOrCreateTag().remove(TELEPORT_COUNTDOWN);
+  }
+
+  private static BlockPosDim getLocation(ItemStack stack, int enderSlot) {
+    IItemHandler cap = stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
+    if (cap != null) {
+      return LocationGpsCard.getPosition(cap.getStackInSlot(enderSlot));
+    }
+    return null;
+  }
+
+  public static void scroll(ServerPlayerEntity player, int slot, boolean isDown) {
+    ItemStack book = player.inventory.getStackInSlot(slot);
+    if (book.hasTag()) {
+      int enderslot = book.getTag().getInt(ENDERSLOT);
+      enderslot = scrollSlot(isDown, enderslot);
+      book.getTag().putInt(ENDERSLOT, enderslot % CapabilityProviderEnderBook.SLOTS);
+      BlockPosDim loc = EnderBookItem.getLocation(book, enderslot);
+      //      if (loc != null &&
+      String msg = "---";
+      if (loc != null) {
+        msg = loc.getDisplayString();
+      }
+      UtilChat.addServerChatMessage(player, new StringTextComponent(book.getTag().getInt(ENDERSLOT) + " : ").appendString(msg));
+    }
+  }
+
+  private static int scrollSlot(final boolean isDown, int enderslot) {
+    enderslot += isDown ? -1 : 1;
+    if (enderslot < 0) {
+      enderslot = CapabilityProviderEnderBook.SLOTS - 1;
+    } else if (enderslot >= CapabilityProviderEnderBook.SLOTS) {
+      enderslot = 0;
+    }
+    return enderslot;
+  }
+
   @Override
   @OnlyIn(Dist.CLIENT)
   public void addInformation(ItemStack stack, World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
@@ -107,16 +145,14 @@ public class EnderBookItem extends ItemBase {
             loc.getPos() != null) {
           if (loc.getDimension().equalsIgnoreCase(UtilWorld.dimensionToString(worldIn))) {
             UtilEntity.enderTeleportEvent(p, worldIn, loc.getPos());
-          }
-          else if (!worldIn.isRemote) {
+          } else if (!worldIn.isRemote) {
             UtilEntity.dimensionTeleport((ServerPlayerEntity) p, (ServerWorld) worldIn, loc);
           }
           // done
           UtilItemStack.damageItem(p, stack);
           return;
         }
-      }
-      else if (ct % 20 == 0 && entityIn instanceof PlayerEntity) {
+      } else if (ct % 20 == 0 && entityIn instanceof PlayerEntity) {
         UtilChat.sendStatusMessage((PlayerEntity) entityIn, new TranslationTextComponent("item.cyclic.ender_book.countdown").appendString("" + (ct / 20)));
       }
       ct--;
@@ -132,18 +168,6 @@ public class EnderBookItem extends ItemBase {
   @Override
   public boolean isRepairable(ItemStack stack) {
     return true;
-  }
-
-  public static void cancelTeleport(ItemStack stack) {
-    stack.getOrCreateTag().remove(TELEPORT_COUNTDOWN);
-  }
-
-  private static BlockPosDim getLocation(ItemStack stack, int enderSlot) {
-    IItemHandler cap = stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
-    if (cap != null) {
-      return LocationGpsCard.getPosition(cap.getStackInSlot(enderSlot));
-    }
-    return null;
   }
 
   @Override
@@ -182,32 +206,5 @@ public class EnderBookItem extends ItemBase {
       stackTag.putInt(ITEMCOUNT, nbt.getInt(ITEMCOUNT));
     }
     super.readShareTag(stack, nbt);
-  }
-
-  public static void scroll(ServerPlayerEntity player, int slot, boolean isDown) {
-    ItemStack book = player.inventory.getStackInSlot(slot);
-    if (book.hasTag()) {
-      int enderslot = book.getTag().getInt(ENDERSLOT);
-      enderslot = scrollSlot(isDown, enderslot);
-      book.getTag().putInt(ENDERSLOT, enderslot % CapabilityProviderEnderBook.SLOTS);
-      BlockPosDim loc = EnderBookItem.getLocation(book, enderslot);
-      //      if (loc != null &&
-      String msg = "---";
-      if (loc != null) {
-        msg = loc.getDisplayString();
-      }
-      UtilChat.addServerChatMessage(player, new StringTextComponent(book.getTag().getInt(ENDERSLOT) + " : ").appendString(msg));
-    }
-  }
-
-  private static int scrollSlot(final boolean isDown, int enderslot) {
-    enderslot += isDown ? -1 : 1;
-    if (enderslot < 0) {
-      enderslot = CapabilityProviderEnderBook.SLOTS - 1;
-    }
-    else if (enderslot >= CapabilityProviderEnderBook.SLOTS) {
-      enderslot = 0;
-    }
-    return enderslot;
   }
 }

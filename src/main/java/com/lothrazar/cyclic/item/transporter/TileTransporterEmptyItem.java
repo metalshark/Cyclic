@@ -1,18 +1,18 @@
 /*******************************************************************************
  * The MIT License (MIT)
- * 
+ *
  * Copyright (C) 2014-2018 Sam Bassett (aka Lothrazar)
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -55,6 +55,53 @@ public class TileTransporterEmptyItem extends ItemBase {
     super(prop);
   }
 
+  public static void gatherTileEntity(BlockPos pos, PlayerEntity player, World world, TileEntity tile) {
+    if (tile == null) {
+      return;
+    } //was block destroyed before this packet and/or thread resolved? server desync? who knows https://github.com/PrinceOfAmber/Cyclic/issues/487
+    BlockState state = world.getBlockState(pos);
+    //bedrock returns ZERO for this hardness
+    if (state.getPlayerRelativeBlockHardness(player, world, pos) <= 0) {
+      return;
+    }
+    CompoundNBT tileData = new CompoundNBT();
+    //thanks for the tip on setting tile entity data from nbt tag:
+    //https://github.com/romelo333/notenoughwands1.8.8/blob/master/src/main/java/romelo333/notenoughwands/Items/DisplacementWand.java
+    tile.write(tileData);
+    CompoundNBT itemData = new CompoundNBT();
+    itemData.putString(TileTransporterItem.KEY_BLOCKNAME, state.getBlock().getTranslationKey());
+    itemData.put(TileTransporterItem.KEY_BLOCKTILE, tileData);
+    itemData.putString(TileTransporterItem.KEY_BLOCKID, state.getBlock().getRegistryName().toString());
+    itemData.put(TileTransporterItem.KEY_BLOCKSTATE, NBTUtil.writeBlockState(state));
+    Hand hand = Hand.MAIN_HAND;
+    ItemStack held = player.getHeldItem(hand);
+    if (held == null || !(held.getItem() instanceof TileTransporterEmptyItem)) {
+      hand = Hand.OFF_HAND;
+      held = player.getHeldItem(hand);
+    }
+    if (held != null && held.getCount() > 0) { //https://github.com/PrinceOfAmber/Cyclic/issues/181
+      if (held.getItem() instanceof TileTransporterEmptyItem) {
+        if (!UtilPlaceBlocks.destroyBlock(world, pos)) {
+          //we failed to break the block
+          // try to undo the break if we can
+          UtilChat.sendStatusMessage(player, "chest_sack.error.pickup");
+          world.setBlockState(pos, state);
+          return; // and dont drop the full item stack or shrink the empty just end
+        }
+        ItemStack drop = new ItemStack(ItemRegistry.tile_transporter);
+        drop.setTag(itemData);
+        UtilItemStack.drop(world, player.getPosition(), drop);
+        if (!player.isCreative() && held.getCount() > 0) {
+          held.shrink(1);
+          if (held.getCount() == 0) {
+            held = ItemStack.EMPTY;
+            player.setHeldItem(hand, ItemStack.EMPTY);
+          }
+        }
+      }
+    }
+  }
+
   @SuppressWarnings("unchecked")
   @Override
   public ActionResultType onItemUse(ItemUseContext context) {
@@ -79,52 +126,5 @@ public class TileTransporterEmptyItem extends ItemBase {
       PacketRegistry.INSTANCE.sendToServer(new PacketChestSack(pos));
     }
     return ActionResultType.SUCCESS;
-  }
-
-  public static void gatherTileEntity(BlockPos pos, PlayerEntity player, World world, TileEntity tile) {
-    if (tile == null) {
-      return;
-    } //was block destroyed before this packet and/or thread resolved? server desync? who knows https://github.com/PrinceOfAmber/Cyclic/issues/487
-    BlockState state = world.getBlockState(pos);
-    //bedrock returns ZERO for this hardness 
-    if (state.getPlayerRelativeBlockHardness(player, world, pos) <= 0) {
-      return;
-    }
-    CompoundNBT tileData = new CompoundNBT();
-    //thanks for the tip on setting tile entity data from nbt tag:
-    //https://github.com/romelo333/notenoughwands1.8.8/blob/master/src/main/java/romelo333/notenoughwands/Items/DisplacementWand.java
-    tile.write(tileData);
-    CompoundNBT itemData = new CompoundNBT();
-    itemData.putString(TileTransporterItem.KEY_BLOCKNAME, state.getBlock().getTranslationKey());
-    itemData.put(TileTransporterItem.KEY_BLOCKTILE, tileData);
-    itemData.putString(TileTransporterItem.KEY_BLOCKID, state.getBlock().getRegistryName().toString());
-    itemData.put(TileTransporterItem.KEY_BLOCKSTATE, NBTUtil.writeBlockState(state));
-    Hand hand = Hand.MAIN_HAND;
-    ItemStack held = player.getHeldItem(hand);
-    if (held == null || held.getItem() instanceof TileTransporterEmptyItem == false) {
-      hand = Hand.OFF_HAND;
-      held = player.getHeldItem(hand);
-    }
-    if (held != null && held.getCount() > 0) { //https://github.com/PrinceOfAmber/Cyclic/issues/181
-      if (held.getItem() instanceof TileTransporterEmptyItem) {
-        if (!UtilPlaceBlocks.destroyBlock(world, pos)) {
-          //we failed to break the block
-          // try to undo the break if we can
-          UtilChat.sendStatusMessage(player, "chest_sack.error.pickup");
-          world.setBlockState(pos, state);
-          return; // and dont drop the full item stack or shrink the empty just end
-        }
-        ItemStack drop = new ItemStack(ItemRegistry.tile_transporter);
-        drop.setTag(itemData);
-        UtilItemStack.drop(world, player.getPosition(), drop);
-        if (player.isCreative() == false && held.getCount() > 0) {
-          held.shrink(1);
-          if (held.getCount() == 0) {
-            held = ItemStack.EMPTY;
-            player.setHeldItem(hand, ItemStack.EMPTY);
-          }
-        }
-      }
-    }
   }
 }

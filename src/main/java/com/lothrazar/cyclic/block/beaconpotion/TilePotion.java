@@ -6,6 +6,7 @@ import com.lothrazar.cyclic.data.EntityFilterType;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -32,23 +33,15 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TilePotion extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    TIMER, REDSTONE, RANGE, ENTITYTYPE;
-  }
-
   static final int MAX = 64000;
-  private static final int TICKS_FIRE_PER = 60;
   //so if a potion has a duration of 1 second, use this many ticks
   static final int TICKS_PER_DURATION = 160000;
+  private static final int TICKS_FIRE_PER = 60;
   private static final int POTION_TICKS = 20 * 20; //cant be too low BC night vision flicker
   //  private static final int MAX_RADIUS = 8;
   private static final int MAX_RADIUS = 64;
-  private int radius = MAX_RADIUS;
   public static IntValue POWERCONF;
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
-  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
-  /** Primary potion effect given by this beacon. */
-  private List<EffectInstance> effects = new ArrayList<>();
   EntityFilterType entityFilter = EntityFilterType.PLAYERS;
   ItemStackHandler inventory = new ItemStackHandler(1) {
 
@@ -58,6 +51,12 @@ public class TilePotion extends TileEntityBase implements INamedContainerProvide
       return newEffects.size() > 0;
     }
   };
+  private int radius = MAX_RADIUS;
+  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
+  /**
+   * Primary potion effect given by this beacon.
+   */
+  private List<EffectInstance> effects = new ArrayList<>();
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
 
   public TilePotion() {
@@ -67,6 +66,9 @@ public class TilePotion extends TileEntityBase implements INamedContainerProvide
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
@@ -119,7 +121,14 @@ public class TilePotion extends TileEntityBase implements INamedContainerProvide
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     this.radius = tag.getInt("radius");
     entityFilter = EntityFilterType.values()[tag.getInt("entityFilter")];
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
@@ -137,6 +146,7 @@ public class TilePotion extends TileEntityBase implements INamedContainerProvide
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("radius", radius);
@@ -193,8 +203,7 @@ public class TilePotion extends TileEntityBase implements INamedContainerProvide
         if (entity.isPotionActive(eff.getPotion())) {
           //important to use combine for thing effects that apply attributes such as health
           entity.getActivePotionEffect(eff.getPotion()).combine(eff);
-        }
-        else {
+        } else {
           entity.addPotionEffect(new EffectInstance(eff.getPotion(), POTION_TICKS, eff.getAmplifier(), true, showParticles));
         }
       }
@@ -229,22 +238,21 @@ public class TilePotion extends TileEntityBase implements INamedContainerProvide
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case TIMER:
         this.timer = value;
-      break;
+        break;
       case ENTITYTYPE:
         value = value % EntityFilterType.values().length;
         this.entityFilter = EntityFilterType.values()[value];
-      break;
+        break;
       case RANGE:
         if (value > MAX_RADIUS) {
           radius = MAX_RADIUS;
-        }
-        else {
+        } else {
           this.radius = Math.min(value, MAX_RADIUS);
         }
-      break;
+        break;
     }
   }
 
@@ -265,5 +273,9 @@ public class TilePotion extends TileEntityBase implements INamedContainerProvide
 
   private int getTimerSeconds() {
     return timer / 20;
+  }
+
+  static enum Fields {
+    TIMER, REDSTONE, RANGE, ENTITYTYPE;
   }
 }

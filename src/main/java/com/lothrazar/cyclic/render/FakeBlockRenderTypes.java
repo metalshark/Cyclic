@@ -8,13 +8,8 @@ import org.lwjgl.opengl.GL11;
 
 /**
  * Render Types with help from direwolf20 MIT open source project https://github.com/Direwolf20-MC/BuildingGadgets/blob/1.15/LICENSE.md
- *
  */
 public class FakeBlockRenderTypes extends RenderType {
-
-  public FakeBlockRenderTypes(String nameIn, VertexFormat formatIn, int drawModeIn, int bufferSizeIn, boolean useDelegateIn, boolean needsSortingIn, Runnable setupTaskIn, Runnable clearTaskIn) {
-    super(nameIn, formatIn, drawModeIn, bufferSizeIn, useDelegateIn, needsSortingIn, setupTaskIn, clearTaskIn);
-  }
 
   /**
    * laser rendering from this MIT project https://github.com/Direwolf20-MC/DireGoo2/blob/master/LICENSE.md
@@ -64,4 +59,8 @@ public class FakeBlockRenderTypes extends RenderType {
           .lightmap(LIGHTMAP_DISABLED)
           .writeMask(COLOR_DEPTH_WRITE)
           .build(false));
+
+  public FakeBlockRenderTypes(String nameIn, VertexFormat formatIn, int drawModeIn, int bufferSizeIn, boolean useDelegateIn, boolean needsSortingIn, Runnable setupTaskIn, Runnable clearTaskIn) {
+    super(nameIn, formatIn, drawModeIn, bufferSizeIn, useDelegateIn, needsSortingIn, setupTaskIn, clearTaskIn);
+  }
 }

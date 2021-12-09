@@ -13,6 +13,9 @@ public class TileMoon extends TileEntityBase implements ITickableTileEntity {
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     //if we are going from unpowered to powered, meaning state isnt set but power is
     if (world instanceof ServerWorld) {
       ServerWorld sw = (ServerWorld) world;
@@ -25,15 +28,15 @@ public class TileMoon extends TileEntityBase implements ITickableTileEntity {
         if (newPower != this.getBlockState().get(BlockMoon.LEVEL)) {
           world.setBlockState(pos, this.getBlockState().with(BlockMoon.LEVEL, newPower));
         }
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         //
       }
     }
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {

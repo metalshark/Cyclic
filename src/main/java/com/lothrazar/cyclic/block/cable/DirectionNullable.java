@@ -8,6 +8,13 @@ public enum DirectionNullable implements IStringSerializable {
 
   DOWN, UP, NORTH, SOUTH, WEST, EAST, NONE;
 
+  public static DirectionNullable fromDirection(Direction d) {
+    if (d == null) {
+      return NONE;
+    }
+    return values()[d.ordinal()];
+  }
+
   @Override
   public String getString() {
     return this.name().toLowerCase(Locale.ENGLISH);
@@ -18,13 +25,6 @@ public enum DirectionNullable implements IStringSerializable {
       return values()[d.ordinal()];
     }
     return NONE;
-  }
-
-  public static DirectionNullable fromDirection(Direction d) {
-    if (d == null) {
-      return NONE;
-    }
-    return values()[d.ordinal()];
   }
 
   public Direction direction() {

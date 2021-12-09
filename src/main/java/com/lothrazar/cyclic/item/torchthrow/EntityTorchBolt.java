@@ -53,8 +53,7 @@ public class EntityTorchBolt extends ProjectileItemEntity {
         target.attackEntityFrom(DamageSource.causeThrownDamage(this, this.func_234616_v_()), 0);
       }
       UtilItemStack.drop(world, target.getPosition(), new ItemStack(Items.TORCH));
-    }
-    else if (type == RayTraceResult.Type.BLOCK) {
+    } else if (type == RayTraceResult.Type.BLOCK) {
       BlockRayTraceResult bRayTrace = (BlockRayTraceResult) result;
       Direction offset = bRayTrace.getFace();
       BlockPos pos = bRayTrace.getPos().offset(offset);
@@ -65,22 +64,19 @@ public class EntityTorchBolt extends ProjectileItemEntity {
           newstate = Blocks.TORCH.getDefaultState();
           if (newstate.isValidPosition(world, pos)) {
             itPlaced = world.setBlockState(pos, newstate);
-          }
-          else {
-            //HAX for making it feel better tu use, these almost never fire 
+          } else {
+            //HAX for making it feel better tu use, these almost never fire
             if (newstate.isValidPosition(world, pos.down())
                 && world.isAirBlock(pos.down())) {
               itPlaced = world.setBlockState(pos.down(), newstate);
-            }
-            else {
+            } else {
               if (newstate.isValidPosition(world, pos.up())
                   && world.isAirBlock(pos.up())) {
                 itPlaced = world.setBlockState(pos.up(), newstate);
               }
             }
           }
-        }
-        else {
+        } else {
           BlockState testMeState = Blocks.WALL_TORCH.getDefaultState();
           for (Direction direction : Direction.values()) {
             if (direction.getAxis().isHorizontal()) {

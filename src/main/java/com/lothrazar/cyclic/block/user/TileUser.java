@@ -6,6 +6,7 @@ import com.lothrazar.cyclic.capability.CustomEnergyStorage;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import java.lang.ref.WeakReference;
 import java.util.UUID;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -32,12 +33,8 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileUser extends TileEntityBase implements ITickableTileEntity, INamedContainerProvider {
 
+  static final int MAX = 640000;
   public static IntValue POWERCONF;
-
-  static enum Fields {
-    REDSTONE, TIMER, TIMERDEL, RENDER;
-  }
-
   ItemStackHandler inventory = new ItemStackHandler(1);
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX / 4);
   private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
@@ -45,7 +42,6 @@ public class TileUser extends TileEntityBase implements ITickableTileEntity, INa
   private WeakReference<FakePlayer> fakePlayer;
   private UUID uuid;
   private int timerDelay = 20;
-  static final int MAX = 640000;
 
   public TileUser() {
     super(TileRegistry.user);
@@ -54,11 +50,14 @@ public class TileUser extends TileEntityBase implements ITickableTileEntity, INa
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.requiresRedstone() && !this.isPowered()) {
       return;
     }
-    if (world.isRemote || !(world instanceof ServerWorld)) {
+    if (!(world instanceof ServerWorld)) {
       return;
     }
     if (timer > 0) {
@@ -80,7 +79,7 @@ public class TileUser extends TileEntityBase implements ITickableTileEntity, INa
         //not enough cost
         return;
       }
-      //i dont care if result is SUCCESS or FAIL. still drain power every time. 
+      //i dont care if result is SUCCESS or FAIL. still drain power every time.
       //user can turn off with redstone if they want to save power
       energy.extractEnergy(repair, false);
     }
@@ -93,10 +92,10 @@ public class TileUser extends TileEntityBase implements ITickableTileEntity, INa
           fakePlayer.get().getHeldItem(Hand.MAIN_HAND).getTag() != null) {
         //        boolean water = fakePlayer.get().getHeldItem(Hand.MAIN_HAND).getTag().getBoolean("Water");
         ModCyclic.LOGGER.info(registryItem + " id hack ");
-        //hack around mysttical ag id throttling   fail system 
-        //when they fill water, id is set. uses id and gametime 
+        //hack around mysttical ag id throttling   fail system
+        //when they fill water, id is set. uses id and gametime
         //to reject actions to 'throttle'. but fakeplayer confuses this
-        fakePlayer.get().getHeldItem(Hand.MAIN_HAND).getTag().putString("ID", UUID.randomUUID().toString());
+        fakePlayer.get().getHeldItem(Hand.MAIN_HAND).getTag().remove("ID");
         //after this hack. they still return type FAIL
         //but the plants grow and the watering DOES happen
         //        https://github.com/BlakeBr0/MysticalAgriculture/blob/f60de3510c694082acf5ff63299f119ab4a9d9a9/src/main/java/com/blakebr0/mysticalagriculture/item/WateringCanItem.java#L144
@@ -107,8 +106,7 @@ public class TileUser extends TileEntityBase implements ITickableTileEntity, INa
       TileEntityBase.rightClickBlock(fakePlayer, world, target, Hand.MAIN_HAND, null);
       // ModCyclic.LOGGER.info(result + " user resut " + target + "; held = " + fakePlayer.get().getHeldItem(Hand.MAIN_HAND));
       TileEntityBase.syncEquippedItem(inventoryCap, fakePlayer, 0, Hand.MAIN_HAND);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       ModCyclic.LOGGER.error("User action item error", e);
     }
     tryDumpFakePlayerInvo(fakePlayer, false);
@@ -119,16 +117,16 @@ public class TileUser extends TileEntityBase implements ITickableTileEntity, INa
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case TIMER:
         this.timer = value;
-      break;
+        break;
       case TIMERDEL:
         this.timerDelay = value;
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
     }
   }
 
@@ -159,7 +157,14 @@ public class TileUser extends TileEntityBase implements ITickableTileEntity, INa
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     timerDelay = tag.getInt("delay");
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
     inventory.deserializeNBT(tag.getCompound(NBTINV));
@@ -169,6 +174,7 @@ public class TileUser extends TileEntityBase implements ITickableTileEntity, INa
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("delay", timerDelay);
@@ -188,5 +194,9 @@ public class TileUser extends TileEntityBase implements ITickableTileEntity, INa
   @Override
   public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
     return new ContainerUser(i, world, pos, playerInventory, playerEntity);
+  }
+
+  static enum Fields {
+    REDSTONE, TIMER, TIMERDEL, RENDER;
   }
 }

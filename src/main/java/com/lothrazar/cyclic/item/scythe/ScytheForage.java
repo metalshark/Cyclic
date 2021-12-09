@@ -33,12 +33,12 @@ import net.minecraft.util.math.BlockPos;
 
 public class ScytheForage extends ItemBase {
 
+  private static final int RADIUS = 6; //13x13
+  private static final int RADIUS_SNEAKING = 2; //2x2
+
   public ScytheForage(Properties properties) {
     super(properties);
   }
-
-  private static final int RADIUS = 6; //13x13
-  private static final int RADIUS_SNEAKING = 2; //2x2
 
   @Override
   public ActionResultType onItemUse(ItemUseContext context) {

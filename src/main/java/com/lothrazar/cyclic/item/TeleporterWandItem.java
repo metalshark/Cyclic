@@ -83,7 +83,7 @@ public class TeleporterWandItem extends ItemBase {
         Direction face = blockRayTraceResult.getFace();
         BlockPos newPos = blockRayTraceResult.getPos().offset(face);
         BlockPos oldPos = player.getPosition();
-        if (UtilEntity.enderTeleportEvent(player, world, newPos)) { // && player.getPosition() != currentPlayerPos    
+        if (UtilEntity.enderTeleportEvent(player, world, newPos)) { // && player.getPosition() != currentPlayerPos
           UtilItemStack.damageItem(player, stack);
           if (world.isRemote) {
             UtilParticle.spawnParticleBeam(world, ParticleTypes.PORTAL, oldPos, newPos, RANGE.get());

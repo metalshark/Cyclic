@@ -50,8 +50,7 @@ public class TexturedProgress {
       Screen.blit(ms, relX, relY, 0, 0, width, height, width, height * 2);
       int rHeight = height - (int) (height * Math.min(current / max, 1.0F));
       Screen.blit(ms, relX, relY, 0, height, width, rHeight, width, height * 2);
-    }
-    else { //Left-Right mode
+    } else { //Left-Right mode
       Screen.blit(ms, relX, relY, 0, height, width, height, width, height * 2);
       int rWidth = (int) (width * Math.min(current / max, 1.0F));
       if (current != 0) {
@@ -69,12 +68,10 @@ public class TexturedProgress {
         int minutes = seconds / 60;
         int remainder = seconds % 60;
         display = minutes + "m " + remainder + "s";
-      }
-      else if (curr > Const.TICKS_PER_SEC * 5) {
-        //if more than 20 seconds, show seconds not ticks 
+      } else if (curr > Const.TICKS_PER_SEC * 5) {
+        //if more than 20 seconds, show seconds not ticks
         display = seconds + "s";
-      }
-      else {
+      } else {
         display = curr + "t";
       }
       List<ITextComponent> list = new ArrayList<>();

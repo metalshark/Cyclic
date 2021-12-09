@@ -17,11 +17,11 @@ public class SwimEffect extends TickableEffect {
 
   @Override
   public void tick(LivingUpdateEvent event) {
-    // delete me i guess 
+    // delete me i guess
     LivingEntity entity = event.getEntityLiving();
     if (entity.isInWater()) {
       EffectInstance pot = entity.getActivePotionEffect(this);
-      int amp = pot.getAmplifier() + 4; //level I is zero,  II is one 
+      int amp = pot.getAmplifier() + 4; //level I is zero,  II is one
       UtilEntity.speedupEntityIfMoving(entity, speedfactor * amp);
     }
   }

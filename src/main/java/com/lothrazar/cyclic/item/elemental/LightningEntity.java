@@ -45,8 +45,7 @@ public class LightningEntity extends ProjectileItemEntity {
         lightningboltentity.moveForced(target.getPosX(), target.getPosY(), target.getPosZ());
         world.addEntity(lightningboltentity);
       }
-    }
-    else if (type == RayTraceResult.Type.BLOCK) {
+    } else if (type == RayTraceResult.Type.BLOCK) {
       //      BlockRayTraceResult bRayTrace = (BlockRayTraceResult) result;
       LightningBoltEntity lightningboltentity = EntityType.LIGHTNING_BOLT.create(world);
       lightningboltentity.moveForced(this.getPosition().getX(), this.getPosition().getY(), this.getPosition().getZ());

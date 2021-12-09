@@ -37,22 +37,21 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EnchantMagnet extends EnchantBase {
 
+  public static final String ID = "magnet";
+  private static final int ITEM_HRADIUS = 4;
+  private static final int HRADIUS_PER_LEVEL = 4;
+  private static final int ITEM_VRADIUS = 4;
+  public static BooleanValue CFG;
+
   public EnchantMagnet(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
     super(rarityIn, typeIn, slots);
     MinecraftForge.EVENT_BUS.register(this);
   }
 
-  public static BooleanValue CFG;
-  public static final String ID = "magnet";
-
   @Override
   public boolean isEnabled() {
     return CFG.get();
   }
-
-  private static final int ITEM_HRADIUS = 4;
-  private static final int HRADIUS_PER_LEVEL = 4;
-  private static final int ITEM_VRADIUS = 4;
 
   @Override
   public int getMaxLevel() {

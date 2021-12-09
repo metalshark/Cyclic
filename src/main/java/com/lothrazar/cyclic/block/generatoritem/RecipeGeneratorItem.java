@@ -2,8 +2,11 @@ package com.lothrazar.cyclic.block.generatoritem;
 
 import com.google.gson.JsonObject;
 import com.lothrazar.cyclic.ModCyclic;
+import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.recipe.CyclicRecipe;
 import com.lothrazar.cyclic.recipe.CyclicRecipeType;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.item.crafting.IRecipeType;
@@ -16,13 +19,14 @@ import net.minecraft.world.World;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 @SuppressWarnings("rawtypes")
-public class RecipeGeneratorItem<TileEntityBase> extends CyclicRecipe {
+public class RecipeGeneratorItem<T> extends CyclicRecipe {
 
-  private NonNullList<Ingredient> ingredients = NonNullList.create();
+  public static final SerializeGenerateItem SERIALGENERATOR = new SerializeGenerateItem();
+  private final NonNullList<Ingredient> ingredients = NonNullList.create();
   private int ticks;
   private int rfpertick;
 
-  public RecipeGeneratorItem(ResourceLocation id, Ingredient in, int ticks, int rfpertick) {
+  public RecipeGeneratorItem(@Nonnull final ResourceLocation id, @Nonnull final Ingredient in, int ticks, int rfpertick) {
     super(id);
     ingredients.add(in);
     this.setTicks(Math.max(1, ticks));
@@ -30,12 +34,11 @@ public class RecipeGeneratorItem<TileEntityBase> extends CyclicRecipe {
   }
 
   @Override
-  public boolean matches(com.lothrazar.cyclic.base.TileEntityBase inv, World worldIn) {
+  public boolean matches(@Nonnull final TileEntityBase inv, @Nonnull final World worldIn) {
     try {
       TileGeneratorDrops tile = (TileGeneratorDrops) inv;
       return matches(tile.inputSlots.getStackInSlot(0), ingredients.get(0));
-    }
-    catch (ClassCastException e) {
+    } catch (ClassCastException e) {
       return false;
     }
   }
@@ -45,9 +48,6 @@ public class RecipeGeneratorItem<TileEntityBase> extends CyclicRecipe {
       //it must be empty
       return current.isEmpty();
     }
-    if (current.isEmpty()) {
-      return ing == Ingredient.EMPTY;
-    }
     return ing.test(current);
   }
 
@@ -56,6 +56,7 @@ public class RecipeGeneratorItem<TileEntityBase> extends CyclicRecipe {
     return ing.getMatchingStacks();
   }
 
+  @Nonnull
   @Override
   public NonNullList<Ingredient> getIngredients() {
     return ingredients;
@@ -66,6 +67,7 @@ public class RecipeGeneratorItem<TileEntityBase> extends CyclicRecipe {
     return ItemStack.EMPTY;
   }
 
+  @Nonnull
   @Override
   public IRecipeType<?> getType() {
     return CyclicRecipeType.GENERATOR_ITEM;
@@ -96,8 +98,6 @@ public class RecipeGeneratorItem<TileEntityBase> extends CyclicRecipe {
     return this.getRfpertick() * this.getTicks();
   }
 
-  public static final SerializeGenerateItem SERIALGENERATOR = new SerializeGenerateItem();
-
   public static class SerializeGenerateItem extends ForgeRegistryEntry<IRecipeSerializer<?>> implements IRecipeSerializer<RecipeGeneratorItem<? extends com.lothrazar.cyclic.base.TileEntityBase>> {
 
     SerializeGenerateItem() {
@@ -108,9 +108,10 @@ public class RecipeGeneratorItem<TileEntityBase> extends CyclicRecipe {
     /**
      * The fluid stuff i was helped out a ton by looking at this https://github.com/mekanism/Mekanism/blob/921d10be54f97518c1f0cb5a6fc64bf47d5e6773/src/api/java/mekanism/api/SerializerHelper.java#L129
      */
+    @Nullable
     @SuppressWarnings("unchecked")
     @Override
-    public RecipeGeneratorItem<? extends com.lothrazar.cyclic.base.TileEntityBase> read(ResourceLocation recipeId, JsonObject json) {
+    public RecipeGeneratorItem<? extends TileEntityBase> read(@Nonnull final ResourceLocation recipeId, @Nonnull final JsonObject json) {
       RecipeGeneratorItem r = null;
       try {
         Ingredient inputFirst = Ingredient.deserialize(JSONUtils.getJsonObject(json, "fuel"));
@@ -121,23 +122,23 @@ public class RecipeGeneratorItem<TileEntityBase> extends CyclicRecipe {
         //        ResourceLocation resourceLocation = new ResourceLocation(fluidId);
         //        Fluid fluid = ForgeRegistries.FLUIDS.getValue(resourceLocation);
         r = new RecipeGeneratorItem(recipeId, inputFirst, ticks, rfpertick);
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         ModCyclic.LOGGER.error("Error loading recipe" + recipeId, e);
       }
-      ModCyclic.LOGGER.info("Recipe loaded " + r.getId().toString());
+      if (r != null) {
+        ModCyclic.LOGGER.info("Recipe loaded " + r.getId().toString());
+      }
       return r;
     }
 
     @Override
-    public RecipeGeneratorItem read(ResourceLocation recipeId, PacketBuffer buffer) {
-      RecipeGeneratorItem r = new RecipeGeneratorItem(recipeId, Ingredient.read(buffer), buffer.readInt(), buffer.readInt());
-      //server reading recipe from client or vice/versa 
-      return r;
+    public RecipeGeneratorItem<TileEntityBase> read(@Nonnull final ResourceLocation recipeId, @Nonnull final PacketBuffer buffer) {
+      //server reading recipe from client or vice/versa
+      return new RecipeGeneratorItem<>(recipeId, Ingredient.read(buffer), buffer.readInt(), buffer.readInt());
     }
 
     @Override
-    public void write(PacketBuffer buffer, RecipeGeneratorItem recipe) {
+    public void write(@Nonnull final PacketBuffer buffer, @Nonnull final RecipeGeneratorItem recipe) {
       Ingredient zero = (Ingredient) recipe.ingredients.get(0);
       zero.write(buffer);
       buffer.writeInt(recipe.getTicks());

@@ -14,8 +14,8 @@ import net.minecraft.util.text.ITextComponent;
 
 public class ScreenFilterCard extends ScreenBase<ContainerFilterCard> {
 
-  private ButtonTextured btnType;
   private final ContainerFilterCard screenContainer;
+  private ButtonTextured btnType;
 
   public ScreenFilterCard(ContainerFilterCard screenContainer, PlayerInventory inv, ITextComponent titleIn) {
     super(screenContainer, inv, titleIn);
@@ -58,8 +58,7 @@ public class ScreenFilterCard extends ScreenBase<ContainerFilterCard> {
       int y = 31;
       if (i == FilterCardItem.SLOT_FLUID) {
         this.drawSlot(ms, 7 + i * Const.SQ, y, TextureRegistry.SLOT_BUCKET, 18);
-      }
-      else {
+      } else {
         this.drawSlot(ms, 7 + i * Const.SQ, y);
       }
     }

@@ -17,8 +17,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class PlayerDataEvents {
 
-  public static Map<UUID, CyclicFile> DATA_QUEUE = new HashMap<>();
   public static final String FILE_EXT = ".dat";
+  public static Map<UUID, CyclicFile> DATA_QUEUE = new HashMap<>();
 
   public static CyclicFile getOrCreate(PlayerEntity player) {
     UUID id = player.getUniqueID();
@@ -33,7 +33,7 @@ public class PlayerDataEvents {
     PlayerEntity player = event.getPlayer();
     //if we have datas queued up to be saved
     if (DATA_QUEUE.containsKey(player.getUniqueID())) {
-      //yes i have data to save 
+      //yes i have data to save
       CyclicFile dataToSave = DATA_QUEUE.get(player.getUniqueID());
       CompoundNBT data = dataToSave.write();
       try {
@@ -42,8 +42,7 @@ public class PlayerDataEvents {
         CompressedStreamTools.writeCompressed(data, fileoutputstream);
         fileoutputstream.close();
         ModCyclic.LOGGER.info("Cyclic PlayerEvent.SaveToFile success" + data);
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         ModCyclic.LOGGER.error("IO cyclic file error", e);
       }
     }
@@ -65,8 +64,7 @@ public class PlayerDataEvents {
         CyclicFile dataLoaded = new CyclicFile(player.getUniqueID());
         dataLoaded.read(data);
         DATA_QUEUE.put(player.getUniqueID(), dataLoaded);
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         ModCyclic.LOGGER.error("IO error", e);
       }
     }

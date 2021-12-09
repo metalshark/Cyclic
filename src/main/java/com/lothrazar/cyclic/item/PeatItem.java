@@ -15,10 +15,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class PeatItem extends ItemBase {
 
-  public static enum PeatItemType {
-    BIOMASS, NORM, ENRICHED;
-  }
-
   public final PeatItemType type;
 
   public PeatItem(Properties properties, PeatItemType t) {
@@ -32,6 +28,19 @@ public class PeatItem extends ItemBase {
     super.addInformation(stack, worldIn, tooltip, flagIn);
     tooltip.add(new StringTextComponent(getPeatFuelValue() + "RF/t for " + TileGeneratorPeat.BURNTIME + " ticks").mergeStyle(TextFormatting.DARK_GREEN));
     //    if(stack.getBurnTime() > 0 )
+  }
+
+  public int getPeatFuelValue() {
+    switch (type) {
+      case BIOMASS:
+        return 10;
+      case NORM:
+        return ConfigRegistry.PEATPOWER.get();
+      case ENRICHED:
+        return ConfigRegistry.PEATERICHPOWER.get();
+      default:
+        return 0;
+    }
   }
   //
   //  @Override
@@ -47,16 +56,7 @@ public class PeatItem extends ItemBase {
   //    return super.getBurnTime(itemStack, recipeType);
   //  }
 
-  public int getPeatFuelValue() {
-    switch (type) {
-      case BIOMASS:
-        return 10;
-      case NORM:
-        return ConfigRegistry.PEATPOWER.get();
-      case ENRICHED:
-        return ConfigRegistry.PEATERICHPOWER.get();
-      default:
-        return 0;
-    }
+  public static enum PeatItemType {
+    BIOMASS, NORM, ENRICHED;
   }
 }

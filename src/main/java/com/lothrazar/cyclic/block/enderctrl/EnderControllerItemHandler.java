@@ -46,8 +46,7 @@ public class EnderControllerItemHandler extends ItemStackHandler {
         TileEnderShelf shelf = (TileEnderShelf) te;
         try {
           stack = insertItemActual(shelf, stack, insertWhenEmpty, simulate);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
           ModCyclic.LOGGER.error("Insert item shelf error", e);
         }
       }
@@ -62,8 +61,7 @@ public class EnderControllerItemHandler extends ItemStackHandler {
       ItemStack slotStack = shelf.inventory.getStackInSlot(i);
       if (slotStack.isEmpty()) {
         emptySlots.add(i);
-      }
-      else if (slotStack.getCount() < shelf.inventory.getStackLimit(i, stack) && UtilEnchant.doBookEnchantmentsMatch(stack, slotStack)) {
+      } else if (slotStack.getCount() < shelf.inventory.getStackLimit(i, stack) && UtilEnchant.doBookEnchantmentsMatch(stack, slotStack)) {
         return shelf.inventory.insertItem(i, stack, simulate);
       }
     }
@@ -110,7 +108,7 @@ public class EnderControllerItemHandler extends ItemStackHandler {
     }
     int shelf = slot / SLOTS_PER_SHELF;
     int realSlot = slot % SLOTS_PER_SHELF;
-    // 
+    //
     EnderShelfItemHandler handler = getHandlerAt(shelf);
     if (handler != null) {
       return handler.extractItem(realSlot, amount, simulate);
@@ -126,9 +124,8 @@ public class EnderControllerItemHandler extends ItemStackHandler {
       BlockPos extractPos = this.controller.getShelves().get(shelf);
       TileEntity te = this.controller.getWorld().getTileEntity(extractPos);
       return EnderShelfHelper.getShelfHandler(te);
-    }
-    catch (Exception e) {
-      return null; // index OOB, etc 
+    } catch (Exception e) {
+      return null; // index OOB, etc
     }
   }
 }

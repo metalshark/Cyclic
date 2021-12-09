@@ -60,8 +60,7 @@ public class EnderShelfRenderer extends TileEntityRenderer<TileEnderShelf> {
       // 0xF000F0
       Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.NONE, combinedLightIn, combinedOverlayIn, ms, buffer);
       ms.pop();
-    }
-    else if (tile.renderStyle == RenderTextType.TEXT) {
+    } else if (tile.renderStyle == RenderTextType.TEXT) {
       if (tile.inventory.nameCache[slot] == null || tile.inventory.nameCache[slot].isEmpty()) {
         Map<Enchantment, Integer> enchantments = EnchantmentHelper.deserializeEnchantments(EnchantedBookItem.getEnchantments(stack));
         for (Entry<Enchantment, Integer> entry : enchantments.entrySet()) {

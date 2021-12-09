@@ -26,7 +26,7 @@ public class RenderSolidifier extends TileEntityRenderer<TileSolidifier> {
 
   @Override
   public void render(TileSolidifier tankHere, float v, MatrixStack matrixStack,
-      IRenderTypeBuffer buffer, int light, int overlayLight) {
+                     IRenderTypeBuffer buffer, int light, int overlayLight) {
     IItemHandler itemHandler = tankHere.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, Direction.UP).orElse(null);
     if (itemHandler != null) {
       ItemStack stack = itemHandler.getStackInSlot(0);

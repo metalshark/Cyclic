@@ -6,6 +6,7 @@ import com.lothrazar.cyclic.registry.TileRegistry;
 import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.UUID;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -27,8 +28,9 @@ public class TileDiamondSpikes extends TileEntityBase implements ITickableTileEn
     super(TileRegistry.spikes_diamond);
   }
 
+  @Nonnull
   @Override
-  public CompoundNBT write(CompoundNBT tag) {
+  public CompoundNBT write(@Nonnull CompoundNBT tag) {
     if (uuid != null) {
       tag.putUniqueId("uuid", uuid);
     }
@@ -36,7 +38,7 @@ public class TileDiamondSpikes extends TileEntityBase implements ITickableTileEn
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     if (tag.contains("uuid")) {
       uuid = tag.getUniqueId("uuid");
     }
@@ -45,8 +47,10 @@ public class TileDiamondSpikes extends TileEntityBase implements ITickableTileEn
 
   @Override
   public void tick() {
-    if (timer > 0) {
-      timer--;
+    if (world == null || world.isRemote) {
+      return;
+    }
+    if (timer-- > 0) {
       return;
     }
     timer = world.rand.nextInt(24) + 12;
@@ -71,7 +75,8 @@ public class TileDiamondSpikes extends TileEntityBase implements ITickableTileEn
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {

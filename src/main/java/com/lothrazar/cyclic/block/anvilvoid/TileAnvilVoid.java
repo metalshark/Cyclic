@@ -7,6 +7,7 @@ import com.lothrazar.cyclic.data.DataTags;
 import com.lothrazar.cyclic.fluid.FluidXpJuiceHolder;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilSound;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -27,6 +28,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
@@ -34,13 +36,11 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileAnvilVoid extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    TIMER, REDSTONE;
-  }
-
   public static final int CAPACITY = 16 * FluidAttributes.BUCKET_VOLUME;
   public static IntValue FLUIDPAY;
   public static IntValue POWERCONF;
+  public FluidTankBase tank = new FluidTankBase(this, CAPACITY, fluidStack -> fluidStack.getFluid().isIn(DataTags.EXPERIENCE));
+  private LazyOptional<IFluidHandler> fluidHandlerLazyOptional = LazyOptional.of(() -> tank);
   ItemStackHandler inputSlots = new ItemStackHandler(1) {
 
     @Override
@@ -51,14 +51,10 @@ public class TileAnvilVoid extends TileEntityBase implements INamedContainerProv
   ItemStackHandler outputSlots = new ItemStackHandler(1);
   private ItemStackHandlerWrapper inventory = new ItemStackHandlerWrapper(inputSlots, outputSlots);
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
-  public FluidTankBase tank;
 
   public TileAnvilVoid() {
     super(TileRegistry.ANVILVOID.get());
     this.needsRedstone = 1;
-    tank = new FluidTankBase(this, CAPACITY, p -> {
-      return p.getFluid().isIn(DataTags.EXPERIENCE);
-    });
   }
 
   @Override
@@ -77,18 +73,26 @@ public class TileAnvilVoid extends TileEntityBase implements INamedContainerProv
       return inventoryCap.cast();
     }
     if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-      return LazyOptional.of(() -> tank).cast();
+      return fluidHandlerLazyOptional.cast();
     }
     return super.getCapability(cap, side);
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    fluidHandlerLazyOptional.invalidate();
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     tank.readFromNBT(tag.getCompound(NBTFLUID));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTINV, inventory.serializeNBT());
@@ -100,6 +104,9 @@ public class TileAnvilVoid extends TileEntityBase implements INamedContainerProv
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
@@ -107,7 +114,7 @@ public class TileAnvilVoid extends TileEntityBase implements INamedContainerProv
     }
     setLitProperty(true);
     //is output empty
-    if (outputSlots.getStackInSlot(0).isEmpty() == false) {
+    if (!outputSlots.getStackInSlot(0).isEmpty()) {
       return;
     }
     ItemStack stack = inventory.getStackInSlot(0);
@@ -116,8 +123,7 @@ public class TileAnvilVoid extends TileEntityBase implements INamedContainerProv
       inputSlots.extractItem(0, 1, false);
       outputSlots.insertItem(0, new ItemStack(Items.BOOK), false);
       doCost = true;
-    }
-    else if (stack.getTag() != null && stack.getTag().contains("Enchantments") && !stack.getItem().isIn(DataTags.ANVIL_IMMUNE)) {
+    } else if (stack.getTag() != null && stack.getTag().contains("Enchantments") && !stack.getItem().isIn(DataTags.ANVIL_IMMUNE)) {
       //is enchanted
       stack.getTag().remove("Enchantments");
       outputSlots.insertItem(0, stack.copy(), false);
@@ -128,7 +134,7 @@ public class TileAnvilVoid extends TileEntityBase implements INamedContainerProv
       UtilSound.playSound(world, pos, SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE);
       Fluid newFluid = FluidXpJuiceHolder.STILL.get();
       if (!this.getFluid().isEmpty()) {
-        //if its holding a tag compatible but different fluid, just fill 
+        //if its holding a tag compatible but different fluid, just fill
         newFluid = this.getFluid().getFluid();
       }
       tank.fill(new FluidStack(newFluid, FLUIDPAY.get()), FluidAction.EXECUTE);
@@ -136,13 +142,13 @@ public class TileAnvilVoid extends TileEntityBase implements INamedContainerProv
   }
 
   @Override
-  public void setFluid(FluidStack fluid) {
-    tank.setFluid(fluid);
+  public FluidStack getFluid() {
+    return tank == null ? FluidStack.EMPTY : tank.getFluid();
   }
 
   @Override
-  public FluidStack getFluid() {
-    return tank == null ? FluidStack.EMPTY : tank.getFluid();
+  public void setFluid(FluidStack fluid) {
+    tank.setFluid(fluid);
   }
 
   @Override
@@ -153,7 +159,7 @@ public class TileAnvilVoid extends TileEntityBase implements INamedContainerProv
       case TIMER:
         return this.timer;
       default:
-      break;
+        break;
     }
     return 0;
   }
@@ -163,10 +169,14 @@ public class TileAnvilVoid extends TileEntityBase implements INamedContainerProv
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case TIMER:
         this.timer = value;
-      break;
+        break;
     }
+  }
+
+  static enum Fields {
+    TIMER, REDSTONE;
   }
 }

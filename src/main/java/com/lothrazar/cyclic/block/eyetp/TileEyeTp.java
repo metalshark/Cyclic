@@ -4,6 +4,7 @@ import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilEntity;
 import com.lothrazar.cyclic.util.UtilPlayer;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
@@ -22,22 +23,22 @@ public class TileEyeTp extends TileEntityBase implements ITickableTileEntity {
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, @Nonnull CompoundNBT tag) {
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
-  public CompoundNBT write(CompoundNBT tag) {
+  public CompoundNBT write(@Nonnull CompoundNBT tag) {
     return super.write(tag);
   }
 
   @Override
   public void tick() {
-    if (world.isRemote) {
+    if (world == null || world.isRemote) {
       return;
     }
-    timer--;
-    if (timer > 0) {
+    if (timer-- > 0) {
       return;
     }
     timer = FREQUENCY.get();
@@ -57,11 +58,8 @@ public class TileEyeTp extends TileEntityBase implements ITickableTileEntity {
     if (player.isCreative()) {
       return true;
     }
-    if (EXP.get() > 0 && UtilPlayer.getExpTotal(player) < EXP.get()) {
-      return false;
-    }
+    return EXP.get() <= 0 || !(UtilPlayer.getExpTotal(player) < EXP.get());
     //ignore hunger. if its zero ya dyin anyway
-    return true;
   }
 
   private void payCost(PlayerEntity player) {
@@ -74,7 +72,8 @@ public class TileEyeTp extends TileEntityBase implements ITickableTileEntity {
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {

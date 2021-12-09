@@ -7,13 +7,12 @@ import net.minecraft.util.math.vector.Vector3f;
 
 /**
  * as of minecraft 1.16 much of this file contains code from this mod which is MIT License, the same as this project
- * 
+ * <p>
  * https://github.com/jaquadro/StorageDrawers/blob/1.16/LICENSE
- * 
  */
 public class UtilRenderText {
 
-  static final float[] SIDE_ROTATION = { 0, 0, 2, 0, 3, 1 };
+  static final float[] SIDE_ROTATION = {0, 0, 2, 0, 3, 1};
 
   public static void alignRendering(MatrixStack matrix, Direction side) {
     // Rotate to face the correct direction for the drawer's orientation.

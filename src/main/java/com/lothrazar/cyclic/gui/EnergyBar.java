@@ -10,15 +10,15 @@ import net.minecraft.util.text.TranslationTextComponent;
 
 public class EnergyBar {
 
-  private Screen parent;
-  private int x = 154;
-  private int y = 8;
   public int capacity;
-  private int width = 16;
-  private int height = 62;
   public int guiLeft;
   public int guiTop;
   public boolean visible = true;
+  private Screen parent;
+  private int x = 154;
+  private int y = 8;
+  private int width = 16;
+  private int height = 62;
 
   public EnergyBar(Screen parent, int cap) {
     this.parent = parent;

@@ -3,6 +3,7 @@ package com.lothrazar.cyclic.block.creativeitem;
 import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.capability.ItemStackHandlerWrapper;
 import com.lothrazar.cyclic.registry.TileRegistry;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -18,17 +19,17 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileItemInfinite extends TileEntityBase implements ITickableTileEntity {
 
-  public TileItemInfinite() {
-    super(TileRegistry.item_infinite);
-  }
-
   ItemStackHandler inputSlots = new ItemStackHandler(1);
   ItemStackHandler outputSlot = new ItemStackHandler(1);
   private ItemStackHandlerWrapper inventory = new ItemStackHandlerWrapper(inputSlots, outputSlot);
   private final LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
 
+  public TileItemInfinite() {
+    super(TileRegistry.item_infinite);
+  }
+
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, @Nonnull CompoundNBT tag) {
     super.read(bs, tag);
     inventory.deserializeNBT(tag.getCompound(NBTINV));
   }
@@ -42,6 +43,13 @@ public class TileItemInfinite extends TileEntityBase implements ITickableTileEnt
   }
 
   @Override
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Nonnull
+  @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTINV, inventory.serializeNBT());
     return super.write(tag);
@@ -54,6 +62,9 @@ public class TileItemInfinite extends TileEntityBase implements ITickableTileEnt
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     ItemStack stackHere = inputSlots.getStackInSlot(0);
     if (!stackHere.isEmpty()) {
       outputSlot.insertItem(0, stackHere.copy(), false);
@@ -61,7 +72,8 @@ public class TileItemInfinite extends TileEntityBase implements ITickableTileEnt
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {

@@ -25,6 +25,13 @@ public class FluidBiomassHolder {
   private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, ModCyclic.MODID);
   private static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(ForgeRegistries.FLUIDS, ModCyclic.MODID);
   private static final String id = "biomass";
+
+  public FluidBiomassHolder(IEventBus modEventBus) {
+    BLOCKS.register(modEventBus);
+    ITEMS.register(modEventBus);
+    FLUIDS.register(modEventBus);
+  }
+
   public static RegistryObject<FlowingFluid> STILL = FLUIDS.register(id, () -> new ForgeFlowingFluid.Source(FluidBiomassHolder.properties));
   public static RegistryObject<FlowingFluid> FLOWING = FLUIDS.register(id + "_flowing", () -> new ForgeFlowingFluid.Flowing(FluidBiomassHolder.properties));
   public static RegistryObject<FlowingFluidBlock> BLOCK = BLOCKS.register(id + "_block",
@@ -37,11 +44,7 @@ public class FluidBiomassHolder {
       FluidAttributes.builder(
           new ResourceLocation(ModCyclic.MODID + ":fluid/" + id + "_still"),
           new ResourceLocation(ModCyclic.MODID + ":fluid/" + id + "_flow")))
-              .bucket(BUCKET).block(BLOCK);
+      .bucket(BUCKET).block(BLOCK);
 
-  public FluidBiomassHolder(IEventBus modEventBus) {
-    BLOCKS.register(modEventBus);
-    ITEMS.register(modEventBus);
-    FLUIDS.register(modEventBus);
-  }
+
 }

@@ -63,7 +63,7 @@ public class BlockFanSlab extends BlockBase implements IWaterLoggable {
 
   public BlockFanSlab(Properties properties) {
     super(properties.hardnessAndResistance(0.8F).notSolid());
-    this.setDefaultState(this.stateContainer.getBaseState().with(WATERLOGGED, false).with(HORIZONTAL_FACING, Direction.NORTH).with(POWERED, Boolean.valueOf(false)).with(FACE, AttachFace.WALL));
+    this.setDefaultState(this.stateContainer.getBaseState().with(WATERLOGGED, false).with(HORIZONTAL_FACING, Direction.NORTH).with(POWERED, Boolean.FALSE).with(FACE, AttachFace.WALL));
   }
 
   @Override
@@ -112,8 +112,7 @@ public class BlockFanSlab extends BlockBase implements IWaterLoggable {
       default:
         if (direction.getAxis() == Direction.Axis.X) {
           return powered ? AABB_CEILING_X_ON : AABB_CEILING_X_OFF;
-        }
-        else {
+        } else {
           return powered ? AABB_CEILING_Z_ON : AABB_CEILING_Z_OFF;
         }
     }
@@ -140,8 +139,7 @@ public class BlockFanSlab extends BlockBase implements IWaterLoggable {
       BlockState blockstate;
       if (direction.getAxis() == Direction.Axis.Y) {
         blockstate = this.getDefaultState().with(FACE, direction == Direction.UP ? AttachFace.CEILING : AttachFace.FLOOR).with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing());
-      }
-      else {
+      } else {
         blockstate = this.getDefaultState().with(FACE, AttachFace.WALL).with(HORIZONTAL_FACING, direction.getOpposite());
       }
       if (blockstate.isValidPosition(context.getWorld(), context.getPos())) {
@@ -155,7 +153,7 @@ public class BlockFanSlab extends BlockBase implements IWaterLoggable {
   //    if (entity != null) {
   //      world.setBlockState(pos, state.with(HORIZONTAL_FACING, UtilBlockstates.getFacingFromEntity(pos, entity)), 2);
   //    }
-  //  } 
+  //  }
   //  @Override
   //  public BlockState getStateForPlacement(BlockItemUseContext context) {
   //    return super.getStateForPlacement(context)

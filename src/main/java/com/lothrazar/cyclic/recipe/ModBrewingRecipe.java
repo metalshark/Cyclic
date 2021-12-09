@@ -7,7 +7,6 @@ import net.minecraftforge.common.brewing.BrewingRecipe;
 
 /**
  * Thanks to Pull request #1485 by vemerion
- *
  */
 public class ModBrewingRecipe extends BrewingRecipe {
 

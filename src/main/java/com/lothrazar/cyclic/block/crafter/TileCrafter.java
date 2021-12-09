@@ -1,18 +1,18 @@
 /*******************************************************************************
  * The MIT License (MIT)
- * 
+ *
  * Copyright (C) 2014-2018 Sam Bassett (aka Lothrazar)
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -63,44 +64,39 @@ import net.minecraftforge.items.ItemStackHandler;
 @SuppressWarnings("unchecked")
 public class TileCrafter extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static final int MAX = 64000;
   public static final int TIMER_FULL = 40;
-  public static IntValue POWERCONF;
-  private CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
-  private final LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
-  ItemStackHandler inputHandler = new ItemStackHandler(IO_SIZE);
-  ItemStackHandler outHandler = new ItemStackHandler(IO_SIZE);
-  private final LazyOptional<IItemHandler> input = LazyOptional.of(() -> inputHandler);
-  private final LazyOptional<IItemHandler> output = LazyOptional.of(() -> outHandler);
-  private final LazyOptional<IItemHandler> gridCap = LazyOptional.of(() -> new ItemStackHandler(GRID_SIZE));
-  private final LazyOptional<IItemHandler> preview = LazyOptional.of(() -> new ItemStackHandler(1));
-  private ItemStackHandlerWrapper inventoryWrapper = new ItemStackHandlerWrapper(inputHandler, outHandler);
-  private final LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventoryWrapper);
   //
   public static final int IO_NUM_ROWS = 5;
   public static final int IO_NUM_COLS = 2;
   public static final int GRID_NUM_ROWS = 3;
   public static final int GRID_NUM_COLS = 3;
   public static final int IO_SIZE = IO_NUM_ROWS * IO_NUM_COLS;
+  public static final int GRID_SLOT_START = IO_SIZE;
   public static final int GRID_SIZE = GRID_NUM_ROWS * GRID_NUM_COLS;
   public static final int PREVIEW_SLOT = IO_SIZE * 2 + GRID_SIZE;
   public static final int OUTPUT_SLOT_START = IO_SIZE + GRID_SIZE;
   public static final int OUTPUT_SLOT_STOP = OUTPUT_SLOT_START + IO_SIZE - 1;
-  public static final int GRID_SLOT_START = IO_SIZE;
   public static final int GRID_SLOT_STOP = GRID_SLOT_START + GRID_SIZE - 1;
-  private boolean hasValidRecipe = false;
+  static final int MAX = 64000;
+  public static IntValue POWERCONF;
+  private final LazyOptional<IItemHandler> gridCap = LazyOptional.of(() -> new ItemStackHandler(GRID_SIZE));
+  private final LazyOptional<IItemHandler> preview = LazyOptional.of(() -> new ItemStackHandler(1));
+  private final CraftingInventory craftMatrix = new CraftingInventory(new FakeContainer(ContainerType.CRAFTING, 18291238), 3, 3);
   public boolean shouldSearch = true;
+  ItemStackHandler inputHandler = new ItemStackHandler(IO_SIZE);
+  private final LazyOptional<IItemHandler> input = LazyOptional.of(() -> inputHandler);
+  ItemStackHandler outHandler = new ItemStackHandler(IO_SIZE);
+  private final LazyOptional<IItemHandler> output = LazyOptional.of(() -> outHandler);
+  private CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
+  private final LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
+  private ItemStackHandlerWrapper inventoryWrapper = new ItemStackHandlerWrapper(inputHandler, outHandler);
+  private final LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventoryWrapper);
+  private boolean hasValidRecipe = false;
   private ArrayList<ItemStack> lastRecipeGrid = null;
   private IRecipe<?> lastValidRecipe = null;
   private ItemStack recipeOutput = ItemStack.EMPTY;
 
-  public enum ItemHandlers {
-    INPUT, OUTPUT, GRID, PREVIEW
-  };
-
-  public enum Fields {
-    TIMER, REDSTONE, RENDER;
-  }
+  ;
 
   public TileCrafter() {
     super(TileRegistry.crafter);
@@ -117,13 +113,10 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
-    if (world == null || world.getServer() == null) {
-      return;
-    }
-    if (world.isRemote) {
-      return;
-    }
     IItemHandler previewHandler = this.preview.orElse(null);
     ArrayList<ItemStack> itemStacksInGrid = getItemsInCraftingGrid();
     if (lastRecipeGrid == null) {
@@ -134,8 +127,7 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
       setPreviewSlot(previewHandler, ItemStack.EMPTY);
       this.timer = TIMER_FULL;
       return;
-    }
-    else if (!itemStacksInGrid.equals(lastRecipeGrid)) {
+    } else if (!itemStacksInGrid.equals(lastRecipeGrid)) {
       //Crafting grid is updated, search for new recipe
       reset();
       lastRecipeGrid = itemStacksInGrid;
@@ -151,8 +143,7 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
         shouldSearch = false;
         setPreviewSlot(previewHandler, lastValidRecipe.getRecipeOutput());
         this.timer = TIMER_FULL;
-      }
-      else {
+      } else {
         reset();
         shouldSearch = false; //Went through all recipes, didn't find match. Don't search again (until crafting grid changes)
       }
@@ -183,14 +174,14 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
           if (lastValidRecipe != null && lastValidRecipe instanceof ShapedRecipe) {
             ShapedRecipe r = (ShapedRecipe) lastValidRecipe;
             r.getRemainingItems(craftMatrix);
-          } //docraft simulate false is done, and we have space for output 
+          } //docraft simulate false is done, and we have space for output
           energy.extractEnergy(cost, false);
           //compare to what it was
           ArrayList<ItemStack> itemStacksInGridBackup = getItemsInCraftingGrid();
           for (int i = 0; i < this.craftMatrix.getSizeInventory(); i++) {
             ItemStack recipeLeftover = this.craftMatrix.getStackInSlot(i);
             if (!recipeLeftover.isEmpty()) {
-              if (recipeLeftover.getContainerItem().isEmpty() == false) {
+              if (!recipeLeftover.getContainerItem().isEmpty()) {
                 // TODO: shared code refactor
                 ModCyclic.LOGGER.info(i + " recipe leftovers " + recipeLeftover + " ||| itemStacksInGridBackup " + itemStacksInGridBackup.get(i));
                 boolean leftoverEqual = (recipeLeftover.getItem() == recipeLeftover.getContainerItem().getItem());
@@ -209,8 +200,7 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
                       break;
                     }
                   }
-                }
-                else {
+                } else {
                   ItemStack result = recipeLeftover.getContainerItem().copy();
                   for (int j = 0; j < outHandler.getSlots(); j++) {
                     //test it
@@ -262,7 +252,7 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
     for (int slotId = 0; slotId < IO_SIZE; slotId++) {
       if (inv.getStackInSlot(slotId) == ItemStack.EMPTY
           || (inv.getStackInSlot(slotId).isItemEqual(output)
-              && inv.getStackInSlot(slotId).getCount() + output.getCount() <= output.getMaxStackSize())) {
+          && inv.getStackInSlot(slotId).getCount() + output.getCount() <= output.getMaxStackSize())) {
         return true;
       }
       if (output == ItemStack.EMPTY || output.getCount() == 0) {
@@ -284,8 +274,7 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
         if (ingredient.test(itemStack)) {
           if (putbackStacks.containsKey(index)) {
             putbackStacks.get(index).add(new ItemStack(input.getStackInSlot(index).getItem(), 1));
-          }
-          else {
+          } else {
             List<ItemStack> list = new ArrayList<>();
             list.add(new ItemStack(input.getStackInSlot(index).getItem(), 1));
             putbackStacks.put(index, list);
@@ -325,8 +314,7 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
         if (tryMatchShapelessRecipe(itemStacksInGrid, shapelessRecipe)) {
           return shapelessRecipe;
         }
-      }
-      else if (recipe instanceof ShapedRecipe) {
+      } else if (recipe instanceof ShapedRecipe) {
         ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
         if (!doSizesMatch(shapedRecipe, itemStacksInGrid)) {
           continue;
@@ -370,20 +358,6 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
     return countNonEmptyStacks(itemStacksCopy) == 0;
   }
 
-  public static class FakeContainer extends Container {
-
-    protected FakeContainer(ContainerType<?> type, int id) {
-      super(type, id);
-    }
-
-    @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-      return true;
-    }
-  }
-
-  private final CraftingInventory craftMatrix = new CraftingInventory(new FakeContainer(ContainerType.CRAFTING, 18291238), 3, 3);
-
   private boolean tryMatchShapedRecipeRegion(ArrayList<ItemStack> itemStacks, ShapedRecipe recipe, int offsetX, int offsetY) {
     for (int i = 0; i < recipe.getWidth(); i++) {
       for (int j = 0; j < recipe.getHeight(); j++) {
@@ -391,16 +365,14 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
           int indexInArray = i + j * 3;
           ItemStack itemStack = itemStacks.get(indexInArray);
           craftMatrix.setInventorySlotContents(indexInArray, itemStack.copy());
-        }
-        catch (Exception e) {
-          //breakpoint 
+        } catch (Exception e) {
+          //breakpoint
           return false;
         }
       }
     }
-    boolean matched = recipe.matches(craftMatrix, world);
     //    ModCyclic.LOGGER.info(recipe.getRecipeOutput() + " -0 matched recipe and getRemainingItems " + matched);
-    return matched;
+    return recipe.matches(craftMatrix, world);
   }
 
   public void reset() {
@@ -479,7 +451,18 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    input.invalidate();
+    output.invalidate();
+    gridCap.invalidate();
+    preview.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, @Nonnull CompoundNBT tag) {
     energyCap.ifPresent(h -> ((INBTSerializable<CompoundNBT>) h).deserializeNBT(tag.getCompound("energy")));
     input.ifPresent(h -> ((INBTSerializable<CompoundNBT>) h).deserializeNBT(tag.getCompound("input")));
     output.ifPresent(h -> ((INBTSerializable<CompoundNBT>) h).deserializeNBT(tag.getCompound("output")));
@@ -488,8 +471,9 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
-  public CompoundNBT write(CompoundNBT tag) {
+  public CompoundNBT write(@Nonnull CompoundNBT tag) {
     energyCap.ifPresent(h -> {
       CompoundNBT compound = ((INBTSerializable<CompoundNBT>) h).serializeNBT();
       tag.put("energy", compound);
@@ -531,13 +515,33 @@ public class TileCrafter extends TileEntityBase implements INamedContainerProvid
     switch (TileCrafter.Fields.values()[id]) {
       case TIMER:
         this.timer = value;
-      break;
+        break;
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
+    }
+  }
+
+  public enum ItemHandlers {
+    INPUT, OUTPUT, GRID, PREVIEW
+  }
+
+  public enum Fields {
+    TIMER, REDSTONE, RENDER;
+  }
+
+  public static class FakeContainer extends Container {
+
+    protected FakeContainer(ContainerType<?> type, int id) {
+      super(type, id);
+    }
+
+    @Override
+    public boolean canInteractWith(PlayerEntity playerIn) {
+      return true;
     }
   }
 }

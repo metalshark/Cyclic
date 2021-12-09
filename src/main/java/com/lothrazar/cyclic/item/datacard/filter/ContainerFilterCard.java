@@ -28,8 +28,7 @@ public class ContainerFilterCard extends ContainerBase {
     if (player.getHeldItemMainhand().getItem() instanceof FilterCardItem) {
       this.bag = player.getHeldItemMainhand();
       this.slot = player.inventory.currentItem;
-    }
-    else if (player.getHeldItemOffhand().getItem() instanceof FilterCardItem) {
+    } else if (player.getHeldItemOffhand().getItem() instanceof FilterCardItem) {
       this.bag = player.getHeldItemOffhand();
       this.slot = 40;
     }

@@ -23,6 +23,14 @@ public class SoundCard extends ItemBase {
     super(properties);
   }
 
+  public static void saveSound(ItemStack stack, String soundId) {
+    if (stack.hasTag() && (soundId == null || soundId.isEmpty())) {
+      stack.getTag().remove(SOUND_ID);
+    } else {
+      stack.getOrCreateTag().putString(SOUND_ID, soundId);
+    }
+  }
+
   @Override
   public ActionResultType onItemUse(ItemUseContext context) {
     //    BlockPos pos = context.getPos();
@@ -49,15 +57,6 @@ public class SoundCard extends ItemBase {
     super.addInformation(stack, worldIn, tooltip, flagIn);
     if (stack.hasTag() && stack.getTag().contains(SOUND_ID)) {
       tooltip.add(new StringTextComponent(stack.getTag().getString(SOUND_ID)).mergeStyle(TextFormatting.GOLD));
-    }
-  }
-
-  public static void saveSound(ItemStack stack, String soundId) {
-    if (stack.hasTag() && (soundId == null || soundId.isEmpty())) {
-      stack.getTag().remove(SOUND_ID);
-    }
-    else {
-      stack.getOrCreateTag().putString(SOUND_ID, soundId);
     }
   }
 }

@@ -28,8 +28,7 @@ public class ContainerEnderBook extends ContainerBase {
     if (player.getHeldItemMainhand().getItem() instanceof EnderBookItem) {
       this.bag = player.getHeldItemMainhand();
       this.slot = player.inventory.currentItem;
-    }
-    else if (player.getHeldItemOffhand().getItem() instanceof EnderBookItem) {
+    } else if (player.getHeldItemOffhand().getItem() instanceof EnderBookItem) {
       this.bag = player.getHeldItemOffhand();
       this.slot = 40;
     }

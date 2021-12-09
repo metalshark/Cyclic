@@ -37,9 +37,9 @@ public class ScreenSoundRecorder extends ScreenBase<ContainerSoundRecorder> {
     for (int i = 0; i < TileSoundRecorder.MAX_SOUNDS; i++) {
       ButtonMachine btnSave = addButton(new ButtonMachine(x, y, bsize, bsize,
           TextureEnum.RENDER_SHOW, i, (p) -> {
-            int soundIndex = ((ButtonMachine) p).getTileField();
-            PacketRegistry.INSTANCE.sendToServer(new PacketTileData(TileSoundRecorder.Fields.SAVE.ordinal(), soundIndex, container.tile.getPos()));
-          }));
+        int soundIndex = ((ButtonMachine) p).getTileField();
+        PacketRegistry.INSTANCE.sendToServer(new PacketTileData(TileSoundRecorder.Fields.SAVE.ordinal(), soundIndex, container.tile.getPos()));
+      }));
       //      btnSave.active = !container.tile.inputSlots.getStackInSlot(0).isEmpty();
       btnSave.xOffset = 2;
       btnSave.yOffset = 2;
@@ -47,10 +47,10 @@ public class ScreenSoundRecorder extends ScreenBase<ContainerSoundRecorder> {
       //      btnSave.setTextureId(TextureEnum.RENDER_SHOW);
       ButtonMachine btnIgnore = addButton(new ButtonMachine(x + bsize, y, bsize, bsize,
           TextureEnum.POWER_STOP, i, (p) -> {
-            int soundIndex = ((ButtonMachine) p).getTileField();
-            container.tile.ignoreSound(soundIndex);
-            PacketRegistry.INSTANCE.sendToServer(new PacketTileData(TileSoundRecorder.Fields.IGNORE.ordinal(), soundIndex, container.tile.getPos()));
-          }));
+        int soundIndex = ((ButtonMachine) p).getTileField();
+        container.tile.ignoreSound(soundIndex);
+        PacketRegistry.INSTANCE.sendToServer(new PacketTileData(TileSoundRecorder.Fields.IGNORE.ordinal(), soundIndex, container.tile.getPos()));
+      }));
       btnIgnore.xOffset = -1;
       btnIgnore.yOffset = -1;
       btnIgnore.setTooltip(pf + "ignore");

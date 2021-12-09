@@ -5,6 +5,7 @@ import com.lothrazar.cyclic.data.BlockPosDim;
 import com.lothrazar.cyclic.data.OffsetEnum;
 import com.lothrazar.cyclic.item.datacard.LocationGpsCard;
 import com.lothrazar.cyclic.registry.TileRegistry;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -26,18 +27,9 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileLaser extends TileEntityBase implements INamedContainerProvider {
 
-  static enum Fields {
-    REDSTONE, THICK, RED, GREEN, BLUE, ALPHA, XOFF, YOFF, ZOFF;
-  }
-
   protected OffsetEnum xOffset = OffsetEnum.CENTER;
   protected OffsetEnum yOffset = OffsetEnum.CENTER;
   protected OffsetEnum zOffset = OffsetEnum.CENTER;
-  private int red = 255;
-  private int green = 0;
-  private int blue = 0;
-  private int alpha = 70;
-  private int thick = 8;
   ItemStackHandler inventory = new ItemStackHandler(4) {
 
     @Override
@@ -45,6 +37,11 @@ public class TileLaser extends TileEntityBase implements INamedContainerProvider
       return stack.getItem() instanceof LocationGpsCard;
     }
   };
+  private int red = 255;
+  private int green = 0;
+  private int blue = 0;
+  private int alpha = 70;
+  private int thick = 8;
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
 
   public TileLaser() {
@@ -58,6 +55,12 @@ public class TileLaser extends TileEntityBase implements INamedContainerProvider
       return inventoryCap.cast();
     }
     return super.getCapability(cap, side);
+  }
+
+  @Override
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
   }
 
   @Override
@@ -115,45 +118,45 @@ public class TileLaser extends TileEntityBase implements INamedContainerProvider
     switch (Fields.values()[id]) {
       case THICK:
         this.thick = value;
-      break;
+        break;
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case BLUE:
         blue = value;
-      break;
+        break;
       case GREEN:
         green = value;
-      break;
+        break;
       case RED:
         red = value;
-      break;
+        break;
       case ALPHA:
         alpha = value;
-      break;
+        break;
       case XOFF:
         if (value >= OffsetEnum.values().length) {
           value = 0;
         }
         this.xOffset = OffsetEnum.values()[value];
-      break;
+        break;
       case YOFF:
         if (value >= OffsetEnum.values().length) {
           value = 0;
         }
         this.yOffset = OffsetEnum.values()[value];
-      break;
+        break;
       case ZOFF:
         if (value >= OffsetEnum.values().length) {
           value = 0;
         }
         this.zOffset = OffsetEnum.values()[value];
-      break;
+        break;
     }
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     red = tag.getInt("red");
     green = tag.getInt("green");
@@ -163,6 +166,7 @@ public class TileLaser extends TileEntityBase implements INamedContainerProvider
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTINV, inventory.serializeNBT());
@@ -194,5 +198,9 @@ public class TileLaser extends TileEntityBase implements INamedContainerProvider
   public float getThick() {
     float t = thick;
     return t / 100F;
+  }
+
+  static enum Fields {
+    REDSTONE, THICK, RED, GREEN, BLUE, ALPHA, XOFF, YOFF, ZOFF;
   }
 }

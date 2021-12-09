@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
@@ -25,29 +26,20 @@ public class TileEnderCtrl extends TileEntityBase {
   private static final String NBT_SHELVES = "shelves";
   EnderControllerItemHandler controllerInv = new EnderControllerItemHandler(this);
   private final LazyOptional<EnderControllerItemHandler> controllerInventoryCap = LazyOptional.of(() -> controllerInv);
-  private List<BlockPos> connectedShelves = new ArrayList<>();
   RenderTextType renderStyle = RenderTextType.TEXT;
+  private List<BlockPos> connectedShelves = new ArrayList<>();
 
   public TileEnderCtrl() {
     super(TileRegistry.ender_controller);
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {
     return 0;
-  }
-
-  /**
-   * Converts to sorted list
-   * 
-   * @param shelvesIn
-   */
-  public void setShelves(Set<BlockPos> shelvesIn) {
-    ModCyclic.LOGGER.info("resetting and sorting the shelves " + shelvesIn.size());
-    this.connectedShelves = shelvesIn.stream().sorted(Comparator.comparing(o -> o.distanceSq(this.pos))).collect(Collectors.toList());
   }
 
   public List<BlockPos> getShelves() {
@@ -55,6 +47,16 @@ public class TileEnderCtrl extends TileEntityBase {
       connectedShelves = new ArrayList<>();
     }
     return connectedShelves;
+  }
+
+  /**
+   * Converts to sorted list
+   *
+   * @param shelvesIn
+   */
+  public void setShelves(Set<BlockPos> shelvesIn) {
+    ModCyclic.LOGGER.info("resetting and sorting the shelves " + shelvesIn.size());
+    this.connectedShelves = shelvesIn.stream().sorted(Comparator.comparing(o -> o.distanceSq(this.pos))).collect(Collectors.toList());
   }
 
   @Override
@@ -66,7 +68,13 @@ public class TileEnderCtrl extends TileEntityBase {
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    controllerInventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     if (tag.contains("RenderTextType")) {
       int rt = tag.getInt("RenderTextType");
       this.renderStyle = RenderTextType.values()[rt];
@@ -81,6 +89,7 @@ public class TileEnderCtrl extends TileEntityBase {
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("RenderTextType", this.renderStyle.ordinal());

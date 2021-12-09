@@ -11,6 +11,7 @@ import net.minecraft.util.math.MathHelper;
 public class EvokerFangItem extends ItemBase {
 
   private static final int COOLDOWN = 10;
+  private static final int MAX_RANGE = 16;
 
   public EvokerFangItem(Properties properties) {
     super(properties.maxDamage(256 * 4));
@@ -28,8 +29,6 @@ public class EvokerFangItem extends ItemBase {
     UtilItemStack.damageItem(player, context.getItem());
     return super.onItemUse(context);
   }
-
-  private static final int MAX_RANGE = 16;
 
   private void summonFangRay(double startX, double startZ, PlayerEntity player, double posX, double posY, double posZ) {
     double minY = posY; //Math.min(posY, caster.posY);

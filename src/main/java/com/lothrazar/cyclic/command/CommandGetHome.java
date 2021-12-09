@@ -13,18 +13,14 @@ import net.minecraft.util.math.vector.Vector3d;
 
 public class CommandGetHome {
 
-  public boolean needsOp() {
-    return ConfigRegistry.COMMANDGETHOME.get();
-  }
-
   public static int execute(CommandContext<CommandSource> ctx) throws CommandSyntaxException {
     ServerPlayerEntity player = ctx.getSource().asPlayer();
     /* get the player's respawn point. This will be one of the following:
-     * 
+     *
      * -- null: Player has not slept in a bed, or their bed has been destr oyed, and they are not tied to a Respawn Anchor
-     * 
+     *
      * -- the location of their bed, if they've set the respawn point with a bed
-     * 
+     *
      * -- the location of their Respawn Anchor in the Nether */
     BlockPos respawnPos = player.func_241140_K_();
     Optional<Vector3d> optional = Optional.empty();
@@ -34,10 +30,13 @@ public class CommandGetHome {
     if (optional.isPresent()) {
       BlockPos bedLocation = new BlockPos(optional.get());
       UtilChat.sendFeedback(ctx, UtilChat.lang("command.cyclic.gethome.yours") + " " + UtilChat.blockPosToString(bedLocation));
-    }
-    else {
+    } else {
       UtilChat.sendFeedback(ctx, "command.cyclic.gethome.bed");
     }
     return 0;
+  }
+
+  public boolean needsOp() {
+    return ConfigRegistry.COMMANDGETHOME.get();
   }
 }

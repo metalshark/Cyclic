@@ -28,8 +28,7 @@ public class UtilStepHeight {
     if (player.isCrouching()) {
       //make sure that, when sneaking, dont fall off!!
       player.stepHeight = 0.9F;
-    }
-    else {
+    } else {
       player.stepHeight = 1.0F + (1F / 16F); //PATH BLOCKS etc are 1/16th downif MY feature turns this on, then do it
     }
   }

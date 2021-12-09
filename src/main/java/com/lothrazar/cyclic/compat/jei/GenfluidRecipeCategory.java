@@ -8,23 +8,23 @@ import com.lothrazar.cyclic.registry.BlockRegistry;
 import com.lothrazar.cyclic.util.UtilChat;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import java.util.List;
-import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fluids.FluidAttributes;
-import net.minecraftforge.fluids.FluidStack;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import net.minecraft.client.Minecraft;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fluids.FluidAttributes;
+import net.minecraftforge.fluids.FluidStack;
 
 @SuppressWarnings("rawtypes")
 public class GenfluidRecipeCategory implements IRecipeCategory<RecipeGeneratorFluid> {
 
-  private static final int FONT = 4210752;
   static final ResourceLocation ID = new ResourceLocation(CyclicRecipeType.GENERATOR_FLUID.toString());
+  private static final int FONT = 4210752;
   private IDrawable gui;
   private IDrawable icon;
 
@@ -65,8 +65,7 @@ public class GenfluidRecipeCategory implements IRecipeCategory<RecipeGeneratorFl
       if (matchingFluids != null) {
         ingredients.setInputs(VanillaTypes.FLUID, recipe.fluidIng.getMatchingFluids());
       }
-    }
-    else {
+    } else {
       ingredients.setInput(VanillaTypes.FLUID, recipe.getRecipeFluid());
     }
   }
@@ -89,8 +88,7 @@ public class GenfluidRecipeCategory implements IRecipeCategory<RecipeGeneratorFl
       if (matchingFluids != null) {
         recipeLayout.getFluidStacks().set(0, matchingFluids);
       }
-    }
-    else if (!recipe.getRecipeFluid().isEmpty()) {
+    } else if (!recipe.getRecipeFluid().isEmpty()) {
       recipeLayout.getFluidStacks().set(0, recipe.getRecipeFluid());
     }
   }

@@ -18,6 +18,9 @@ public class TileRotator extends TileEntityBase implements ITickableTileEntity {
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     boolean powered = this.isPowered();
     boolean lit = this.getBlockState().get(BlockBase.LIT);
     //if we are going from unpowered to powered, meaning state isnt set but power is
@@ -28,7 +31,7 @@ public class TileRotator extends TileEntityBase implements ITickableTileEntity {
       //
       if (state.getBlock() != Blocks.AIR &&
           state.getBlockHardness(world, target) >= 0) {
-        //        boolean succ = 
+        //        boolean succ =
         UtilPlaceBlocks.rotateBlockValidState(world, target, currentFacing.getOpposite());
       }
     }
@@ -37,7 +40,8 @@ public class TileRotator extends TileEntityBase implements ITickableTileEntity {
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {

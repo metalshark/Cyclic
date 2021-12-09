@@ -5,6 +5,7 @@ import com.lothrazar.cyclic.data.BlockPosDim;
 import com.lothrazar.cyclic.item.datacard.LocationGpsCard;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilWorld;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -26,14 +27,6 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileWirelessTransmit extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    RENDER;
-  }
-
-  public TileWirelessTransmit() {
-    super(TileRegistry.wireless_transmitter);
-  }
-
   ItemStackHandler inventory = new ItemStackHandler(9) {
 
     @Override
@@ -42,6 +35,10 @@ public class TileWirelessTransmit extends TileEntityBase implements INamedContai
     }
   };
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
+
+  public TileWirelessTransmit() {
+    super(TileRegistry.wireless_transmitter);
+  }
 
   @Override
   public ITextComponent getDisplayName() {
@@ -62,11 +59,18 @@ public class TileWirelessTransmit extends TileEntityBase implements INamedContai
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTINV, inventory.serializeNBT());
@@ -81,7 +85,7 @@ public class TileWirelessTransmit extends TileEntityBase implements INamedContai
       boolean isPowered = world.isBlockPowered(pos);
       if (targetPowered != isPowered) {
         world.setBlockState(targetPos, target.with(BlockStateProperties.POWERED, isPowered));
-        //and update myself too   
+        //and update myself too
         world.setBlockState(pos, world.getBlockState(pos).with(BlockStateProperties.POWERED, isPowered));
         //TODO: send exact 1-16 power level
         //        world.getTileEntity(targetPos) instanceof TileWirelessRec
@@ -92,10 +96,13 @@ public class TileWirelessTransmit extends TileEntityBase implements INamedContai
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     for (int s = 0; s < inventory.getSlots(); s++) {
       BlockPosDim targetPos = getTargetInSlot(s);
       if (targetPos == null ||
-          UtilWorld.dimensionIsEqual(targetPos, world) == false) {
+          !UtilWorld.dimensionIsEqual(targetPos, world)) {
         continue;
       }
       toggleTarget(targetPos.getPos());
@@ -109,18 +116,15 @@ public class TileWirelessTransmit extends TileEntityBase implements INamedContai
 
   @Override
   public void setField(int field, int value) {
-    switch (Fields.values()[field]) {
-      case RENDER:
-        this.render = value % 2;
-      break;
+    if (Fields.values()[field] == Fields.RENDER) {
+      this.render = value % 2;
     }
   }
 
   @Override
   public int getField(int field) {
-    switch (Fields.values()[field]) {
-      case RENDER:
-        return render;
+    if (Fields.values()[field] == Fields.RENDER) {
+      return render;
     }
     return 0;
   }
@@ -143,5 +147,9 @@ public class TileWirelessTransmit extends TileEntityBase implements INamedContai
 
   public float getThick() {
     return 0.065F;
+  }
+
+  static enum Fields {
+    RENDER;
   }
 }

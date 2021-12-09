@@ -47,7 +47,7 @@ public class AutoTorchItem extends ItemBaseToggle {
     if (!this.isOn(stack)) {
       return;
     }
-    if (entityIn instanceof PlayerEntity == false) {
+    if (!(entityIn instanceof PlayerEntity)) {
       return;
     }
     PlayerEntity player = (PlayerEntity) entityIn;
@@ -59,7 +59,7 @@ public class AutoTorchItem extends ItemBaseToggle {
       return;
     }
     BlockPos pos = entityIn.getPosition();
-    // 
+    //
     if (world.getLight(pos) <= LIGHT_LEVEL.get()
         //            && player.isSpectator() == false
         && world.getBlockState(pos.down()).isSolidSide(world, pos, Direction.UP)
@@ -68,8 +68,7 @@ public class AutoTorchItem extends ItemBaseToggle {
       if (UtilPlaceBlocks.placeStateSafe(world, player, pos, Blocks.TORCH.getDefaultState())) {
         UtilItemStack.damageItem(player, stack);
       }
-    }
-    else {
+    } else {
       tryRepairWith(stack, player, Blocks.TORCH.asItem());
     }
   }

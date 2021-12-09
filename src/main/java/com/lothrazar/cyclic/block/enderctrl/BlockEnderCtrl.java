@@ -98,9 +98,13 @@ public class BlockEnderCtrl extends BlockBase {
       return ActionResultType.PASS;
     }
     if (heldItem.getItem() == Items.ENCHANTED_BOOK) {
-      world.getTileEntity(pos).getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> {
-        insertIntoController(player, hand, heldItem, h);
-      });
+      final TileEntity tileEntity = world.getTileEntity(pos);
+      if (tileEntity != null) {
+        final IItemHandler itemHandler = tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null).orElse(null);
+        if (itemHandler != null) {
+          insertIntoController(player, hand, heldItem, itemHandler);
+        }
+      }
     }
     return ActionResultType.CONSUME;
   }
@@ -109,13 +113,11 @@ public class BlockEnderCtrl extends BlockBase {
     Map<Enchantment, Integer> allofthem = EnchantmentHelper.getEnchantments(heldItem);
     if (allofthem == null || allofthem.size() == 0) {
       return;
-    }
-    else if (allofthem.size() == 1) {
+    } else if (allofthem.size() == 1) {
       ItemStack insertResult = h.insertItem(0, heldItem, false);
       player.setHeldItem(hand, insertResult);
-    }
-    else {
-      //loop and make books of each, if we have any 
+    } else {
+      //loop and make books of each, if we have any
       Enchantment[] flatten = allofthem.keySet().toArray(new Enchantment[0]);
       for (Enchantment entry : flatten) {
         // try it
@@ -130,8 +132,7 @@ public class BlockEnderCtrl extends BlockBase {
       //now set it back into the book
       if (allofthem.isEmpty()) {
         player.setHeldItem(hand, ItemStack.EMPTY);
-      }
-      else {
+      } else {
         //        apply all to the book and give the book back
         ItemStack newFake = new ItemStack(Items.ENCHANTED_BOOK);
         for (Enchantment newentry : allofthem.keySet()) {

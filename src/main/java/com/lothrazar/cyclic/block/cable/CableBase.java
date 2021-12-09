@@ -2,6 +2,7 @@ package com.lothrazar.cyclic.block.cable;
 
 import com.google.common.collect.Maps;
 import com.lothrazar.cyclic.base.BlockBase;
+import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.data.DataTags;
 import com.lothrazar.cyclic.registry.BlockRegistry;
 import com.lothrazar.cyclic.registry.SoundRegistry;
@@ -9,6 +10,7 @@ import com.lothrazar.cyclic.util.UtilSound;
 import java.util.Map;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.DirectionalBlock;
 import net.minecraft.block.IWaterLoggable;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -34,6 +36,8 @@ import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
+
+import javax.annotation.Nonnull;
 
 public abstract class CableBase extends BlockBase implements IWaterLoggable {
 
@@ -70,6 +74,11 @@ public abstract class CableBase extends BlockBase implements IWaterLoggable {
   protected static final VoxelShape AABB_WEST = Block.makeCuboidShape(bot, sm, sm, lg, lg, lg);
   protected static final VoxelShape AABB_EAST = Block.makeCuboidShape(sm, sm, sm, top, lg, lg);
 
+  public CableBase(Properties properties) {
+    super(properties);
+    setDefaultState(getDefaultState().with(WATERLOGGED, false));
+  }
+
   static boolean shapeConnects(BlockState state, EnumProperty<EnumConnectType> dirctionProperty) {
     return state.get(dirctionProperty).isConnected();
   }
@@ -97,9 +106,21 @@ public abstract class CableBase extends BlockBase implements IWaterLoggable {
     return shape;
   }
 
-  public CableBase(Properties properties) {
-    super(properties);
-    setDefaultState(getDefaultState().with(WATERLOGGED, false));
+  /**
+   * True means cable is unblocked. false means its not a cable at all, or its unblocked
+   *
+   * @param blockState
+   * @param side
+   * @return
+   */
+  public static boolean isCableUnblocked(@Nonnull final BlockState blockState, @Nonnull final Direction side) {
+    if (side == null) {
+      return true;
+    }
+    final EnumProperty<EnumConnectType> property = CableBase.FACING_TO_PROPERTY_MAP.get(side);
+    return !(blockState.getBlock() instanceof CableBase)
+        || !blockState.hasProperty(property)
+        || blockState.get(property).isUnBlocked();
   }
 
   @Override
@@ -155,8 +176,7 @@ public abstract class CableBase extends BlockBase implements IWaterLoggable {
           TileEntity tileEntity = world.getTileEntity(pos);
           if (tileEntity instanceof INamedContainerProvider) {
             NetworkHooks.openGui((ServerPlayerEntity) player, (INamedContainerProvider) tileEntity, tileEntity.getPos());
-          }
-          else {
+          } else {
             throw new IllegalStateException("Our named container provider is missing!");
           }
         }
@@ -168,33 +188,28 @@ public abstract class CableBase extends BlockBase implements IWaterLoggable {
     //now must be wrench
     final float hitLimit = 0.28F;
     Direction sideToToggle = hit.getFace();
-    //hitX y and Z from old onBlockActivated 
+    //hitX y and Z from old onBlockActivated
     double hitX = hit.getHitVec().x - pos.getX();
     double hitY = hit.getHitVec().y - pos.getY();
     double hitZ = hit.getHitVec().z - pos.getZ();
     if (hitX < hitLimit) {
       sideToToggle = Direction.WEST;
-    }
-    else if (hitX > 1 - hitLimit) {
+    } else if (hitX > 1 - hitLimit) {
       sideToToggle = Direction.EAST;
-    }
-    else if (hitY < hitLimit) {
+    } else if (hitY < hitLimit) {
       sideToToggle = Direction.DOWN;
-    }
-    else if (hitY > 1 - hitLimit) {
+    } else if (hitY > 1 - hitLimit) {
       sideToToggle = Direction.UP;
-    }
-    else if (hitZ < hitLimit) {
+    } else if (hitZ < hitLimit) {
       sideToToggle = Direction.NORTH;
-    }
-    else if (hitZ > 1 - hitLimit) {
+    } else if (hitZ > 1 - hitLimit) {
       sideToToggle = Direction.SOUTH;
     }
     EnumProperty<EnumConnectType> prop = CableBase.FACING_TO_PROPERTY_MAP.get(sideToToggle);
     if (state.hasProperty(prop)) {
       EnumConnectType status = state.get(prop);
       //inventory is decided not by wrench but by normal mode
-      //so it rotates: 
+      //so it rotates:
       BlockState newState = state;
       // INVENTORY// NONE -> CABLE(extract) -> BLOCKED -> and back to none again
       boolean updatePost = false;
@@ -203,19 +218,20 @@ public abstract class CableBase extends BlockBase implements IWaterLoggable {
           //unblock it go back to none (dont know where connection would be if any)
           newState = state.with(prop, EnumConnectType.NONE);
           updatePost = true;
-        break;
+          break;
         case INVENTORY: // inventory connection or
         case NONE: // no connection
           newState = state.with(prop, EnumConnectType.CABLE);
-        break;
+          break;
         case CABLE: // extract
-          // extract to blocked 
+          // extract to blocked
           newState = state.with(prop, EnumConnectType.BLOCKED);
-        break;
+          break;
       }
       if (world.getBlockState(pos).getBlock() == this && world.setBlockState(pos, newState)) {
         if (updatePost) {
           newState.updatePostPlacement(sideToToggle, world.getBlockState(pos.offset(sideToToggle)), world, pos, pos.offset(sideToToggle));
+          updateConnection(world, pos, sideToToggle, newState.get(prop));
         }
         player.swingArm(handIn);
         if (world.isRemote) {
@@ -226,20 +242,10 @@ public abstract class CableBase extends BlockBase implements IWaterLoggable {
     return ActionResultType.SUCCESS; //    super.onBlockActivated(state, world, pos, player, handIn, hit);
   }
 
-  /**
-   * True means cable is blocked. false means its not a cable at all, or its unblocked
-   * 
-   * @param blockState
-   * @param side
-   * @return
-   */
-  public static boolean isCableBlocked(BlockState blockState, Direction side) {
-    if (side == null) {
-      return false;
+  protected void updateConnection(@Nonnull final IWorld world, @Nonnull final BlockPos blockPos, @Nonnull final Direction side, @Nonnull final EnumConnectType connectType) {
+    final TileEntity tileEntity = world.getTileEntity(blockPos);
+    if (tileEntity instanceof TileEntityBase) {
+      ((TileEntityBase) tileEntity).updateConnection(side, connectType);
     }
-    EnumProperty<EnumConnectType> property = CableBase.FACING_TO_PROPERTY_MAP.get(side);
-    return blockState.getBlock() instanceof CableBase
-        && blockState.hasProperty(property)
-        && blockState.get(property).isUnBlocked() == false;
   }
 }

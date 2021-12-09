@@ -4,8 +4,8 @@ import com.lothrazar.cyclic.base.ScreenBase;
 import com.lothrazar.cyclic.gui.ButtonMachine;
 import com.lothrazar.cyclic.gui.ButtonMachineField;
 import com.lothrazar.cyclic.gui.EnergyBar;
-import com.lothrazar.cyclic.gui.TexturedProgress;
 import com.lothrazar.cyclic.gui.TextureEnum;
+import com.lothrazar.cyclic.gui.TexturedProgress;
 import com.lothrazar.cyclic.net.PacketTileData;
 import com.lothrazar.cyclic.registry.PacketRegistry;
 import com.lothrazar.cyclic.registry.TextureRegistry;
@@ -68,7 +68,7 @@ public class ScreenGeneratorFuel extends ScreenBase<ContainerGeneratorFuel> {
   @Override
   protected void drawGuiContainerBackgroundLayer(MatrixStack ms, float partialTicks, int mouseX, int mouseY) {
     this.drawBackground(ms, TextureRegistry.INVENTORY);
-    //    this.drawSlot(ms, 54, 34); 
+    //    this.drawSlot(ms, 54, 34);
     this.drawSlotLarge(ms, 70, 30);
     energy.draw(ms, container.tile.getEnergy());
     progress.max = container.tile.getField(TileGeneratorFuel.Fields.BURNMAX.ordinal());

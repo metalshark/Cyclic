@@ -40,8 +40,7 @@ public class ItemProjectileDungeon extends ItemBase {
     if (blockpos == null) {
       UtilChat.sendStatusMessage(player, UtilChat.lang("item.cyclic.spawner_seeker.notfound") + " " + DUNGEONRADIUS);
       entityendereye.remove();
-    }
-    else {
+    } else {
       UtilChat.sendStatusMessage(player, UtilChat.lang("item.cyclic.spawner_seeker.found"));
       entityendereye.moveTowards(blockpos);
     }

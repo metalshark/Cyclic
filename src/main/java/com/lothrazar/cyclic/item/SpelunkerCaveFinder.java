@@ -1,18 +1,18 @@
 /*******************************************************************************
  * The MIT License (MIT)
- * 
+ *
  * Copyright (C) 2014-2018 Sam Bassett (aka Lothrazar)
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,12 +38,12 @@ import net.minecraft.world.World;
 
 public class SpelunkerCaveFinder extends ItemBase {
 
+  private static final int COOLDOWN = 12;
+  private static final int RANGE = 64;
+
   public SpelunkerCaveFinder(Properties properties) {
     super(properties.maxDamage(10));
   }
-
-  private static final int COOLDOWN = 12;
-  private static final int RANGE = 64;
 
   @Override
   public ActionResultType onItemUse(ItemUseContext context) {
@@ -65,12 +65,10 @@ public class SpelunkerCaveFinder extends ItemBase {
       if (context.getWorld().isAirBlock(current)) {
         UtilChat.addChatMessage(player, UtilChat.lang("tool.spelunker.cave") + i);
         found = true;
-      }
-      else if (worldObj.getBlockState(current) == Blocks.WATER.getDefaultState()) {
+      } else if (worldObj.getBlockState(current) == Blocks.WATER.getDefaultState()) {
         UtilChat.addChatMessage(player, UtilChat.lang("tool.spelunker.water") + i);
         found = true;
-      }
-      else if (worldObj.getBlockState(current) == Blocks.LAVA.getDefaultState()) {
+      } else if (worldObj.getBlockState(current) == Blocks.LAVA.getDefaultState()) {
         UtilChat.addChatMessage(player, UtilChat.lang("tool.spelunker.lava") + i);
         found = true;
       }
@@ -78,7 +76,7 @@ public class SpelunkerCaveFinder extends ItemBase {
         break;
       }
     }
-    if (found == false) {
+    if (!found) {
       UtilChat.addChatMessage(player, UtilChat.lang("tool.spelunker.none") + RANGE);
     }
     UtilItemStack.damageItem(player, stack);

@@ -22,8 +22,8 @@ import net.minecraft.world.World;
 
 public class CraftingStickContainer extends ContainerBase implements IContainerCraftingAction {
 
-  private final CraftingInventory craftMatrix = new CraftingInventory(this, 3, 3);
   final CraftResultInventory craftResult = new CraftResultInventory();
+  private final CraftingInventory craftMatrix = new CraftingInventory(this, 3, 3);
   private Hand hand;
 
   //does NOT save inventory into the stack, very simple and plain

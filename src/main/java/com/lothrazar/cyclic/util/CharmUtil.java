@@ -17,7 +17,7 @@ public class CharmUtil {
     ItemStack stack = found == null ? ItemStack.EMPTY : found.getRight();
     if (stack.getItem() instanceof IHasClickToggle) {
       IHasClickToggle testMe = (IHasClickToggle) stack.getItem();
-      if (testMe.isOn(stack) == false) {
+      if (!testMe.isOn(stack)) {
         return ItemStack.EMPTY; // found but player turned it off so dont use it
       }
     }
@@ -32,9 +32,8 @@ public class CharmUtil {
         if (equipped != null && isMatching(equipped.right, match)) {
           return equipped.right;
         }
-      }
-      catch (Exception e) {
-        // if API not installed or fails 
+      } catch (Exception e) {
+        // if API not installed or fails
       }
     }
     return ItemStack.EMPTY;
@@ -42,7 +41,7 @@ public class CharmUtil {
 
   /**
    * First check curios. Then player inventory. Then left/right hands, not ender chest
-   * 
+   *
    * @param player
    * @param match
    * @return
@@ -63,12 +62,11 @@ public class CharmUtil {
             //else its found but turned off , keep looking
           }
         }
-      }
-      catch (Exception e) {
-        // if API not installed or fails 
+      } catch (Exception e) {
+        // if API not installed or fails
       }
     }
-    //is "baubles" in 1.16? 
+    //is "baubles" in 1.16?
     //not curios, check others
     //    for (int i = 0; i < player.getInventoryEnderChest().getSizeInventory(); i++) {
     //      ItemStack temp = player.getInventoryEnderChest().getStackInSlot(i);

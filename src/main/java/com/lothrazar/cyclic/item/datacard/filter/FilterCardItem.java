@@ -26,14 +26,87 @@ import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 
+import javax.annotation.Nonnull;
+
 public class FilterCardItem extends ItemBase {
 
   public static final int SLOT_FLUID = 8;
   private static final String NBTFILTER = "filter";
-  // TODO: could match on tags, nbt exact match like enchants, 
+  // TODO: could match on tags, nbt exact match like enchants,
 
   public FilterCardItem(Properties properties) {
     super(properties.maxStackSize(1));
+  }
+
+  public static void toggleFilterType(ItemStack filter) {
+    boolean prev = getIsIgnoreList(filter);
+    filter.getTag().putBoolean(NBTFILTER, !prev);
+  }
+
+  public static FluidStack getFluidStack(ItemStack filterStack) {
+    if (!(filterStack.getItem() instanceof FilterCardItem)) {
+      return FluidStack.EMPTY; //filter is air, everything allowed
+    }
+    IItemHandler myFilter = filterStack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
+    if (myFilter != null) {
+      ItemStack bucket = myFilter.getStackInSlot(SLOT_FLUID);
+      IFluidHandler fluidInStack = bucket.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).orElse(null);
+      if (fluidInStack != null && fluidInStack.getFluidInTank(0) != null) {
+        return fluidInStack.getFluidInTank(0);
+      }
+    }
+    return FluidStack.EMPTY;
+  }
+
+  public static boolean filterAllowsExtract(@Nonnull final ItemStack filterStack, @Nonnull final ItemStack itemTarget) {
+    if (!(filterStack.getItem() instanceof FilterCardItem)) {
+      return true; //filter is air, everything allowed
+    }
+    //does my filter allow extract
+    boolean isEmpty = false;
+    boolean isMatchingList = false;
+    boolean isIgnoreList = getIsIgnoreList(filterStack);
+    IItemHandler myFilter = filterStack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
+    if (myFilter != null) {
+      for (int i = 0; i < myFilter.getSlots(); i++) {
+        ItemStack filterPtr = myFilter.getStackInSlot(i);
+        if (!filterPtr.isEmpty()) {
+          isEmpty = false; //at least one thing is in the filter
+          //does it match
+          if (UtilItemStack.matches(itemTarget, filterPtr)) {
+            isMatchingList = true;
+            break;
+          }
+        }
+      }
+    }
+    if (isIgnoreList) {
+      // we are allowed to filter if it doesnt match
+      return !isMatchingList;
+    } else {
+      //its an Allow list. filter if in the list
+      //but if its empty, allow just lets everything
+      return isEmpty || isMatchingList;
+    }
+  }
+
+  private static boolean getIsIgnoreList(ItemStack filterStack) {
+    return filterStack.getOrCreateTag().getBoolean(NBTFILTER);
+  }
+
+  public static boolean filterAllowsExtract(ItemStack filterStack, FluidStack fluidInTank) {
+    if (!(filterStack.getItem() instanceof FilterCardItem)) {
+      return true; //filter is air, everything allowed
+    }
+    FluidStack fluidFilter = getFluidStack(filterStack);
+    boolean isMatchingList = fluidFilter.getFluid() == fluidInTank.getFluid();
+    boolean isIgnoreList = getIsIgnoreList(filterStack);
+    //
+    if (isIgnoreList) {
+      return !isMatchingList;
+    } else { // allow list
+      return fluidFilter.isEmpty() || isMatchingList;
+    }
   }
 
   @Override
@@ -62,8 +135,7 @@ public class FilterCardItem extends ItemBase {
         t.mergeStyle(TextFormatting.GRAY);
         tooltip.add(t);
       }
-    }
-    else {
+    } else {
       super.addInformation(stack, worldIn, tooltip, flagIn);
     }
   }
@@ -86,88 +158,17 @@ public class FilterCardItem extends ItemBase {
     ScreenManager.registerFactory(ContainerScreenRegistry.filter_data, ScreenFilterCard::new);
   }
 
-  public static void toggleFilterType(ItemStack filter) {
-    boolean prev = getIsIgnoreList(filter);
-    filter.getTag().putBoolean(NBTFILTER, !prev);
-  }
-
-  public static FluidStack getFluidStack(ItemStack filterStack) {
-    if (filterStack.getItem() instanceof FilterCardItem == false) {
-      return FluidStack.EMPTY; //filter is air, everything allowed
-    }
-    IItemHandler myFilter = filterStack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
-    if (myFilter != null) {
-      ItemStack bucket = myFilter.getStackInSlot(SLOT_FLUID);
-      IFluidHandler fluidInStack = bucket.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).orElse(null);
-      if (fluidInStack != null && fluidInStack.getFluidInTank(0) != null) {
-        return fluidInStack.getFluidInTank(0);
-      }
-    }
-    return FluidStack.EMPTY;
-  }
-
-  public static boolean filterAllowsExtract(ItemStack filterStack, ItemStack itemTarget) {
-    if (filterStack.getItem() instanceof FilterCardItem == false) {
-      return true; //filter is air, everything allowed
-    }
-    //does my filter allow extract
-    boolean isEmpty = false;
-    boolean isMatchingList = false;
-    boolean isIgnoreList = getIsIgnoreList(filterStack);
-    IItemHandler myFilter = filterStack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
-    if (myFilter != null) {
-      for (int i = 0; i < myFilter.getSlots(); i++) {
-        ItemStack filterPtr = myFilter.getStackInSlot(i);
-        if (!filterPtr.isEmpty()) {
-          isEmpty = false; //at least one thing is in the filter 
-          //does it match
-          if (UtilItemStack.matches(itemTarget, filterPtr)) {
-            isMatchingList = true;
-            break;
-          }
-        }
-      }
-    }
-    if (isIgnoreList) {
-      // we are allowed to filter if it doesnt match
-      return !isMatchingList;
-    }
-    else {
-      //its an Allow list. filter if in the list
-      //but if its empty, allow just lets everything
-      return isEmpty || isMatchingList;
-    }
-  }
-
-  private static boolean getIsIgnoreList(ItemStack filterStack) {
-    return filterStack.getOrCreateTag().getBoolean(NBTFILTER);
-  }
-
-  public static boolean filterAllowsExtract(ItemStack filterStack, FluidStack fluidInTank) {
-    if (filterStack.getItem() instanceof FilterCardItem == false) {
-      return true; //filter is air, everything allowed
-    }
-    FluidStack fluidFilter = getFluidStack(filterStack);
-    boolean isMatchingList = fluidFilter.getFluid() == fluidInTank.getFluid();
-    boolean isIgnoreList = getIsIgnoreList(filterStack);
-    // 
-    if (isIgnoreList) {
-      return !isMatchingList;
-    }
-    else { // allow list 
-      return fluidFilter.isEmpty() || isMatchingList;
-    }
-  }
-
   // ShareTag for server->client capability data sync
   @Override
   public CompoundNBT getShareTag(ItemStack stack) {
     CompoundNBT nbt = stack.getOrCreateTag();
     FluidStack fluidStack = FilterCardItem.getFluidStack(stack);
-    if (!fluidStack.isEmpty()) {
+    if (fluidStack.isEmpty()) {
+      nbt.remove("fluidTooltip");
+    } else {
       nbt.putString("fluidTooltip", fluidStack.getDisplayName().getString());
     }
-    IItemHandler cap = stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
+    IItemHandler cap = stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).resolve().orElse(null);
     //on server  this runs . also has correct values.
     //set data for sync to client
     if (cap != null) {
@@ -182,8 +183,14 @@ public class FilterCardItem extends ItemBase {
           }
         }
       }
-      nbt.putInt("itemCount", count);
-      if (first != null) {
+      if (count >= 0) {
+        nbt.putInt("itemCount", count);
+      } else {
+        nbt.remove("itemCount");
+      }
+      if (first == null) {
+        nbt.remove("itemToolTip");
+      } else {
         nbt.putString("itemTooltip", first.getString());
       }
     }
@@ -194,9 +201,26 @@ public class FilterCardItem extends ItemBase {
   public void readShareTag(ItemStack stack, CompoundNBT nbt) {
     if (nbt != null) {
       CompoundNBT stackTag = stack.getOrCreateTag();
-      stackTag.putString("itemTooltip", nbt.getString("itemTooltip"));
-      stackTag.putString("fluidTooltip", nbt.getString("fluidTooltip"));
-      stackTag.putInt("itemCount", nbt.getInt("itemCount"));
+      final String itemTooltip = nbt.getString("itemTooltip");
+      if (!itemTooltip.isEmpty()) {
+        stackTag.putString("itemToolTip", itemTooltip);
+      } else if (stackTag.hasUniqueId("itemToolTip")) {
+        stackTag.remove("itemTooltip");
+      }
+
+      final String fluidToolTip = nbt.getString("fluidTooltip");
+      if (!fluidToolTip.isEmpty()) {
+        stackTag.putString("fluidTooltip", fluidToolTip);
+      } else if (stackTag.hasUniqueId("fluidTooltip")) {
+        stackTag.remove("fluidTooltip");
+      }
+
+      final int itemCount = nbt.getInt("itemCount");
+      if (itemCount > 0) {
+        stackTag.putInt("itemCount", itemCount);
+      } else if (stackTag.hasUniqueId("itemCount")) {
+        stackTag.remove("itemCount");
+      }
     }
     super.readShareTag(stack, nbt);
   }

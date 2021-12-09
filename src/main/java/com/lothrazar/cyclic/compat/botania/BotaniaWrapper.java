@@ -9,8 +9,7 @@ public class BotaniaWrapper {
   public static boolean hasSolegnoliaAround(LivingEntity entity) {
     try {
       return ModList.get().isLoaded("botania") && BotaniaAPI.instance().hasSolegnoliaAround(entity);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       //ive never seen an exception here yet, just being safe
     }
     //either botania does not exist or an error was thrown

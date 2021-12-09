@@ -8,6 +8,7 @@ import com.lothrazar.cyclic.recipe.CyclicRecipeType;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import java.util.List;
 import java.util.function.Predicate;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -27,6 +28,7 @@ import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
@@ -35,29 +37,28 @@ import net.minecraftforge.items.ItemStackHandler;
 @SuppressWarnings("rawtypes")
 public class TileMelter extends TileEntityBase implements ITickableTileEntity, INamedContainerProvider {
 
-  static enum Fields {
-    REDSTONE, TIMER, RENDER;
-  }
-
-  static final int MAX = 64000;
   public static final int CAPACITY = 64 * FluidAttributes.BUCKET_VOLUME;
   public static final int TRANSFER_FLUID_PER_TICK = FluidAttributes.BUCKET_VOLUME / 20;
   public static final int TIMER_FULL = Const.TICKS_PER_SEC * 3;
+  static final int MAX = 64000;
   public static IntValue POWERCONF;
-  public FluidTankBase tank;
+  public FluidTankBase tank = new FluidTankBase(this, CAPACITY, isFluidValid());
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
   ItemStackHandler inventory = new ItemStackHandler(2);
   private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
+  private LazyOptional<IFluidHandler> fluidHandlerLazyOptional = LazyOptional.of(() -> tank);
   private RecipeMelter currentRecipe;
 
   public TileMelter() {
     super(TileRegistry.melter);
-    tank = new FluidTankBase(this, CAPACITY, isFluidValid());
   }
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     final int cost = POWERCONF.get();
     if (energy.getEnergyStored() < cost && cost > 0) {
@@ -85,13 +86,13 @@ public class TileMelter extends TileEntityBase implements ITickableTileEntity, I
     switch (Fields.values()[field]) {
       case TIMER:
         this.timer = value;
-      break;
+        break;
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
     }
   }
 
@@ -123,13 +124,14 @@ public class TileMelter extends TileEntityBase implements ITickableTileEntity, I
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     tank.readFromNBT(tag.getCompound(NBTFLUID));
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     CompoundNBT fluid = new CompoundNBT();
@@ -143,7 +145,7 @@ public class TileMelter extends TileEntityBase implements ITickableTileEntity, I
   @Override
   public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
     if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-      return LazyOptional.of(() -> tank).cast();
+      return fluidHandlerLazyOptional.cast();
     }
     if (cap == CapabilityEnergy.ENERGY && POWERCONF.get() > 0) {
       return energyCap.cast();
@@ -152,6 +154,14 @@ public class TileMelter extends TileEntityBase implements ITickableTileEntity, I
       return inventoryCap.cast();
     }
     return super.getCapability(cap, side);
+  }
+
+  @Override
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    fluidHandlerLazyOptional.invalidate();
+    inventoryCap.invalidate();
+    super.invalidateCaps();
   }
 
   public float getCapacity() {
@@ -205,5 +215,9 @@ public class TileMelter extends TileEntityBase implements ITickableTileEntity, I
       return true;
     }
     return false;
+  }
+
+  static enum Fields {
+    REDSTONE, TIMER, RENDER;
   }
 }

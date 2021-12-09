@@ -39,15 +39,14 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EnchantStep extends EnchantBase {
 
+  public static final String ID = "step";
   private static final String NBT_ON = ModCyclic.MODID + "_stepenchant";
+  public static BooleanValue CFG;
 
   public EnchantStep(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
     super(rarityIn, typeIn, slots);
     MinecraftForge.EVENT_BUS.register(this);
   }
-
-  public static BooleanValue CFG;
-  public static final String ID = "step";
 
   @Override
   public boolean isEnabled() {
@@ -62,9 +61,8 @@ public class EnchantStep extends EnchantBase {
   @Override
   public boolean canApply(ItemStack stack) {
     //anything that goes on your feet
-    boolean yes = (stack.getItem() instanceof ArmorItem)
+    return (stack.getItem() instanceof ArmorItem)
         && ((ArmorItem) stack.getItem()).getEquipmentSlot() == EquipmentSlotType.LEGS;
-    return yes;
   }
 
   @Override
@@ -75,22 +73,21 @@ public class EnchantStep extends EnchantBase {
   @SubscribeEvent
   public void onEntityUpdate(LivingUpdateEvent event) {
     //check if NOT holding this harm
-    if (event.getEntityLiving() instanceof PlayerEntity == false) {
+    if (!(event.getEntityLiving() instanceof PlayerEntity)) {
       return;
     }
     PlayerEntity player = (PlayerEntity) event.getEntityLiving();
     //Ticking
     ItemStack armor = player.getItemStackFromSlot(EquipmentSlotType.LEGS);
     int level = 0;
-    if (armor.isEmpty() == false && EnchantmentHelper.getEnchantments(armor) != null
+    if (!armor.isEmpty() && EnchantmentHelper.getEnchantments(armor) != null
         && EnchantmentHelper.getEnchantments(armor).containsKey(this)) {
       //todo: maybe any armor?
       level = EnchantmentHelper.getEnchantments(armor).get(this);
     }
     if (level > 0) {
       turnOn(player, armor);
-    }
-    else {
+    } else {
       //      ModCyclic.log(" level " + level + " and " + armor.getOrCreateTag().getBoolean(NBT_ON));
       turnOff(player, armor);
     }

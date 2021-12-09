@@ -28,9 +28,9 @@ public class TileTrash extends TileEntityBase implements ITickableTileEntity {
       return ItemStack.EMPTY;
     }
   };
-  private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
   FluidTankBase tank;
   private final LazyOptional<FluidTankBase> tankWrapper = LazyOptional.of(() -> tank);
+  private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
 
   public TileTrash() {
     super(TileRegistry.trashtile);
@@ -49,11 +49,19 @@ public class TileTrash extends TileEntityBase implements ITickableTileEntity {
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    tankWrapper.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTINV, inventory.serializeNBT());
@@ -62,12 +70,16 @@ public class TileTrash extends TileEntityBase implements ITickableTileEntity {
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     inventory.extractItem(0, 64, false);
     tank.drain(CAPACITY, FluidAction.EXECUTE);
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {

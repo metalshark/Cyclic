@@ -6,7 +6,9 @@ import com.lothrazar.cyclic.registry.ItemRegistry;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilShape;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -28,17 +30,10 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileItemCollector extends TileEntityBase implements ITickableTileEntity, INamedContainerProvider {
 
-  static enum Fields {
-    REDSTONE, RENDER, SIZE, HEIGHT, DIRECTION;
-  }
-
   static final int MAX_SIZE = 12;
   static final int MAX_HEIGHT = 64;
-  private int height = 1;
-  private boolean directionIsUp = false;
   //radius 7 translates to 15x15 area (center block + 7 each side)
   ItemStackHandler inventory = new ItemStackHandler(2 * 9);
-  private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
   ItemStackHandler filter = new ItemStackHandler(1) {
 
     @Override
@@ -46,6 +41,9 @@ public class TileItemCollector extends TileEntityBase implements ITickableTileEn
       return stack.getItem() == ItemRegistry.filter_data;
     }
   };
+  private int height = 1;
+  private boolean directionIsUp = false;
+  private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
   private int radius = 8;
 
   public TileItemCollector() {
@@ -55,22 +53,21 @@ public class TileItemCollector extends TileEntityBase implements ITickableTileEn
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
       return;
     }
     setLitProperty(true);
-    if (world.isRemote) {
-      return;
-    }
     AxisAlignedBB aabb = getRange();
-    List<ItemEntity> list = world.getEntitiesWithinAABB(ItemEntity.class, aabb, (entity) -> {
-      return entity.isAlive(); //  && entity.getXpValue() > 0;//entity != null && entity.getHorizontalFacing() == facing;
-    });
+    //  && entity.getXpValue() > 0;//entity != null && entity.getHorizontalFacing() == facing;
+    List<ItemEntity> list = world.getEntitiesWithinAABB(ItemEntity.class, aabb, Entity::isAlive);
     if (list.size() > 0) {
       ItemEntity stackEntity = list.get(world.rand.nextInt(list.size()));
       ItemStack remainder = stackEntity.getItem();
-      // and then pull 
+      // and then pull
       if (!FilterCardItem.filterAllowsExtract(filter.getStackInSlot(0), remainder)) {
         return; //not allowed
       }
@@ -106,7 +103,13 @@ public class TileItemCollector extends TileEntityBase implements ITickableTileEn
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     filter.deserializeNBT(tag.getCompound("filter"));
     radius = tag.getInt("radius");
     height = tag.getInt("height");
@@ -115,6 +118,7 @@ public class TileItemCollector extends TileEntityBase implements ITickableTileEn
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put("filter", filter.serializeNBT());
@@ -149,10 +153,9 @@ public class TileItemCollector extends TileEntityBase implements ITickableTileEn
       // when aiming down, we dont have the offset to get [current block] without this
       yMin++;
     }
-    AxisAlignedBB aabb = new AxisAlignedBB(
+    return new AxisAlignedBB(
         center.getX() - radius, yMin, center.getZ() - radius,
         center.getX() + radius + 1, yMax, center.getZ() + radius + 1);
-    return aabb;
   }
 
   @Override
@@ -160,19 +163,19 @@ public class TileItemCollector extends TileEntityBase implements ITickableTileEn
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.setNeedsRedstone(value);
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
       case SIZE:
         radius = Math.min(value, MAX_SIZE);
-      break;
+        break;
       case HEIGHT:
         height = Math.min(value, MAX_HEIGHT);
-      break;
+        break;
       case DIRECTION:
         this.directionIsUp = value == 1;
-      break;
+        break;
     }
   }
 
@@ -191,5 +194,9 @@ public class TileItemCollector extends TileEntityBase implements ITickableTileEn
         return directionIsUp ? 1 : 0;
     }
     return 0;
+  }
+
+  static enum Fields {
+    REDSTONE, RENDER, SIZE, HEIGHT, DIRECTION;
   }
 }

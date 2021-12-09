@@ -29,9 +29,9 @@ public class PacketPlayerFalldamage extends PacketBase {
   }
 
   public static PacketPlayerFalldamage decode(PacketBuffer buf) {
-    PacketPlayerFalldamage message = new PacketPlayerFalldamage();
-    return message;
+    return new PacketPlayerFalldamage();
   }
 
-  public static void encode(PacketPlayerFalldamage msg, PacketBuffer buf) {}
+  public static void encode(PacketPlayerFalldamage msg, PacketBuffer buf) {
+  }
 }

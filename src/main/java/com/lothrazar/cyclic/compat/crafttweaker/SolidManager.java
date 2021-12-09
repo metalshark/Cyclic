@@ -29,7 +29,7 @@ public class SolidManager implements IRecipeManager {
 
   @ZenCodeType.Method
   public void addRecipe(String name, IIngredient inputFirst, IIngredient inputSecond, IIngredient inputThird,
-      IFluidStack f, IItemStack output) {
+                        IFluidStack f, IItemStack output) {
     name = fixRecipeName(name);
     if (output.getInternal().isEmpty()) {
       throw new IllegalArgumentException("Output cannot be empty!");

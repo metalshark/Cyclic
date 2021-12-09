@@ -86,12 +86,10 @@ public class EnchantAutoSmelt extends EnchantBase {
           if (!smeltedItemStack.isEmpty()) {
             smeltedItemStack = ItemHandlerHelper.copyStackWithSize(smeltedItemStack, stack.getCount() * smeltedItemStack.getCount());
             newLoot.add(smeltedItemStack);
-          }
-          else {
+          } else {
             newLoot.add(stack);
           }
-        }
-        else {
+        } else {
           newLoot.add(stack);
         }
       });

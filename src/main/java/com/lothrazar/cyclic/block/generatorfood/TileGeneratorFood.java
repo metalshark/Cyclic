@@ -5,6 +5,7 @@ import com.lothrazar.cyclic.block.battery.TileBattery;
 import com.lothrazar.cyclic.capability.CustomEnergyStorage;
 import com.lothrazar.cyclic.capability.ItemStackHandlerWrapper;
 import com.lothrazar.cyclic.registry.TileRegistry;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -27,15 +28,10 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileGeneratorFood extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    TIMER, REDSTONE, BURNMAX, FLOWING;
-  }
-
   static final int MAX = TileBattery.MENERGY * 10;
   public static IntValue RF_PER_TICK;
   public static IntValue TICKS_PER_FOOD;
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
-  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   ItemStackHandler inputSlots = new ItemStackHandler(1) {
 
     @Override
@@ -44,6 +40,7 @@ public class TileGeneratorFood extends TileEntityBase implements INamedContainer
     }
   };
   ItemStackHandler outputSlots = new ItemStackHandler(0);
+  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   private ItemStackHandlerWrapper inventory = new ItemStackHandlerWrapper(inputSlots, outputSlots);
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
   private int burnTimeMax = 0; //only non zero if processing
@@ -56,15 +53,15 @@ public class TileGeneratorFood extends TileEntityBase implements INamedContainer
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.flowing == 1) {
       this.exportEnergyAllSides();
     }
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
-      return;
-    }
-    if (world.isRemote) {
       return;
     }
     //
@@ -86,10 +83,9 @@ public class TileGeneratorFood extends TileEntityBase implements INamedContainer
     ItemStack stack = inputSlots.getStackInSlot(0);
     if (stack.isFood()) {
       float foodVal = stack.getItem().getFood().getHealing() + stack.getItem().getFood().getSaturation();
-      int burnTimeTicks = (int) (TICKS_PER_FOOD.get() * foodVal);
       //      int testTotal = RF_PER_TICK.get() * burnTimeTicks;
       // BURN IT
-      this.burnTimeMax = burnTimeTicks;
+      this.burnTimeMax = (int) (TICKS_PER_FOOD.get() * foodVal);
       this.burnTime = this.burnTimeMax;
       stack.shrink(1);
       //nether items, mob drops
@@ -120,12 +116,20 @@ public class TileGeneratorFood extends TileEntityBase implements INamedContainer
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTENERGY, energy.serializeNBT());
@@ -153,20 +157,24 @@ public class TileGeneratorFood extends TileEntityBase implements INamedContainer
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case TIMER:
         this.burnTime = value;
-      break;
+        break;
       case BURNMAX:
         this.burnTimeMax = value;
-      break;
+        break;
       case FLOWING:
         this.flowing = value;
-      break;
+        break;
     }
   }
 
   public int getEnergyMax() {
     return TileGeneratorFood.MAX;
+  }
+
+  static enum Fields {
+    TIMER, REDSTONE, BURNMAX, FLOWING;
   }
 }

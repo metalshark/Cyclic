@@ -6,6 +6,7 @@ import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.InventoryHelper;
@@ -27,6 +28,7 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
@@ -38,7 +40,9 @@ import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 
-public class BlockBase extends Block {
+import javax.annotation.Nullable;
+
+public abstract class BlockBase extends Block {
 
   public static final BooleanProperty LIT = BooleanProperty.create("lit");
   private boolean hasGui = false;
@@ -77,8 +81,7 @@ public class BlockBase extends Block {
       return state.with(BlockStateProperties.FACING, newDir);
     }
     // default doesnt do much
-    BlockState newState = state.rotate(direction);
-    return newState;
+    return state.rotate(direction);
   }
 
   @SuppressWarnings("deprecation")
@@ -179,10 +182,7 @@ public class BlockBase extends Block {
       return false;
     }
     TileEntity neighbor = world.getTileEntity(facingPos);
-    if (neighbor != null
-        && neighbor.getCapability(cap, facing.getOpposite()).orElse(null) != null) {
-      return true;
-    }
-    return false;
+    return neighbor != null
+            && neighbor.getCapability(cap, facing.getOpposite()).resolve().orElse(null) != null;
   }
 }

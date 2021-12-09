@@ -1,5 +1,5 @@
 /*******************************************************************************
-t * The MIT License (MIT)
+ t * The MIT License (MIT)
  *
  * Copyright (C) 2014-2018 Sam Bassett (aka Lothrazar)
  *
@@ -36,13 +36,13 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EnchantLifeLeech extends EnchantBase {
 
+  public static final String ID = "life_leech";
+  public static BooleanValue CFG;
+
   public EnchantLifeLeech(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
     super(rarityIn, typeIn, slots);
     MinecraftForge.EVENT_BUS.register(this);
   }
-
-  public static BooleanValue CFG;
-  public static final String ID = "life_leech";
 
   @Override
   public boolean isEnabled() {
@@ -64,8 +64,7 @@ public class EnchantLifeLeech extends EnchantBase {
         // we -1  since potion level 1 is  II
         //so that means enchantment I giving poison I means this
         int restore = (int) Math.max(Math.ceil(target.getMaxHealth() / 5), 4);
-        int min = level; //so if restore starts at 4 the rand will be [min,restore]
-        restore = attacker.getEntityWorld().rand.nextInt(restore + 1) + min;
+        restore = attacker.getEntityWorld().rand.nextInt(restore + 1) + level;
         if (restore > 0) {
           //hunger
           attacker.getFoodStats().addStats(restore, 0.5F);

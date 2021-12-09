@@ -83,7 +83,8 @@ public class ScreenStorageBag extends ScreenBase<ContainerStorageBag> {
   }
 
   @Override
-  protected void drawGuiContainerForegroundLayer(MatrixStack ms, int x, int y) {}
+  protected void drawGuiContainerForegroundLayer(MatrixStack ms, int x, int y) {
+  }
 
   @Override
   protected void drawGuiContainerBackgroundLayer(MatrixStack ms, float partialTicks, int x, int y) {

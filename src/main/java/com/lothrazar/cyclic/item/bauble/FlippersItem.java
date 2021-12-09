@@ -18,7 +18,7 @@ public class FlippersItem extends ItemBaseToggle {
 
   @Override
   public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-    //so  
+    //so
     if (!this.isOn(stack)) {
       return;
     }

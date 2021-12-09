@@ -8,7 +8,6 @@ import com.lothrazar.cyclic.util.UtilPlayer;
 import com.lothrazar.cyclic.util.UtilWorld;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -57,20 +56,20 @@ public class PacketSwapBlock extends PacketBase {
       ServerPlayerEntity player = ctx.get().getSender();
       ItemStack itemStackHeld = player.getHeldItem(message.hand);
       BlockState targetState = BuilderActionType.getBlockState(itemStackHeld);
-      if (targetState == null || itemStackHeld.getItem() instanceof BuilderItem == false) {
+      if (targetState == null || !(itemStackHeld.getItem() instanceof BuilderItem)) {
         return;
       }
       BuildStyle buildStyle = ((BuilderItem) itemStackHeld.getItem()).style;
       World world = player.getEntityWorld();
       BlockState replacedBlockState;
       List<BlockPos> places = getSelectedBlocks(world, message.pos, message.actionType, message.side, buildStyle);
-      Map<BlockPos, Integer> processed = new HashMap<BlockPos, Integer>();
+      Map<BlockPos, Integer> processed = new HashMap<>();
       BlockPos curPos;
       boolean atLeastOne = false;
       synchronized (places) {
-        for (Iterator<BlockPos> i = places.iterator(); i.hasNext();) {
-          curPos = i.next();
-          if (processed.containsKey(curPos) == false) {
+        for (BlockPos place : places) {
+          curPos = place;
+          if (!processed.containsKey(curPos)) {
             processed.put(curPos, 0);
           }
           if (processed.get(curPos) > 0) {
@@ -125,7 +124,7 @@ public class PacketSwapBlock extends PacketBase {
             //always break with PLAYER CONTEXT in mind
             replacedBlock.harvestBlock(world, player, curPos, replacedBlockState, null, itemStackHeld);
           }
-        } // close off the for loop   
+        } // close off the for loop
       }
       if (atLeastOne) {
         UtilItemStack.damageItem(player, itemStackHeld);
@@ -135,7 +134,7 @@ public class PacketSwapBlock extends PacketBase {
   }
 
   public static List<BlockPos> getSelectedBlocks(World world, BlockPos pos, BuilderActionType actionType, Direction side, BuildStyle style) {
-    List<BlockPos> places = new ArrayList<BlockPos>();
+    List<BlockPos> places = new ArrayList<>();
     int xMin = pos.getX();
     int yMin = pos.getY();
     int zMin = pos.getZ();
@@ -149,29 +148,29 @@ public class PacketSwapBlock extends PacketBase {
       case SINGLE:
         places.add(pos);
         offsetW = offsetH = 0;
-      break;
+        break;
       case X3:
         offsetW = offsetH = 1;
-      break;
+        break;
       case X5:
         offsetW = offsetH = 2;
-      break;
+        break;
       case X7:
         offsetW = offsetH = 3;
-      break;
+        break;
       case X9:
         offsetW = offsetH = 4;
-      break;
+        break;
       case X19:
         offsetH = 0;
         offsetW = 4;
-      break;
+        break;
       case X91:
         offsetH = 4;
         offsetW = 0;
-      break;
+        break;
       default:
-      break;
+        break;
     }
     if (actionType != BuilderActionType.SINGLE) {
       if (isVertical) {
@@ -188,8 +187,7 @@ public class PacketSwapBlock extends PacketBase {
         zMax += offsetH;
         yMin -= offsetW;
         yMax += offsetW;
-      }
-      else {
+      } else {
         //axis hit was north/south, so we go in YZ
         xMin -= offsetH;
         xMax += offsetH;
@@ -198,7 +196,7 @@ public class PacketSwapBlock extends PacketBase {
       }
       places = UtilWorld.getPositionsInRange(pos, xMin, xMax, yMin, yMax, zMin, zMax);
     }
-    List<BlockPos> retPlaces = new ArrayList<BlockPos>();
+    List<BlockPos> retPlaces = new ArrayList<>();
     for (BlockPos p : places) {
       if (!world.getBlockState(p).getMaterial().isReplaceable()) {
         //i am not replaceable. so i am a solid block or somethign

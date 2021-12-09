@@ -23,6 +23,18 @@ public class ItemBlockTank extends BlockItem {
     super(blockIn, builder);
   }
 
+  public static FluidStack copyFluidFromStack(ItemStack stack) {
+    if (stack.getTag() != null) {
+      FluidHandlerCapabilityStack handler = new FluidHandlerCapabilityStack(stack, TileTank.CAPACITY);
+      FluidStack fstack = handler.getFluid();
+      if (fstack == null) {
+        return null;
+      }
+      return handler.getFluid();
+    }
+    return null;
+  }
+
   @Override
   public boolean showDurabilityBar(ItemStack stack) {
     FluidStack fstack = copyFluidFromStack(stack);
@@ -38,28 +50,15 @@ public class ItemBlockTank extends BlockItem {
   @Override
   public double getDurabilityForDisplay(ItemStack stack) {
     try {
-      //this is always null 
+      //this is always null
       FluidStack fstack = copyFluidFromStack(stack);
       float qty = fstack.getAmount();
       float ratio = qty / (TileTank.CAPACITY);
       return 1 - ratio;
-    }
-    catch (Throwable e) {
-      //lazy 
+    } catch (Throwable e) {
+      //lazy
     }
     return 1;
-  }
-
-  public static FluidStack copyFluidFromStack(ItemStack stack) {
-    if (stack.getTag() != null) {
-      FluidHandlerCapabilityStack handler = new FluidHandlerCapabilityStack(stack, TileTank.CAPACITY);
-      FluidStack fstack = handler.getFluid();
-      if (fstack == null) {
-        return null;
-      }
-      return handler.getFluid();
-    }
-    return null;
   }
 
   @Override

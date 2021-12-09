@@ -43,8 +43,7 @@ public class CraftingBagContainer extends ContainerBase implements IContainerCra
     if (player.getHeldItemMainhand().getItem() instanceof CraftingBagItem) {
       this.bag = player.getHeldItemMainhand();
       this.slot = player.inventory.currentItem;
-    }
-    else if (player.getHeldItemOffhand().getItem() instanceof CraftingBagItem) {
+    } else if (player.getHeldItemOffhand().getItem() instanceof CraftingBagItem) {
       this.bag = player.getHeldItemOffhand();
       this.slot = 40;
     }
@@ -79,8 +78,8 @@ public class CraftingBagContainer extends ContainerBase implements IContainerCra
   public void onContainerClosed(PlayerEntity playerIn) {
     super.onContainerClosed(playerIn);
     this.craftResult.setInventorySlotContents(0, ItemStack.EMPTY);
-    //this is not the saving version 
-    if (playerIn.world.isRemote == false) {
+    //this is not the saving version
+    if (!playerIn.world.isRemote) {
       if (this.handler == null) {
         this.handler = bag.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
         if (this.handler == null) {

@@ -34,8 +34,7 @@ public class HeartToxicItem extends ItemBase {
     double addedHealth = 0;
     if (oldHealthModifier != null && oldHealthModifier.getAmount() <= -18) {
       addedHealth = -18;
-    }
-    else {
+    } else {
       addedHealth = (oldHealthModifier == null) ? -2.0D : oldHealthModifier.getAmount() - 2.0D;
       //actually DO the eating of the thing
       playerIn.getCooldownTracker().setCooldown(this, COOLDOWN);

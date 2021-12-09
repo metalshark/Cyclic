@@ -11,6 +11,7 @@ import com.lothrazar.cyclic.util.UtilPlaceBlocks;
 import com.lothrazar.cyclic.util.UtilShape;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -38,17 +39,13 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileStructure extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  public static IntValue POWERCONF;
-  static final int SLOT_BUILD = 0;
+  public static final int MAXHEIGHT = 100;
   protected static final int SLOT_SHAPE = 1;
   protected static final int SLOT_GPS = 2;
-  public static final int MAXHEIGHT = 100;
-
-  static enum Fields {
-    TIMER, BUILDTYPE, SIZE, HEIGHT, REDSTONE, RENDER;
-  }
-
+  static final int SLOT_BUILD = 0;
   static final int MAX = 64000;
+  private static final int spotsSkippablePerTrigger = 50;
+  public static IntValue POWERCONF;
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
   ItemStackHandler inventory = new ItemStackHandler(3) {
 
@@ -64,11 +61,9 @@ public class TileStructure extends TileEntityBase implements INamedContainerProv
     public boolean isItemValid(int slot, ItemStack stack) {
       if (slot == SLOT_BUILD) {
         return Block.getBlockFromItem(stack.getItem()) != null;
-      }
-      else if (slot == SLOT_SHAPE) {
+      } else if (slot == SLOT_SHAPE) {
         return stack.getItem() instanceof ShapeCard;
-      }
-      else { // if SLOT_GPS
+      } else { // if SLOT_GPS
         return stack.getItem() instanceof LocationGpsCard;
       }
     }
@@ -87,7 +82,7 @@ public class TileStructure extends TileEntityBase implements INamedContainerProv
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     int t = tag.getInt("buildType");
@@ -98,6 +93,7 @@ public class TileStructure extends TileEntityBase implements INamedContainerProv
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("buildType", buildType.ordinal());
@@ -136,32 +132,39 @@ public class TileStructure extends TileEntityBase implements INamedContainerProv
   }
 
   @Override
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
   public void setField(int field, int value) {
     switch (Fields.values()[field]) {
       case TIMER:
         this.timer = value;
-      break;
+        break;
       case BUILDTYPE:
         if (value >= BuildStructureType.values().length) {
           value = 0;
         }
         this.buildType = BuildStructureType.values()[value];
-      break;
+        break;
       case SIZE:
         this.buildSize = value;
-      break;
+        break;
       case HEIGHT:
         if (value > MAXHEIGHT) {
           value = MAXHEIGHT;
         }
         this.height = Math.max(1, value);
-      break;
+        break;
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
     }
   }
 
@@ -186,6 +189,9 @@ public class TileStructure extends TileEntityBase implements INamedContainerProv
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.requiresRedstone() && !this.isPowered()) {
       return;
@@ -219,7 +225,7 @@ public class TileStructure extends TileEntityBase implements INamedContainerProv
       if (!World.isOutsideBuildHeight(nextPos)
           && world.isAirBlock(nextPos)) { // check if this spot is even valid
         BlockState placeState = stuff.getDefaultState();
-        if (world.isRemote == false && UtilPlaceBlocks.placeStateSafe(world, null, nextPos, placeState)) {
+        if (!world.isRemote && UtilPlaceBlocks.placeStateSafe(world, null, nextPos, placeState)) {
           //build success
           this.incrementPosition(shape);
           stack.shrink(1);
@@ -227,8 +233,7 @@ public class TileStructure extends TileEntityBase implements INamedContainerProv
         }
         break;
         //ok , target position is valid, we can build only into air
-      }
-      else {
+      } else {
         //cant build here. move up one
         nextPos = shape.get(this.shapeIndex);
         this.incrementPosition(shape);
@@ -236,13 +241,10 @@ public class TileStructure extends TileEntityBase implements INamedContainerProv
     }
   }
 
-  private static final int spotsSkippablePerTrigger = 50;
-
   private void incrementPosition(List<BlockPos> shape) {
     if (shape == null || shape.size() == 0) {
       return;
-    }
-    else {
+    } else {
       int c = shapeIndex + 1;
       if (c < 0 || c >= shape.size()) {
         c = 0;
@@ -281,41 +283,41 @@ public class TileStructure extends TileEntityBase implements INamedContainerProv
         }
       }
     }
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     // ITEMSTACK / CARD storing what shape and settings to use
     // only rebuild shapes if they are different
     switch (buildType) {
       case CIRCLE:
         shape = UtilShape.circleHorizontal(this.getPosTarget(), this.getSize() * 2);
         shape = UtilShape.repeatShapeByHeight(shape, getHeight() - 1);
-      break;
+        break;
       case FACING:
         shape = UtilShape.line(this.getPosTarget(), this.getCurrentFacing(), this.getSize());
         shape = UtilShape.repeatShapeByHeight(shape, getHeight() - 1);
-      break;
+        break;
       case SQUARE:
         shape = UtilShape.squareHorizontalHollow(this.getPosTarget(), this.getSize());
         shape = UtilShape.repeatShapeByHeight(shape, getHeight() - 1);
-      break;
+        break;
       case SOLID:
         shape = UtilShape.squareHorizontalFull(this.getTargetFacing(), this.getSize());
         shape = UtilShape.repeatShapeByHeight(shape, getHeight() - 1);
-      break;
+        break;
       case SPHERE:
         shape = UtilShape.sphere(this.getPosTarget(), this.getSize());
-      break;
+        break;
       case DOME:
         shape = UtilShape.sphereDome(this.getPosTarget(), this.getSize());
-      break;
+        break;
       case CUP:
         shape = UtilShape.sphereCup(this.getPosTarget().up(this.getSize()), this.getSize());
-      break;
+        break;
       case DIAGONAL:
         shape = UtilShape.diagonal(this.getPosTarget(), this.getCurrentFacing(), this.getSize() * 2, true);
-      break;
+        break;
       case PYRAMID:
         shape = UtilShape.squarePyramid(this.getPosTarget(), this.getSize(), getHeight());
-      break;
+        break;
     }
     return shape;
   }
@@ -326,5 +328,9 @@ public class TileStructure extends TileEntityBase implements INamedContainerProv
 
   private int getSize() {
     return buildSize;
+  }
+
+  static enum Fields {
+    TIMER, BUILDTYPE, SIZE, HEIGHT, REDSTONE, RENDER;
   }
 }

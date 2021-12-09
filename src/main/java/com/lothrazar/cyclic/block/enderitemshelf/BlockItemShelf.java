@@ -86,7 +86,7 @@ public class BlockItemShelf extends BlockBase {
       ItemStack shelfStack = shelf.inventory.getStackInSlot(slot);
       //first , check if deposit spot is empty
       if (shelfStack.isEmpty() || heldItem.getItem() == shelfStack.getItem()) {
-        //try to insert  
+        //try to insert
         boolean oldEmpty = shelfStack.isEmpty();
         ItemStack remaining = shelf.inventory.insertItem(slot, heldItem, false);
         if (remaining.isEmpty() || remaining.getCount() != shelfStack.getCount()) {
@@ -133,13 +133,13 @@ public class BlockItemShelf extends BlockBase {
   @Override
   public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity entity, ItemStack stack) {
     if (entity != null) {
-      //facing state if needed 
+      //facing state if needed
       world.setBlockState(pos, state.with(BlockStateProperties.HORIZONTAL_FACING, UtilBlockstates.getFacingFromEntityHorizontal(pos, entity)), 2);
     }
     TileEntity tileentity = world.getTileEntity(pos);
     TileItemShelf shelf = (TileItemShelf) tileentity;
     if (stack.getTag() != null) {
-      //to tile from tag 
+      //to tile from tag
       shelf.inventory.deserializeNBT(stack.getTag());
     }
   }
@@ -151,7 +151,7 @@ public class BlockItemShelf extends BlockBase {
     if (tileentity instanceof TileItemShelf) {
       TileItemShelf shelf = (TileItemShelf) tileentity;
       CompoundNBT tileData = shelf.inventory.serializeNBT();
-      //read from tile, write to itemstack 
+      //read from tile, write to itemstack
       newStack.setTag(tileData);
     }
     UtilItemStack.drop(world, pos, newStack);

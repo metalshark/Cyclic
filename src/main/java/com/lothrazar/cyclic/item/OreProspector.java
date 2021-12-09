@@ -30,6 +30,33 @@ public class OreProspector extends ItemBase {
     super(properties);
   }
 
+  public static ItemStack getIfHeld(PlayerEntity player) {
+    ItemStack heldItem = player.getHeldItemMainhand();
+    if (heldItem.getItem() instanceof OreProspector) {
+      return heldItem;
+    }
+    heldItem = player.getHeldItemOffhand();
+    if (heldItem.getItem() instanceof OreProspector) {
+      return heldItem;
+    }
+    return ItemStack.EMPTY;
+  }
+
+  public static ArrayList<BlockPosDim> getPosition(ItemStack item) {
+    ArrayList<BlockPosDim> list = new ArrayList<>();
+    if (!item.hasTag() || !item.getTag().contains(ORESIZE)) {
+      return list;
+    }
+    int size = item.getTag().getInt(ORESIZE);
+    String dim = item.getTag().getString(NBT_DIM);
+    for (int i = 0; i < size; i++) {
+      BlockPos pos = UtilNBT.getBlockPos(item.getTag().getCompound("tag" + i));
+      list.add(new BlockPosDim(pos, dim, item.getTag()));
+    }
+    //    this.read
+    return list;
+  }
+
   @Override
   public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity player, Hand handIn) {
     ItemStack itemstack = player.getHeldItem(handIn);
@@ -74,32 +101,5 @@ public class OreProspector extends ItemBase {
     UtilItemStack.damageItem(player, held);
     //    UtilChat.sendStatusMessage(player, UtilChat.lang("item.location.saved")      + UtilChat.blockPosToString(pos));
     return ActionResultType.SUCCESS;
-  }
-
-  public static ItemStack getIfHeld(PlayerEntity player) {
-    ItemStack heldItem = player.getHeldItemMainhand();
-    if (heldItem.getItem() instanceof OreProspector) {
-      return heldItem;
-    }
-    heldItem = player.getHeldItemOffhand();
-    if (heldItem.getItem() instanceof OreProspector) {
-      return heldItem;
-    }
-    return ItemStack.EMPTY;
-  }
-
-  public static ArrayList<BlockPosDim> getPosition(ItemStack item) {
-    ArrayList<BlockPosDim> list = new ArrayList<BlockPosDim>();
-    if (!item.hasTag() || !item.getTag().contains(ORESIZE)) {
-      return list;
-    }
-    int size = item.getTag().getInt(ORESIZE);
-    String dim = item.getTag().getString(NBT_DIM);
-    for (int i = 0; i < size; i++) {
-      BlockPos pos = UtilNBT.getBlockPos(item.getTag().getCompound("tag" + i));
-      list.add(new BlockPosDim(pos, dim, item.getTag()));
-    }
-    //    this.read  
-    return list;
   }
 }

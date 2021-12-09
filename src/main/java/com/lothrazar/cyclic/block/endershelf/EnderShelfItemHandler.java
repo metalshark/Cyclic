@@ -19,20 +19,20 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class EnderShelfItemHandler extends ItemStackHandler {
 
-  public static IntValue BOOKS_PER_ROW;
   public static final int ROWS = 5;
+  public static IntValue BOOKS_PER_ROW;
   public TileEnderShelf shelf;
   String[] nameCache = new String[ROWS];
   String[] enchantmentIdCache = new String[ROWS];
   int[] extraBooks = new int[ROWS];
 
-  public void resetNameCache() {
-    nameCache = new String[5];
-  }
-
   public EnderShelfItemHandler(TileEnderShelf shelf) {
     super(ROWS);
     this.shelf = shelf;
+  }
+
+  public void resetNameCache() {
+    nameCache = new String[5];
   }
 
   @Override
@@ -116,8 +116,7 @@ public class EnderShelfItemHandler extends ItemStackHandler {
     ItemStack stackIn = this.getStackInSlot(slot);
     if (stackIn.isEmpty()) {
       this.enchantmentIdCache[slot] = "";
-    }
-    else {
+    } else {
       ListNBT chantsIn = EnchantedBookItem.getEnchantments(stackIn);
       this.enchantmentIdCache[slot] = ((CompoundNBT) chantsIn.get(0)).getString("id");
       Map<Enchantment, Integer> enchantments = EnchantmentHelper.deserializeEnchantments(chantsIn);
@@ -147,8 +146,7 @@ public class EnderShelfItemHandler extends ItemStackHandler {
     //
     if (this.enchantmentIdCache[slot] != null || !this.enchantmentIdCache[slot].isEmpty()) {
       //      ModCyclic.LOGGER.info("match on id cache");
-      boolean match = this.enchantmentIdCache[slot].equals(((CompoundNBT) chantsIn.get(0)).getString("id"));
-      return match;
+      return this.enchantmentIdCache[slot].equals(((CompoundNBT) chantsIn.get(0)).getString("id"));
     }
     //else no cache, old way
     return UtilEnchant.doBookEnchantmentsMatch(stackIn, stackHere);

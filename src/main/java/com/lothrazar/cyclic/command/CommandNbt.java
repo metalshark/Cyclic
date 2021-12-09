@@ -12,7 +12,7 @@ public class CommandNbt {
 
   // TODO: send network packet for clipboard. maybe in future
   //      try {
-  //        StringSelection selection = new StringSelection(held.getTag().toString()); 
+  //        StringSelection selection = new StringSelection(held.getTag().toString());
   //        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
   //        clipboard.setContents(selection, selection);
   //      }
@@ -25,8 +25,7 @@ public class CommandNbt {
     ItemStack held = player.getHeldItemMainhand();
     if (held.hasTag()) {
       UtilChat.sendFeedback(ctx, held.getTag().toString());
-    }
-    else {
+    } else {
       UtilChat.sendFeedback(ctx, "command.cyclic.nbtprint.null");
     }
     return 0;

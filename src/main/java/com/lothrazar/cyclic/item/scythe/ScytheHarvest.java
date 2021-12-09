@@ -13,12 +13,12 @@ import net.minecraft.util.math.BlockPos;
 
 public class ScytheHarvest extends ItemBase {
 
+  private static final int RADIUS = 6; //13x13
+  private static final int RADIUS_SNEAKING = 2; //2x2
+
   public ScytheHarvest(Properties properties) {
     super(properties);
   }
-
-  private static final int RADIUS = 6; //13x13
-  private static final int RADIUS_SNEAKING = 2; //2x2
 
   public List<BlockPos> getShape(BlockPos pos, int radius) {
     return UtilShape.squareHorizontalFull(pos, radius);

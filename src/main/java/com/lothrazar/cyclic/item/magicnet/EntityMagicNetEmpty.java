@@ -89,8 +89,7 @@ public class EntityMagicNetEmpty extends ProjectileItemEntity {
       UtilItemStack.drop(world, this.getPosition(), drop);
       UtilSound.playSound(target, SoundRegistry.MONSTER_BALL_CAPTURE);
       target.remove();
-    }
-    else if (type == RayTraceResult.Type.BLOCK) {
+    } else if (type == RayTraceResult.Type.BLOCK) {
       //      BlockRayTraceResult bRayTrace = (BlockRayTraceResult) result;
       BlockPos pos = this.getPosition();
       targetHeightOffset = 0.0D;

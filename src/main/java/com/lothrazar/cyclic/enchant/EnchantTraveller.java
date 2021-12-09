@@ -48,14 +48,13 @@ public class EnchantTraveller extends EnchantBase {
       DamageSource.CACTUS.damageType,
       DamageSource.SWEET_BERRY_BUSH.damageType
   });
+  public static final String ID = "traveler";
+  public static BooleanValue CFG;
 
   public EnchantTraveller(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
     super(rarityIn, typeIn, slots);
     MinecraftForge.EVENT_BUS.register(this);
   }
-
-  public static BooleanValue CFG;
-  public static final String ID = "traveler";
 
   @Override
   public boolean isEnabled() {
@@ -69,9 +68,8 @@ public class EnchantTraveller extends EnchantBase {
 
   @Override
   public boolean canApply(ItemStack stack) {
-    boolean yes = (stack.getItem() instanceof ArmorItem)
+    return (stack.getItem() instanceof ArmorItem)
         && ((ArmorItem) stack.getItem()).getEquipmentSlot() == EquipmentSlotType.LEGS;
-    return yes;
   }
 
   @Override
@@ -99,9 +97,8 @@ public class EnchantTraveller extends EnchantBase {
       if (event.getEntityLiving().fallDistance <= 8) {
         //flatten damage up to 8 instead of default 3
         event.setAmount(0.1F);
-        //but then 9 and onward falls back to original formula 
-      }
-      else if (event.getEntityLiving().getItemStackFromSlot(EquipmentSlotType.CHEST).getItem() instanceof ElytraItem) { //== Items.ELYTRA
+        //but then 9 and onward falls back to original formula
+      } else if (event.getEntityLiving().getItemStackFromSlot(EquipmentSlotType.CHEST).getItem() instanceof ElytraItem) { //== Items.ELYTRA
         //this leg enchant combos with any elytra, so never die from any fall damage, at worst it maxes out at leaving you alive at 1/2 heart
         if (event.getAmount() > event.getEntityLiving().getHealth() - 0.5F) {
           //either you crashed flying straight into the ground, or just fell while wearing elytra (you still die to void tho)

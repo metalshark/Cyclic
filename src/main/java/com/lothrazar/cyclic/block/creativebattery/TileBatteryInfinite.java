@@ -6,6 +6,7 @@ import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilDirection;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
@@ -20,18 +21,23 @@ import net.minecraftforge.energy.IEnergyStorage;
 public class TileBatteryInfinite extends TileEntityBase implements ITickableTileEntity {
 
   static final int MAX = 960000000;
+  CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX) {
+    @Override
+    public boolean canReceive() {
+      return false;
+    }
 
-  static enum Fields {
-    N, E, S, W, U, D;
-  }
-
-  CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
+    @Override
+    public int receiveEnergy(int maxReceive, boolean simulate) {
+      return 0;
+    }
+  };
   private Map<Direction, Boolean> poweredSides;
   private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
 
   public TileBatteryInfinite() {
     super(TileRegistry.battery_infinite);
-    poweredSides = new HashMap<Direction, Boolean>();
+    poweredSides = new HashMap<>();
     for (Direction f : Direction.values()) {
       poweredSides.put(f, true);
     }
@@ -58,7 +64,13 @@ public class TileBatteryInfinite extends TileEntityBase implements ITickableTile
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, @Nonnull CompoundNBT tag) {
     for (Direction f : Direction.values()) {
       poweredSides.put(f, tag.getBoolean("flow_" + f.getName2()));
     }
@@ -66,8 +78,9 @@ public class TileBatteryInfinite extends TileEntityBase implements ITickableTile
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
-  public CompoundNBT write(CompoundNBT tag) {
+  public CompoundNBT write(@Nonnull CompoundNBT tag) {
     for (Direction f : Direction.values()) {
       tag.putBoolean("flow_" + f.getName2(), poweredSides.get(f));
     }
@@ -82,7 +95,10 @@ public class TileBatteryInfinite extends TileEntityBase implements ITickableTile
 
   @Override
   public void tick() {
-    energy.receiveEnergy(MAX, false);
+    if (world == null || world.isRemote) {
+      return;
+    }
+    energy.setEnergy(MAX);
     //now go
     this.tickCableFlow();
   }
@@ -90,7 +106,7 @@ public class TileBatteryInfinite extends TileEntityBase implements ITickableTile
   private void tickCableFlow() {
     for (final Direction exportToSide : UtilDirection.getAllInDifferentOrder()) {
       if (this.poweredSides.get(exportToSide)) {
-        moveEnergy(exportToSide, MAX / 4);
+        moveEnergyToAdjacent(energy, exportToSide, MAX / 4);
       }
     }
   }
@@ -119,22 +135,26 @@ public class TileBatteryInfinite extends TileEntityBase implements ITickableTile
     switch (Fields.values()[field]) {
       case D:
         this.setSideField(Direction.DOWN, value % 2);
-      break;
+        break;
       case E:
         this.setSideField(Direction.EAST, value % 2);
-      break;
+        break;
       case N:
         this.setSideField(Direction.NORTH, value % 2);
-      break;
+        break;
       case S:
         this.setSideField(Direction.SOUTH, value % 2);
-      break;
+        break;
       case U:
         this.setSideField(Direction.UP, value % 2);
-      break;
+        break;
       case W:
         this.setSideField(Direction.WEST, value % 2);
-      break;
+        break;
     }
+  }
+
+  static enum Fields {
+    N, E, S, W, U, D;
   }
 }

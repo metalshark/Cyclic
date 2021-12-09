@@ -1,18 +1,18 @@
 /*******************************************************************************
  * The MIT License (MIT)
- * 
+ *
  * Copyright (C) 2014-2018 Sam Bassett (aka Lothrazar)
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -41,7 +41,6 @@ import net.minecraftforge.items.SlotItemHandler;
 
 public class ContainerCrafter extends ContainerBase {
 
-  TileCrafter tile;
   public static final int INPUT_START_X = 8;
   public static final int INPUT_START_Y = 35;
   public static final int GRID_START_X = 52;
@@ -50,6 +49,7 @@ public class ContainerCrafter extends ContainerBase {
   public static final int OUTPUT_START_Y = 35;
   public static final int PREVIEW_START_X = 70;
   public static final int PREVIEW_START_Y = 35;
+  TileCrafter tile;
 
   public ContainerCrafter(int windowId, World clientWorld, BlockPos pos, PlayerInventory inv, PlayerEntity clientPlayer) {
     super(ContainerScreenRegistry.CRAFTER, windowId);
@@ -80,7 +80,7 @@ public class ContainerCrafter extends ContainerBase {
         }
       }
     });
-    //add output 
+    //add output
     indexx = 0;
     for (int rowPos = 0; rowPos < TileCrafter.IO_NUM_ROWS; rowPos++) {
       for (int colPos = 0; colPos < TileCrafter.IO_NUM_COLS; colPos++) {
@@ -90,11 +90,9 @@ public class ContainerCrafter extends ContainerBase {
         indexx++;
       }
     }
-    tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, TileCrafter.ItemHandlers.PREVIEW).ifPresent(h -> {
-      addSlot(new CrafterGridSlot(h, 0,
-          PREVIEW_START_X,
-          PREVIEW_START_Y));
-    });
+    tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, TileCrafter.ItemHandlers.PREVIEW).ifPresent(h -> addSlot(new CrafterGridSlot(h, 0,
+        PREVIEW_START_X,
+        PREVIEW_START_Y)));
     this.endInv = inventorySlots.size();
     layoutPlayerInventorySlots(8, 153);
     this.trackAllIntFields(tile, TileCrafter.Fields.values().length);
@@ -126,15 +124,13 @@ public class ContainerCrafter extends ContainerBase {
         if (!this.mergeItemStack(stack, playerStart, playerEnd, false)) {
           return ItemStack.EMPTY;
         }
-      }
-      else if (index <= playerEnd && !this.mergeItemStack(stack, 0, 9, false)) {
+      } else if (index <= playerEnd && !this.mergeItemStack(stack, 0, 9, false)) {
         ModCyclic.LOGGER.info("less than playerend and merge to self start-end");
         return ItemStack.EMPTY;
       }
       if (stack.isEmpty()) {
         slot.putStack(ItemStack.EMPTY);
-      }
-      else {
+      } else {
         slot.onSlotChanged();
       }
       if (stack.getCount() == itemstack.getCount()) {

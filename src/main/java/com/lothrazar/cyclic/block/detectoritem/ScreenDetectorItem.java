@@ -36,7 +36,7 @@ public class ScreenDetectorItem extends ScreenBase<ContainerDetectorItem> {
       PacketRegistry.INSTANCE.sendToServer(new PacketTileData(f,
           container.tile.getField(f) + 1, container.tile.getPos()));
     }));
-    //x 
+    //x
     //sliders
     int w = 160;
     int h = 20;

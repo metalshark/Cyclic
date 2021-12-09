@@ -2,6 +2,7 @@ package com.lothrazar.cyclic.block.workbench;
 
 import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.registry.TileRegistry;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -18,6 +19,10 @@ public class TileWorkbench extends TileEntityBase implements INamedContainerProv
   ItemStackHandler inventory = new ItemStackHandler(9);
   IItemHandler output = new ItemStackHandler(1);
 
+  public TileWorkbench() {
+    super(TileRegistry.workbench);
+  }
+
   @Override
   public ITextComponent getDisplayName() {
     return new StringTextComponent(getType().getRegistryName().getPath());
@@ -28,16 +33,13 @@ public class TileWorkbench extends TileEntityBase implements INamedContainerProv
     return new ContainerWorkbench(i, world, pos, playerInventory, playerEntity);
   }
 
-  public TileWorkbench() {
-    super(TileRegistry.workbench);
-  }
-
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     //    CompoundNBT compound = ((INBTSerializable<CompoundNBT>) inventory).serializeNBT();

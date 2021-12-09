@@ -7,6 +7,7 @@ import com.lothrazar.cyclic.capability.CustomEnergyStorage;
 import com.lothrazar.cyclic.capability.ItemStackHandlerWrapper;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -33,17 +34,13 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TilePackager extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    TIMER, REDSTONE, BURNMAX;
-  }
-
+  public static final int TICKS = 10;
   static final int MAX = TileBattery.MENERGY * 10;
   public static IntValue POWERCONF;
-  public static final int TICKS = 10;
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
-  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   ItemStackHandler inputSlots = new ItemStackHandler(1);
   ItemStackHandler outputSlots = new ItemStackHandler(1);
+  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   private ItemStackHandlerWrapper inventory = new ItemStackHandlerWrapper(inputSlots, outputSlots);
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
   private int burnTimeMax = 0; //only non zero if processing
@@ -54,8 +51,45 @@ public class TilePackager extends TileEntityBase implements INamedContainerProvi
     this.needsRedstone = 0;
   }
 
+  public static boolean isRecipeValid(ICraftingRecipe recipe) {
+    int total = 0, matched = 0;
+    Ingredient first = null;
+    for (Ingredient ingr : recipe.getIngredients()) {
+      if (ingr == Ingredient.EMPTY || ingr.getMatchingStacks().length == 0) {
+        continue;
+      }
+      total++;
+      if (first == null) {
+        first = ingr;
+        matched = 1;
+        continue;
+      }
+      if (first.test(ingr.getMatchingStacks()[0])) {
+        matched++;
+      }
+    }
+    if (first == null || first.getMatchingStacks() == null || first.getMatchingStacks().length == 0) {
+      return false; //nothing here
+    }
+    boolean outIsStorage = recipe.getRecipeOutput().getItem().isIn(Tags.Items.STORAGE_BLOCKS);
+    boolean inIsIngot = first.getMatchingStacks()[0].getItem().isIn(Tags.Items.INGOTS);
+    if (!outIsStorage && inIsIngot) {
+      //ingots can only go to storage blocks, nothing else
+      //avoids armor/ iron trap doors. kinda hacky
+      return false;
+    }
+    return total > 0 && total == matched &&
+        recipe.getRecipeOutput().getMaxStackSize() > 1 && //aka not tools/boots/etc
+        //        stack.getCount() >= total &&
+        (total == 4 || total == 9) &&
+        (recipe.getRecipeOutput().getCount() == 1 || recipe.getRecipeOutput().getCount() == total);
+  }
+
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
@@ -92,43 +126,6 @@ public class TilePackager extends TileEntityBase implements INamedContainerProvi
         energy.extractEnergy(POWERCONF.get(), false);
       }
     }
-  }
-
-  public static boolean isRecipeValid(ICraftingRecipe recipe) {
-    int total = 0, matched = 0;
-    Ingredient first = null;
-    for (Ingredient ingr : recipe.getIngredients()) {
-      if (ingr == Ingredient.EMPTY || ingr.getMatchingStacks().length == 0) {
-        continue;
-      }
-      total++;
-      if (first == null) {
-        first = ingr;
-        matched = 1;
-        continue;
-      }
-      if (first.test(ingr.getMatchingStacks()[0])) {
-        matched++;
-      }
-    }
-    if (first == null || first.getMatchingStacks() == null || first.getMatchingStacks().length == 0) {
-      return false; //nothing here
-    }
-    boolean outIsStorage = recipe.getRecipeOutput().getItem().isIn(Tags.Items.STORAGE_BLOCKS);
-    boolean inIsIngot = first.getMatchingStacks()[0].getItem().isIn(Tags.Items.INGOTS);
-    if (!outIsStorage && inIsIngot) {
-      //ingots can only go to storage blocks, nothing else
-      //avoids armor/ iron trap doors. kinda hacky
-      return false;
-    }
-    if (total > 0 && total == matched &&
-        recipe.getRecipeOutput().getMaxStackSize() > 1 && //aka not tools/boots/etc
-        //        stack.getCount() >= total &&
-        (total == 4 || total == 9) &&
-        (recipe.getRecipeOutput().getCount() == 1 || recipe.getRecipeOutput().getCount() == total)) {
-      return true;
-    }
-    return false;
   }
 
   private int getCostIfMatched(ItemStack stack, ICraftingRecipe recipe) {
@@ -173,12 +170,20 @@ public class TilePackager extends TileEntityBase implements INamedContainerProvi
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTENERGY, energy.serializeNBT());
@@ -196,7 +201,7 @@ public class TilePackager extends TileEntityBase implements INamedContainerProvi
       case BURNMAX:
         return this.burnTimeMax;
       default:
-      break;
+        break;
     }
     return 0;
   }
@@ -206,17 +211,21 @@ public class TilePackager extends TileEntityBase implements INamedContainerProvi
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case TIMER:
         this.burnTime = value;
-      break;
+        break;
       case BURNMAX:
         this.burnTimeMax = value;
-      break;
+        break;
     }
   }
 
   public int getEnergyMax() {
     return TilePackager.MAX;
+  }
+
+  static enum Fields {
+    TIMER, REDSTONE, BURNMAX;
   }
 }

@@ -19,6 +19,18 @@ public class LoftyStatureApple extends ItemBase {
     super(properties);
   }
 
+  public static void onUpdate(PlayerEntity player) {
+    CyclicFile datFile = PlayerDataEvents.getOrCreate(player);
+    if (datFile.stepHeight) {
+      UtilStepHeight.enableStepHeight(player);
+    } else {
+      // do we force it off?
+      if (datFile.stepHeightForceOff) {
+        UtilStepHeight.disableStepHeightForced(player);
+      }
+    }
+  }
+
   @Override
   public Rarity getRarity(ItemStack stack) {
     return Rarity.UNCOMMON;
@@ -31,7 +43,7 @@ public class LoftyStatureApple extends ItemBase {
 
   @Override
   public ItemStack onItemUseFinish(ItemStack stack, World worldIn, LivingEntity entityLiving) {
-    if (entityLiving instanceof PlayerEntity == false) {
+    if (!(entityLiving instanceof PlayerEntity)) {
       return super.onItemUseFinish(stack, worldIn, entityLiving);
     }
     PlayerEntity player = (PlayerEntity) entityLiving;
@@ -50,18 +62,5 @@ public class LoftyStatureApple extends ItemBase {
   @Override
   public SoundEvent getEatSound() {
     return SoundRegistry.STEP_HEIGHT_UP;
-  }
-
-  public static void onUpdate(PlayerEntity player) {
-    CyclicFile datFile = PlayerDataEvents.getOrCreate(player);
-    if (datFile.stepHeight) {
-      UtilStepHeight.enableStepHeight(player);
-    }
-    else {
-      // do we force it off?
-      if (datFile.stepHeightForceOff) {
-        UtilStepHeight.disableStepHeightForced(player);
-      }
-    }
   }
 }

@@ -19,7 +19,7 @@ public class TextboxInteger extends TextFieldWidget implements IHasTooltip {
   private List<ITextComponent> tooltip;
 
   public TextboxInteger(FontRenderer fontIn, int xIn, int yIn, int widthIn,
-      BlockPos pos, int field) {
+                        BlockPos pos, int field) {
     super(fontIn, xIn, yIn, widthIn, 16, null);
     this.setMaxStringLength(2);
     this.setEnableBackgroundDrawing(true);
@@ -75,8 +75,7 @@ public class TextboxInteger extends TextFieldWidget implements IHasTooltip {
   public int getCurrent() {
     try {
       return Integer.parseInt(this.getText());
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       return 0;
     }
   }

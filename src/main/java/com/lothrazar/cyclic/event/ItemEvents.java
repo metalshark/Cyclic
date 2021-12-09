@@ -98,7 +98,7 @@ public class ItemEvents {
       //      ply.getAttribute(Attributes.)
       ItemStack find = CharmUtil.getIfEnabled(ply, ItemRegistry.CHARM_CRIT.get());
       if (!find.isEmpty()) {
-        // This is by default 1.5F for ciritcal hits and 1F for normal hits . 
+        // This is by default 1.5F for ciritcal hits and 1F for normal hits .
         event.setDamageModifier(3F);
         UtilItemStack.damageItem(ply, find);
       }
@@ -110,7 +110,7 @@ public class ItemEvents {
     ItemStack stackBow = event.getBow();
     PlayerEntity player = event.getPlayer();
     World worldIn = player.world;
-    if (worldIn.isRemote == false) {
+    if (!worldIn.isRemote) {
       int level = EnchantRegistry.MULTIBOW.getCurrentLevelTool(stackBow);
       if (level <= 0) {
         return;
@@ -135,7 +135,7 @@ public class ItemEvents {
       }
     }
     if (event.getEntityLiving() instanceof FakePlayer) {
-      // 
+      //
       ModCyclic.LOGGER.info("KB fake" + event.getEntityLiving().getDisplayName().getString());
     }
   }
@@ -166,7 +166,7 @@ public class ItemEvents {
           target.setGlowing(true);
           //          ModCyclic.LOGGER.info(event.getEntity() + " eeeee" + event.getArrow().getDamage());
           BlockPos p = target.getPosition();
-          // lightning? 
+          // lightning?
           LightningBoltEntity lightningboltentity = EntityType.LIGHTNING_BOLT.create(world);
           lightningboltentity.moveForced(p.getX(), p.getY(), p.getZ());
           world.addEntity(lightningboltentity);
@@ -211,23 +211,19 @@ public class ItemEvents {
         this.damageFinder(event, player, ItemRegistry.CHARM_CREEPER.get(), 0);
       }
       //check all cases
-      //SB switch 
+      //SB switch
       if (src == DamageSource.FALL || src == DamageSource.CACTUS || src == DamageSource.SWEET_BERRY_BUSH) {
         this.damageFinder(event, player, ItemRegistry.CHARM_LONGFALL.get(), 0);
-      }
-      else if (src == DamageSource.FLY_INTO_WALL || src == DamageSource.IN_WALL) {
+      } else if (src == DamageSource.FLY_INTO_WALL || src == DamageSource.IN_WALL) {
         //stone lung
         this.damageFinder(event, player, ItemRegistry.CHARM_STONE.get(), 0);
-      }
-      else if (src == DamageSource.MAGIC || src == DamageSource.DRAGON_BREATH) {
+      } else if (src == DamageSource.MAGIC || src == DamageSource.DRAGON_BREATH) {
         this.damageFinder(event, player, ItemRegistry.CHARM_MAGICDEF.get(), 0.5F);
-      }
-      else if (src == DamageSource.STARVE) {
+      } else if (src == DamageSource.STARVE) {
         if (this.damageFinder(event, player, ItemRegistry.CHARM_STARVATION.get(), 0)) {
           player.getFoodStats().addStats(0, 0.2F);
         }
-      }
-      else if (src == DamageSource.DROWN) {
+      } else if (src == DamageSource.DROWN) {
         if (this.damageFinder(event, player, ItemRegistry.CHARM_WATER.get(), 0)) {
           //and a holdover bonus
           EffectInstance eff = new EffectInstance(Effects.WATER_BREATHING, 20 * 10, 1);
@@ -235,12 +231,10 @@ public class ItemEvents {
           eff.showIcon = false;
           player.addPotionEffect(eff);
         }
-      }
-      else if (src == DamageSource.LAVA || src == DamageSource.IN_FIRE || src == DamageSource.ON_FIRE) {
+      } else if (src == DamageSource.LAVA || src == DamageSource.IN_FIRE || src == DamageSource.ON_FIRE) {
         this.damageFinder(event, player, ItemRegistry.charm_fire, 0);
       }
-    }
-    else if (src.getTrueSource() instanceof PlayerEntity) {
+    } else if (src.getTrueSource() instanceof PlayerEntity) {
       //player DEALING damage
       PlayerEntity ply = (PlayerEntity) src.getTrueSource();
       ItemStack find = CharmUtil.getIfEnabled(ply, ItemRegistry.CHARM_VENOM.get());
@@ -321,9 +315,9 @@ public class ItemEvents {
   private void tryItemHorseEnder(LivingEntity liv) {
     if (liv.getPersistentData().contains(ItemHorseEnder.NBT_KEYACTIVE)
         && liv.getPersistentData().getInt(ItemHorseEnder.NBT_KEYACTIVE) > 0) {
-      // 
+      //
       if (liv.isInWater()
-          && liv.canBreatheUnderwater() == false
+          && !liv.canBreatheUnderwater()
           && liv.getAir() < liv.getMaxAir()
           && !liv.isPotionActive(Effects.WATER_BREATHING)) {
         liv.addPotionEffect(new EffectInstance(Effects.WATER_BREATHING, 20 * 60, 4));
@@ -361,8 +355,7 @@ public class ItemEvents {
         && world.isAirBlock(pos.up())) {
       world.setBlockState(pos.up(), BlockRegistry.FLOWER_CYAN.get().getDefaultState());
       event.setResult(Result.ALLOW);
-    }
-    else if (world.getBlockState(pos).getBlock() == BlockRegistry.FLOWER_CYAN.get()) {
+    } else if (world.getBlockState(pos).getBlock() == BlockRegistry.FLOWER_CYAN.get()) {
       event.setResult(Result.ALLOW);
       if (world.rand.nextDouble() < 0.5) {
         UtilItemStack.drop(world, pos, new ItemStack(BlockRegistry.FLOWER_CYAN.get()));
@@ -392,7 +385,7 @@ public class ItemEvents {
     if (event.getPlayer().isCrouching() && event.getItemStack().getItem().isIn(DataTags.WRENCH)) {
       if (event.getWorld().getBlockState(event.getPos()).getBlock() instanceof CableBase) {
         //cyclic cable
-        //test? maybe config disable? 
+        //test? maybe config disable?
         event.getPlayer().swingArm(event.getHand());
         event.getWorld().destroyBlock(event.getPos(), true);
         event.setCanceled(true);
@@ -449,8 +442,7 @@ public class ItemEvents {
         UtilChat.sendStatusMessage(player, target.getBlock().getTranslationKey());
         event.setCanceled(true);
         UtilSound.playSound(player, SoundRegistry.DCOIN, 0.3F, 1F);
-      }
-      else {
+      } else {
         //change size
         if (!world.isRemote) {
           BuilderActionType.toggle(held);
@@ -477,12 +469,12 @@ public class ItemEvents {
         switch (ItemStorageBag.getPickupMode(bag)) {
           case EVERYTHING:
             resultStack = ItemStorageBag.tryInsert(bag, resultStack);
-          break;
+            break;
           case FILTER:
             resultStack = ItemStorageBag.tryFilteredInsert(bag, resultStack);
-          break;
+            break;
           case NOTHING:
-          break;
+            break;
         }
         if (resultStack.isEmpty()) {
           break;

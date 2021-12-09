@@ -17,7 +17,7 @@ public class RenderShapedata extends TileEntityRenderer<TileShapedata> {
 
   @Override
   public void render(TileShapedata te, float v, MatrixStack matrixStack,
-      IRenderTypeBuffer ibuffer, int partialTicks, int destroyStage) {
+                     IRenderTypeBuffer ibuffer, int partialTicks, int destroyStage) {
     IItemHandler inv = te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
     if (inv == null) {
       return;

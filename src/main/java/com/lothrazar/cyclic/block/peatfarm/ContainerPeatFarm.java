@@ -39,10 +39,10 @@ import net.minecraftforge.items.SlotItemHandler;
 
 public class ContainerPeatFarm extends ContainerBase {
 
+  public static final int SLOTY = 54;
   static final int SLOTY_FLUID = 39;
   static final int SLOTX_START = 8;
   static final int MID_SPACING = 52;
-  public static final int SLOTY = 54;
   protected TilePeatFarm tile;
 
   public ContainerPeatFarm(int windowId, World world, BlockPos pos, PlayerInventory playerInventory, PlayerEntity player) {

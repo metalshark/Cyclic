@@ -74,13 +74,13 @@ public class PacketCraftAction extends PacketBase {
           c.transferStack(player, i);
         }
         c.getCraftResult().clear();
-      break;
+        break;
       case SPREAD:
         balanceLargestSlot(c, false);
-      break;
+        break;
       case SPREADMATCH:
         balanceLargestSlot(c, true);
-      break;
+        break;
     }
   }
 

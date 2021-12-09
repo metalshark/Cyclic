@@ -290,7 +290,7 @@ public class ItemRegistry {
     //fun
     r.register(new BlockItem(BlockRegistry.plate_launch_redstone, new Item.Properties().group(MaterialRegistry.BLOCK_GROUP)).setRegistryName("plate_launch_redstone"));
     r.register(new BlockItem(BlockRegistry.plate_launch, new Item.Properties().group(MaterialRegistry.BLOCK_GROUP)).setRegistryName("plate_launch"));
-    // machine blocks   
+    // machine blocks
     r.register(new BlockItem(BlockRegistry.detector_item, new Item.Properties().group(MaterialRegistry.BLOCK_GROUP)).setRegistryName("detector_item"));
     r.register(new BlockItem(BlockRegistry.detector_entity, new Item.Properties().group(MaterialRegistry.BLOCK_GROUP)).setRegistryName("detector_entity"));
     r.register(new BlockItem(BlockRegistry.screen, new Item.Properties().group(MaterialRegistry.BLOCK_GROUP)).setRegistryName("screen"));
@@ -326,7 +326,7 @@ public class ItemRegistry {
     // resources
     r.register(new GemstoneItem(new Item.Properties().group(MaterialRegistry.ITEM_GROUP)).setRegistryName("gem_obsidian"));
     r.register(new GemstoneItem(new Item.Properties().group(MaterialRegistry.ITEM_GROUP)).setRegistryName("gem_amber"));
-    //energy 
+    //energy
     r.register(new PeatItem(new Item.Properties().group(MaterialRegistry.ITEM_GROUP), PeatItemType.NORM).setRegistryName("peat_fuel"));
     r.register(new PeatItem(new Item.Properties().group(MaterialRegistry.ITEM_GROUP), PeatItemType.ENRICHED).setRegistryName("peat_fuel_enriched"));
     r.register(new PeatItem(new Item.Properties().group(MaterialRegistry.ITEM_GROUP), PeatItemType.BIOMASS).setRegistryName("biomass"));
@@ -336,7 +336,7 @@ public class ItemRegistry {
     r.register(new MattockItem(new Item.Properties().group(MaterialRegistry.ITEM_GROUP).maxDamage(9001), 2).setRegistryName("mattock_nether"));
     r.register(new SleepingMatItem(new Item.Properties().group(MaterialRegistry.ITEM_GROUP)).setRegistryName("sleeping_mat"));
     r.register(new ShearsMaterial(new Item.Properties().group(MaterialRegistry.ITEM_GROUP).maxDamage(1024 * 1024)).setRegistryName("shears_obsidian"));
-    //weak flint n steel 
+    //weak flint n steel
     r.register(new ShearsMaterial(new Item.Properties().group(MaterialRegistry.ITEM_GROUP).maxDamage(64)).setRegistryName("shears_flint"));
     r.register(new RotatorItem(new Item.Properties().group(MaterialRegistry.ITEM_GROUP).maxDamage(256)).setRegistryName("wrench"));
     r.register(new ScytheBrush(new Item.Properties().group(MaterialRegistry.ITEM_GROUP).maxDamage(256)).setRegistryName("scythe_brush"));
@@ -383,7 +383,7 @@ public class ItemRegistry {
     final int largePotionDur = 3 * 20 * 60; // 3:00
     int h = Foods.APPLE.getHealing();
     float s = Foods.APPLE.getSaturation();
-    //honey is basic. fast to eat, gives lots of food but no potion effects 
+    //honey is basic. fast to eat, gives lots of food but no potion effects
     r.register(new EnderApple(new Item.Properties().group(MaterialRegistry.ITEM_GROUP).food(new Food.Builder().hunger(h).saturation(0).setAlwaysEdible()
         .build())).setRegistryName("apple_ender"));
     //
@@ -431,7 +431,7 @@ public class ItemRegistry {
         .effect(new EffectInstance(Effects.RESISTANCE, largePotionDur, 2), 1)
         .fastToEat().setAlwaysEdible()
         .build())).setRegistryName("apple_iron"));
-    //stronger ones 
+    //stronger ones
     r.register(new AppleBuffs(new Item.Properties().group(MaterialRegistry.ITEM_GROUP).food(new Food.Builder().hunger(1).saturation(1)
         .effect(new EffectInstance(Effects.HEALTH_BOOST, smallPotionDur, 4), 1)
         .effect(new EffectInstance(Effects.RESISTANCE, smallPotionDur, 4), 1)

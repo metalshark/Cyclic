@@ -19,9 +19,9 @@ import net.minecraft.world.IWorld;
 public class DoorbellButton extends AbstractButtonBlock {
 
   public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
-  private static final SoundEvent SOUND = SoundRegistry.DOORBELL_MIKEKOENIG;
   public static final int LIGHTLVL = 4;
   public static final int POWERLVL = 1;
+  private static final SoundEvent SOUND = SoundRegistry.DOORBELL_MIKEKOENIG;
 
   public DoorbellButton(Properties properties) {
     super(false, properties.hardnessAndResistance(0.5F).setLightLevel(s -> s.get(POWERED) ? LIGHTLVL : 0));

@@ -55,6 +55,14 @@ public class SoundRegistry {
   public static final SoundEvent FIREBALL_STAFF_LAUNCH = make("fireball_staff_launch");
   public static final SoundEvent BLOCK_SCAFFOLDING_0 = make("block_scaffolding_0");
   public static final SoundEvent BLOCK_SCAFFOLDING_1 = make("block_scaffolding_1");
+  //update: forge sound type exists apparently
+  public static SoundType SCAFFOLD = new ForgeSoundType(1.0F, 1.0F,
+      //suppliers
+      () -> BLOCK_SCAFFOLDING_0,
+      () -> BLOCK_SCAFFOLDING_1,
+      () -> BLOCK_SCAFFOLDING_0,
+      () -> BLOCK_SCAFFOLDING_1,
+      () -> BLOCK_SCAFFOLDING_1);
   public static final SoundEvent DUNGEONFINDER = make("dungeonfinder");
   public static final SoundEvent SPIKES_ON = make("spikes_on");
   public static final SoundEvent SPIKES_OFF = make("spikes_off");
@@ -68,14 +76,6 @@ public class SoundRegistry {
   public static final SoundEvent FAN_ON = make("fan_on");
   public static final SoundEvent METAL_PITCH = make("metal_pitch");
   public static final SoundEvent ITEM_ARMOR_EQUIP_EMERALD = make("equip_emerald");
-  //update: forge sound type exists apparently
-  public static SoundType SCAFFOLD = new ForgeSoundType(1.0F, 1.0F,
-      //suppliers
-      () -> BLOCK_SCAFFOLDING_0,
-      () -> BLOCK_SCAFFOLDING_1,
-      () -> BLOCK_SCAFFOLDING_0,
-      () -> BLOCK_SCAFFOLDING_1,
-      () -> BLOCK_SCAFFOLDING_1);
 
   private static SoundEvent make(String s) {
     SoundEvent se = new SoundEvent(new ResourceLocation(ModCyclic.MODID, s));

@@ -14,10 +14,6 @@ import net.minecraft.util.math.vector.Vector3d;
 
 public class CommandHome {
 
-  public boolean needsOp() {
-    return ConfigRegistry.COMMANDHOME.get();
-  }
-
   public static int execute(CommandContext<CommandSource> ctx) throws CommandSyntaxException {
     ServerPlayerEntity player = ctx.getSource().asPlayer();
     BlockPos respawnPos = player.func_241140_K_();
@@ -29,10 +25,13 @@ public class CommandHome {
     if (optional.isPresent()) {
       BlockPos bedLocation = new BlockPos(optional.get());
       UtilEntity.enderTeleportEvent(player, player.world, bedLocation);
-    }
-    else {
+    } else {
       UtilChat.sendFeedback(ctx, "command.cyclic.gethome.bed");
     }
     return 0;
+  }
+
+  public boolean needsOp() {
+    return ConfigRegistry.COMMANDHOME.get();
   }
 }

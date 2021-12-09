@@ -71,7 +71,7 @@ public class ShapeCard extends ItemBase {
       BlockState targetState = BuilderActionType.getBlockState(stack);
       if (targetState != null) {
         final BlockPos centerPos = player.getPosition();
-        //        Direction side = context.getFace(); 
+        //        Direction side = context.getFace();
         BlockPos posBuild = null;
         for (BlockPos s : shape.getShape()) {
           posBuild = centerPos.add(s);
@@ -93,12 +93,10 @@ public class ShapeCard extends ItemBase {
             UtilPlayer.decrStackSize(player, slot);
           }
         }
-      }
-      else { // no state selected
+      } else { // no state selected
         UtilChat.sendStatusMessage(player, "item.cyclic.shape_data.state");
       }
-    }
-    else {
+    } else {
       UtilChat.sendStatusMessage(player, "item.cyclic.shape_data.nothing");
     }
     player.swingArm(hand);

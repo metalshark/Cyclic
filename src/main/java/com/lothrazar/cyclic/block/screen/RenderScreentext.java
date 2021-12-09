@@ -10,9 +10,8 @@ import net.minecraft.util.Direction;
 
 /**
  * as of minecraft 1.16 parts of this file contains code from this mod which is MIT License, the same as this project
- * 
+ * <p>
  * https://github.com/jaquadro/StorageDrawers/blob/1.16/LICENSE
- * 
  */
 public class RenderScreentext extends TileEntityRenderer<TileScreentext> {
 
@@ -22,7 +21,7 @@ public class RenderScreentext extends TileEntityRenderer<TileScreentext> {
 
   @Override
   public void render(TileScreentext tile, float v, MatrixStack matrix,
-      IRenderTypeBuffer buffer, int light, int overlayLight) {
+                     IRenderTypeBuffer buffer, int light, int overlayLight) {
     if (tile.requiresRedstone() && !tile.isPowered()) {
       return;
     }
@@ -39,7 +38,7 @@ public class RenderScreentext extends TileEntityRenderer<TileScreentext> {
     //    int textWidth = fontRenderer.getStringWidth(text);// for Centering feature in future?
     float offsetHoriz = padding * 5;
     float offsetVertical = 0;
-    float blockOffset = -0.01F - offset; //negative val is so its not overlapping texture  
+    float blockOffset = -0.01F - offset; //negative val is so its not overlapping texture
     matrix.push();
     UtilRenderText.alignRendering(matrix, side);
     matrix.translate(0, 1, 1 - blockOffset);

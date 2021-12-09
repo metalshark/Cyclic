@@ -59,15 +59,14 @@ public class SpawnInspectorTool extends ItemBase {
     for (EntityClassification classif : EntityClassification.values()) {
       //      UtilChat.addChatMessage(context.getPlayer(), new StringTextComponent(classif.getName()).mergeStyle(TextFormatting.DARK_PURPLE));
       List<MobSpawnInfo.Spawners> list = context.getWorld().getBiome(pos).getMobSpawnInfo().getSpawners(classif);
-      //lop on abobe 
+      //lop on abobe
       for (MobSpawnInfo.Spawners spawnerInfo : list) {
         //        int weight = mobspawninfo$spawners.itemWeight;
         StringTextComponent str = new StringTextComponent("[" + classif.getName() + "] ");
         BlockPos top = getTopSolidOrLiquidBlock(world, spawnerInfo.type, pos.getX(), pos.getZ());
         if (spawnerInfo.type.isSummonable() && WorldEntitySpawner.canCreatureTypeSpawnAtLocation(EntitySpawnPlacementRegistry.getPlacementType(spawnerInfo.type), world, top, spawnerInfo.type)) {
           str.append(new StringTextComponent(spawnerInfo.type.getName().getString()).mergeStyle(TextFormatting.BLUE));
-        }
-        else {
+        } else {
           str.append(new StringTextComponent(spawnerInfo.type.getName().getString()).mergeStyle(TextFormatting.RED));
         }
         UtilChat.addServerChatMessage(context.getPlayer(), str);

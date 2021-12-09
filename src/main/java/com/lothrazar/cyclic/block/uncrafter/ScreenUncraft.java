@@ -1,6 +1,5 @@
 package com.lothrazar.cyclic.block.uncrafter;
 
-import java.util.Arrays;
 import com.lothrazar.cyclic.ModCyclic;
 import com.lothrazar.cyclic.base.ScreenBase;
 import com.lothrazar.cyclic.data.Const;
@@ -9,6 +8,7 @@ import com.lothrazar.cyclic.gui.EnergyBar;
 import com.lothrazar.cyclic.gui.TexturedProgress;
 import com.lothrazar.cyclic.registry.TextureRegistry;
 import com.mojang.blaze3d.matrix.MatrixStack;
+import java.util.Collections;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -66,7 +66,7 @@ public class ScreenUncraft extends ScreenBase<ContainerUncraft> {
       UncraftStatusEnum status = container.tile.getStatus();
       if (status != UncraftStatusEnum.EMPTY && status != UncraftStatusEnum.MATCH) {
         TranslationTextComponent comp = new TranslationTextComponent(ModCyclic.MODID + ".gui.uncrafter." + container.tile.getStatus().name().toLowerCase());
-        GuiUtils.drawHoveringText(matrixStack, Arrays.asList(comp), x, y, this.width, this.height, 0xFFFFFF, font);
+        GuiUtils.drawHoveringText(matrixStack, Collections.singletonList(comp), x, y, this.width, this.height, 0xFFFFFF, font);
       }
     }
   }

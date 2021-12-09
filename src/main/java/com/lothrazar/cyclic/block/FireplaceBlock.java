@@ -36,8 +36,7 @@ public class FireplaceBlock extends BlockBase {
       if (setFire(worldIn, posFire, false) && worldIn.isRemote) {
         UtilSound.playSound(worldIn, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE);
       }
-    }
-    else if (!isPowered && state.get(LIT)) { //put out fire
+    } else if (!isPowered && state.get(LIT)) { //put out fire
       if (setFire(worldIn, posFire, true)) {
         //extinguish sound sent using playEvent
         //which ends up in WorldRenderer line 2200 ish
@@ -52,16 +51,13 @@ public class FireplaceBlock extends BlockBase {
     if (extinguish && canExtinguish(worldIn, pos)) {
       worldIn.setBlockState(pos, Blocks.AIR.getDefaultState());
       return true;
-    }
-    else if (extinguish && canExtinguishInfiniteFire(worldIn, pos)) {
+    } else if (extinguish && canExtinguishInfiniteFire(worldIn, pos)) {
       worldIn.setBlockState(pos.offset(Direction.UP), Blocks.AIR.getDefaultState());
       return true;
-    }
-    else if ((!extinguish && canSetFire(worldIn, pos))) {
+    } else if ((!extinguish && canSetFire(worldIn, pos))) {
       worldIn.setBlockState(pos, Blocks.FIRE.getDefaultState());
       return true;
-    }
-    else if (!extinguish && canSetInfiniteFire(worldIn, pos)) {
+    } else if (!extinguish && canSetInfiniteFire(worldIn, pos)) {
       worldIn.setBlockState(pos.offset(Direction.UP), Blocks.FIRE.getDefaultState());
       return true;
     }

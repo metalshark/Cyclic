@@ -80,8 +80,6 @@ public class ConfigRegistry {
   private static final List<String> UNCRAFT_RECIPE_IDS = new ArrayList<>();
   private static final List<String> TRANSPORTBAG = new ArrayList<>();
   private static final String WALL = "####################################################################################";
-  private static ForgeConfigSpec COMMON_CONFIG;
-  private static ForgeConfigSpec CLIENT_CONFIG;
   public static IntValue PEATERICHPOWER;
   public static IntValue PEATPOWER;
   public static DoubleValue PEATCHANCE;
@@ -93,12 +91,15 @@ public class ConfigRegistry {
   public static BooleanValue COMMANDPING;
   public static BooleanValue LOGINFO;
   public static IntValue HEARTXPMINUS;
-  private static ConfigValue<List<? extends String>> BEHEADING_SKINS;
-  private static ConfigValue<List<? extends String>> MBALL_IGNORE_LIST;
   public static BooleanValue CYAN_GENERATES;
   public static IntValue CHARM_LUCK;
   public static DoubleValue CHARM_SPEED;
   public static DoubleValue CHARM_ATTACKSPEED;
+  private static ForgeConfigSpec COMMON_CONFIG;
+  private static ForgeConfigSpec CLIENT_CONFIG;
+  private static ConfigValue<List<? extends String>> BEHEADING_SKINS;
+  private static ConfigValue<List<? extends String>> MBALL_IGNORE_LIST;
+
   static {
     buildDefaults();
     initConfig();
@@ -140,7 +141,7 @@ public class ConfigRegistry {
     UNCRAFT_IGNORE_ITEMS.add("minecraft:tipped_arrow");
     UNCRAFT_IGNORE_ITEMS.add("minecraft:magma_block");
     UNCRAFT_IGNORE_ITEMS.add("minecraft:stick");
-    UNCRAFT_IGNORE_ITEMS.add("minecraft:*_dye"); //getting flowers etc feels bad 
+    UNCRAFT_IGNORE_ITEMS.add("minecraft:*_dye"); //getting flowers etc feels bad
     UNCRAFT_IGNORE_ITEMS.add("spectrite:spectrite_arrow");
     UNCRAFT_IGNORE_ITEMS.add("spectrite:spectrite_arrow_special");
     UNCRAFT_IGNORE_ITEMS.add("techreborn:uumatter");
@@ -167,7 +168,7 @@ public class ConfigRegistry {
         "tconstruct:scorched_drain", "tconstruct:scorched_duct", "tconstruct:scorched_chute", "tconstruct:foundry_controller", "tconstruct:scorched_alloyer",
         //rftools batteries
         "rftoolspower:cell3", "rftoolspower:cell2", "rftoolspower:cell1", "rftoolspower:cell3", "rftoolspower:cell2", "rftoolspower:cell1"));
-    // 
+    //
     MBALL_IGNORE.add("minecraft:ender_dragon");
     MBALL_IGNORE.add("minecraft:wither");
   }
@@ -213,7 +214,7 @@ public class ConfigRegistry {
     CFG.comment(WALL, " Logging related configs", WALL)
         .push("logging");
     LOGINFO = CFG.comment("Unblock info logs; very spammy; can be useful for testing certain issues").define("info", false);
-    CFG.pop(); //logging 
+    CFG.pop(); //logging
     CFG.comment(WALL, " Energy related configs for machines and items", WALL)
         .push("energy");
     CFG.comment(WALL, " Fuel gained by consuming items", WALL).push("fuel");
@@ -266,7 +267,7 @@ public class ConfigRegistry {
     MaterialRegistry.EMERALD_LEG = CFG.comment("Damage Reduction").defineInRange("leg", 7, 1, 99);
     CFG.pop();
     //
-    // 
+    //
     CFG.comment(WALL, " Obsidian gear settings", WALL).push("obsidian");
     MaterialRegistry.OBS_TOUGH = CFG.comment("Armor toughness").defineInRange("toughness", 6.0F, 0.1F, 99F);
     MaterialRegistry.OBS_DMG = CFG.comment("Weapon damage").defineInRange("damage", 10.5F, 0.1F, 99F);
@@ -349,7 +350,7 @@ public class ConfigRegistry {
     //
     CFG.comment("Uncrafter settings").push("uncrafter");
     TileUncraft.IGNORE_NBT = CFG.comment("False will mean you cannot uncraft damaged repairable items. When searching for a recipe, does it ignore all NBT values (such as enchantments, RepairCost, Damage, etc).  "
-        + "For example, if false it will not uncraft damaged or enchanted items")
+            + "For example, if false it will not uncraft damaged or enchanted items")
         .define("nbt_ignored", false);
     TileUncraft.IGNORELIST = CFG.comment("ITEM IDS HERE.  Block ALL recipes that output this item, no matter which recipe they use. For example, if you add 'minecraft:stick' here, all recipes that craft into one or more sticks will be disabled (including two wooden planks).")
         .defineList("ignore_list", UNCRAFT_IGNORE_ITEMS, it -> it instanceof String);
@@ -418,15 +419,14 @@ public class ConfigRegistry {
   }
 
   public static Map<String, String> getMappedBeheading() {
-    Map<String, String> mappedBeheading = new HashMap<String, String>();
+    Map<String, String> mappedBeheading = new HashMap<>();
     for (String s : BEHEADING_SKINS.get()) {
       try {
         String[] stuff = s.split(":");
         String entity = stuff[0] + ":" + stuff[1];
         String skin = stuff[2];
         mappedBeheading.put(entity, skin);
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         ModCyclic.LOGGER.error("Beheading Enchantment: Invalid config entry " + s);
       }
     }

@@ -32,7 +32,7 @@ public class ScreenFan extends ScreenBase<ContainerFan> {
     GuiSliderInteger speedsl = this.addButton(new GuiSliderInteger(x, y, w, h, f, container.tile.getPos(),
         1, TileFan.MAX_SPEED, container.tile.getField(f)));
     speedsl.setTooltip("cyclic.fan.speed");
-    //    
+    //
     f = TileFan.Fields.RANGE.ordinal();
     x = guiLeft + 8;
     y = guiTop + 54;

@@ -8,6 +8,7 @@ import com.lothrazar.cyclic.util.UtilShape;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SaplingBlock;
@@ -42,16 +43,10 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileForester extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    REDSTONE, RENDER, SIZE;
-  }
-
   static final int MAX = 64000;
   static final int MAX_HEIGHT = 32;
   private static final int MAX_SIZE = 12; //radius 7 translates to 15x15 area (center block + 7 each side)
   public static IntValue POWERCONF;
-  private int height = MAX_HEIGHT;
-  private int radius = MAX_SIZE;
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
   ItemStackHandler inventory = new ItemStackHandler(1) {
 
@@ -60,6 +55,8 @@ public class TileForester extends TileEntityBase implements INamedContainerProvi
       return isSapling(stack);
     }
   };
+  private int height = MAX_HEIGHT;
+  private int radius = MAX_SIZE;
   private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
   private WeakReference<FakePlayer> fakePlayer;
@@ -73,15 +70,15 @@ public class TileForester extends TileEntityBase implements INamedContainerProvi
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
       return;
     }
     setLitProperty(true);
-    if (this.world.isRemote) {
-      return;
-    }
     final int cost = POWERCONF.get();
     if (energy.getEnergyStored() < cost) {
       if (cost > 0) {
@@ -109,9 +106,8 @@ public class TileForester extends TileEntityBase implements INamedContainerProvi
           //ok then DRAIN POWER
           energy.extractEnergy(cost, false);
         }
-      }
-      else if (this.isSapling(dropMe)) {
-        //plant me  . if im on the lowest level 
+      } else if (this.isSapling(dropMe)) {
+        //plant me  . if im on the lowest level
         if (targetPos.getY() == this.pos.getY()) {
           ActionResultType result = TileEntityBase.rightClickBlock(fakePlayer, world, targetPos, Hand.OFF_HAND, Direction.DOWN);
           if (result == ActionResultType.CONSUME) {
@@ -120,8 +116,7 @@ public class TileForester extends TileEntityBase implements INamedContainerProvi
           }
         }
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       ModCyclic.LOGGER.error("Forester action item error", e);
     }
   }
@@ -153,7 +148,14 @@ public class TileForester extends TileEntityBase implements INamedContainerProvi
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     shapeIndex = tag.getInt("shapeIndex");
     radius = tag.getInt("radius");
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
@@ -161,6 +163,7 @@ public class TileForester extends TileEntityBase implements INamedContainerProvi
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("shapeIndex", shapeIndex);
@@ -205,7 +208,7 @@ public class TileForester extends TileEntityBase implements INamedContainerProvi
 
   //for harvest
   public List<BlockPos> getShape() {
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     shape = UtilShape.cubeSquareBase(this.getCurrentFacingPos(radius + 1), radius, height);
     return shape;
   }
@@ -255,13 +258,17 @@ public class TileForester extends TileEntityBase implements INamedContainerProvi
     switch (Fields.values()[id]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
       case SIZE:
         radius = value % MAX_SIZE;
-      break;
+        break;
     }
+  }
+
+  static enum Fields {
+    REDSTONE, RENDER, SIZE;
   }
 }

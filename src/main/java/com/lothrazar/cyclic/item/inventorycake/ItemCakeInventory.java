@@ -24,6 +24,10 @@ public class ItemCakeInventory extends ItemBase {
     super(properties);
   }
 
+  public static void onKeyInput(PlayerEntity player) {
+    PacketRegistry.INSTANCE.sendToServer(new PacketKeyBind(""));
+  }
+
   @Override
   public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand handIn) {
     if (!worldIn.isRemote && playerIn.isCrouching()) {
@@ -49,7 +53,7 @@ public class ItemCakeInventory extends ItemBase {
 
   @Override
   public ItemStack onItemUseFinish(ItemStack stack, World worldIn, LivingEntity entityLiving) {
-    if (entityLiving instanceof PlayerEntity == false) {
+    if (!(entityLiving instanceof PlayerEntity)) {
       return super.onItemUseFinish(stack, worldIn, entityLiving);
     }
     PlayerEntity player = (PlayerEntity) entityLiving;
@@ -59,9 +63,5 @@ public class ItemCakeInventory extends ItemBase {
       UtilChat.addServerChatMessage(player, "cyclic.unlocks.extended");
     }
     return super.onItemUseFinish(stack, worldIn, entityLiving);
-  }
-
-  public static void onKeyInput(PlayerEntity player) {
-    PacketRegistry.INSTANCE.sendToServer(new PacketKeyBind(""));
   }
 }

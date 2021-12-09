@@ -30,7 +30,6 @@ import net.minecraftforge.items.ItemStackHandler;
 public class ContainerWorkbench extends RecipeBookContainer<CraftingInventory>
     implements IContainerCraftingAction {
 
-  private TileWorkbench tile;
   public static final int GRID_START_X = 30;
   public static final int GRID_START_Y = 17;
   public static final int OUTPUT_START_X = 124;
@@ -40,6 +39,7 @@ public class ContainerWorkbench extends RecipeBookContainer<CraftingInventory>
   private final CraftResultInventory craftResult = new CraftResultInventory();
   private final PlayerEntity player;
   private final IWorldPosCallable worldPosCallable;
+  private TileWorkbench tile;
   private boolean doneOpening = false;
 
   public ContainerWorkbench(int windowId, World world, BlockPos pos, PlayerInventory playerInventory, PlayerEntity player) {
@@ -69,6 +69,22 @@ public class ContainerWorkbench extends RecipeBookContainer<CraftingInventory>
     doneOpening = true;
     //if i have a valid recipe, and i close and re-open, reset the output slot
     onCraftMatrixChanged(tile);
+  }
+
+  protected static void updateCraftingResult(int id, World world, PlayerEntity player, CraftingInventory inventory, CraftResultInventory inventoryResult) {
+    if (!world.isRemote) {
+      ServerPlayerEntity sp = (ServerPlayerEntity) player;
+      ItemStack itemstack = ItemStack.EMPTY;
+      Optional<ICraftingRecipe> optional = world.getServer().getRecipeManager().getRecipe(IRecipeType.CRAFTING, inventory, world);
+      if (optional.isPresent()) {
+        ICraftingRecipe recipe = optional.get();
+        if (inventoryResult.canUseRecipe(world, sp, recipe)) {
+          itemstack = recipe.getCraftingResult(inventory);
+        }
+      }
+      inventoryResult.setInventorySlotContents(0, itemstack);
+      sp.connection.sendPacket(new SSetSlotPacket(id, 0, itemstack));
+    }
   }
 
   @Override
@@ -127,9 +143,7 @@ public class ContainerWorkbench extends RecipeBookContainer<CraftingInventory>
       h.extractItem(i, h.getSlotLimit(i), false);
       h.insertItem(i, craftMatrix.getStackInSlot(i), false);
     }
-    this.worldPosCallable.consume((wrld, posIn) -> {
-      updateCraftingResult(this.windowId, wrld, this.player, this.craftMatrix, this.craftResult);
-    });
+    this.worldPosCallable.consume((wrld, posIn) -> updateCraftingResult(this.windowId, wrld, this.player, this.craftMatrix, this.craftResult));
   }
 
   @Override
@@ -154,14 +168,12 @@ public class ContainerWorkbench extends RecipeBookContainer<CraftingInventory>
           if (!this.mergeItemStack(stack, playerStart, playerEnd, false)) {
             return ItemStack.EMPTY;
           }
-        }
-        else if (index <= playerEnd && !this.mergeItemStack(stack, 1, 10, false)) {
+        } else if (index <= playerEnd && !this.mergeItemStack(stack, 1, 10, false)) {
           return ItemStack.EMPTY;
         }
         if (stack.isEmpty()) {
           slot.putStack(ItemStack.EMPTY);
-        }
-        else {
+        } else {
           slot.onSlotChanged();
         }
         if (stack.getCount() == itemstack.getCount()) {
@@ -170,26 +182,9 @@ public class ContainerWorkbench extends RecipeBookContainer<CraftingInventory>
         slot.onTake(playerIn, stack);
       }
       return itemstack;
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       ModCyclic.LOGGER.error(index + "Shift click error", e);
       return ItemStack.EMPTY;
-    }
-  }
-
-  protected static void updateCraftingResult(int id, World world, PlayerEntity player, CraftingInventory inventory, CraftResultInventory inventoryResult) {
-    if (!world.isRemote) {
-      ServerPlayerEntity sp = (ServerPlayerEntity) player;
-      ItemStack itemstack = ItemStack.EMPTY;
-      Optional<ICraftingRecipe> optional = world.getServer().getRecipeManager().getRecipe(IRecipeType.CRAFTING, inventory, world);
-      if (optional.isPresent()) {
-        ICraftingRecipe recipe = optional.get();
-        if (inventoryResult.canUseRecipe(world, sp, recipe)) {
-          itemstack = recipe.getCraftingResult(inventory);
-        }
-      }
-      inventoryResult.setInventorySlotContents(0, itemstack);
-      sp.connection.sendPacket(new SSetSlotPacket(id, 0, itemstack));
     }
   }
 

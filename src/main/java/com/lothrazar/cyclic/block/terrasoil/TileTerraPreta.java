@@ -20,20 +20,6 @@ public class TileTerraPreta extends TileEntityBase implements ITickableTileEntit
     super(TileRegistry.terra_preta);
   }
 
-  @Override
-  public void tick() {
-    //sprinkler to ONLY whats directly above/below
-    timer--;
-    if (timer > 0) {
-      return;
-    }
-    timer = TIMER_FULL;
-    for (int h = 0; h < HEIGHT; h++) {
-      BlockPos current = this.getPos().up(h);
-      grow(world, current, 0.5);
-    }
-  }
-
   @SuppressWarnings("deprecation")
   public static boolean grow(World world, BlockPos current, double d) {
     if (!isValidGrow(world, current)) {
@@ -49,8 +35,7 @@ public class TileTerraPreta extends TileEntityBase implements ITickableTileEntit
           block.randomTick(bState, sw, current, world.rand);
           block.randomTick(bState, sw, current, world.rand);
         }
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         return false;
       }
     }
@@ -70,7 +55,24 @@ public class TileTerraPreta extends TileEntityBase implements ITickableTileEntit
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
+    //sprinkler to ONLY whats directly above/below
+    if (timer-- > 0) {
+      return;
+    }
+    timer = TIMER_FULL;
+    for (int h = 0; h < HEIGHT; h++) {
+      BlockPos current = this.getPos().up(h);
+      grow(world, current, 0.5);
+    }
+  }
+
+  @Override
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {

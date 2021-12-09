@@ -22,7 +22,7 @@ public class ItemBaseToggle extends ItemBase implements IHasClickToggle {
 
   /**
    * ElytraItem::isUsable static
-   * 
+   *
    * @param stack
    * @return
    */
@@ -51,7 +51,7 @@ public class ItemBaseToggle extends ItemBase implements IHasClickToggle {
     if (held.getTag() == null) {
       return false;
     }
-    return held.getTag().getInt(NBT_STATUS) == 0; //its flipped as 0 on, 1 off becuase! because we want teh default to be ON. so player can craft and use right away. 
+    return held.getTag().getInt(NBT_STATUS) == 0; //its flipped as 0 on, 1 off becuase! because we want teh default to be ON. so player can craft and use right away.
     //aka pickup and use instantly.  and then turning it off is optional later
   }
 

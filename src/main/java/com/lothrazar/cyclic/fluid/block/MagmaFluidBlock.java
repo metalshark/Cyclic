@@ -21,6 +21,45 @@ import net.minecraftforge.fluids.ForgeFlowingFluid;
 
 public class MagmaFluidBlock extends FlowingFluidBlock {
 
+  VoxelShape[] shapes = new VoxelShape[16];
+
+  public MagmaFluidBlock(java.util.function.Supplier<? extends FlowingFluid> supplier, Block.Properties props) {
+    super(supplier, props);
+    int max = 15; //max of the property LEVEL.getAllowedValues()
+    float offset = 0.875F;
+    for (int i = 0; i <= max; i++) { //x and z go from [0,1]
+      shapes[i] = VoxelShapes.create(new AxisAlignedBB(0, 0, 0, 1, offset - i / 8F, 1));
+    }
+  }
+
+  @Override
+  @Deprecated
+  public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    return shapes[state.get(LEVEL)];
+  }
+
+  @Override
+  @Deprecated
+  public VoxelShape getRenderShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
+    return shapes[state.get(LEVEL)];
+  }
+
+  @SuppressWarnings("deprecation")
+  @Override
+  public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn) {
+    if (entityIn instanceof LivingEntity) {
+      LivingEntity ent = (LivingEntity) entityIn;
+      if (!ent.isBurning()
+          && !ent.isImmuneToFire()) {
+        int level = EnchantmentHelper.getMaxEnchantmentLevel(Enchantments.FIRE_PROTECTION, ent);
+        if (level < 4) {
+          ent.setFire(MathHelper.floor(worldIn.rand.nextDouble() * 10));
+        }
+      }
+    }
+    super.onEntityCollision(state, worldIn, pos, entityIn);
+  }
+
   public static class Flowing extends ForgeFlowingFluid.Flowing {
 
     public Flowing(Properties properties) {
@@ -53,44 +92,5 @@ public class MagmaFluidBlock extends FlowingFluidBlock {
     public int getLevelDecreasePerBlock(IWorldReader worldIn) {
       return 1;
     }
-  }
-
-  VoxelShape shapes[] = new VoxelShape[16];
-
-  public MagmaFluidBlock(java.util.function.Supplier<? extends FlowingFluid> supplier, Block.Properties props) {
-    super(supplier, props);
-    int max = 15; //max of the property LEVEL.getAllowedValues()
-    float offset = 0.875F;
-    for (int i = 0; i <= max; i++) { //x and z go from [0,1] 
-      shapes[i] = VoxelShapes.create(new AxisAlignedBB(0, 0, 0, 1, offset - i / 8F, 1));
-    }
-  }
-
-  @Override
-  @Deprecated
-  public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-    return shapes[state.get(LEVEL).intValue()];
-  }
-
-  @Override
-  @Deprecated
-  public VoxelShape getRenderShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
-    return shapes[state.get(LEVEL).intValue()];
-  }
-
-  @SuppressWarnings("deprecation")
-  @Override
-  public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn) {
-    if (entityIn instanceof LivingEntity) {
-      LivingEntity ent = (LivingEntity) entityIn;
-      if (ent.isBurning() == false
-          && ent.isImmuneToFire() == false) {
-        int level = EnchantmentHelper.getMaxEnchantmentLevel(Enchantments.FIRE_PROTECTION, ent);
-        if (level < 4) {
-          ent.setFire(MathHelper.floor(worldIn.rand.nextDouble() * 10));
-        }
-      }
-    }
-    super.onEntityCollision(state, worldIn, pos, entityIn);
   }
 }

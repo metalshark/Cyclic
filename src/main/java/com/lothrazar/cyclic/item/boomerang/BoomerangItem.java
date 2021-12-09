@@ -15,11 +15,6 @@ import net.minecraft.world.World;
 public class BoomerangItem extends ItemBase {
 
   private static final int TICKS_USING = 93000;
-
-  public static enum Boomer {
-    STUN, DAMAGE, CARRY;
-  }
-
   private Boomer type;
 
   public BoomerangItem(Boomer type, Properties properties) {
@@ -49,11 +44,11 @@ public class BoomerangItem extends ItemBase {
     int charge = this.getUseDuration(stack) - chargeTimer;
     float percentageCharged = BowItem.getArrowVelocity(charge); //never zero, its from [0.03,1];
     if (percentageCharged < 0.1) {
-      return; //not enough force to go with any realistic path 
+      return; //not enough force to go with any realistic path
     }
     //    float amountCharged = percentageCharged * MAX_CHARGE;
     //    float velocityFactor = percentageCharged * 1.5F;
-    if (entity instanceof PlayerEntity == false) {
+    if (!(entity instanceof PlayerEntity)) {
       return;
     }
     PlayerEntity player = (PlayerEntity) entity;
@@ -61,19 +56,23 @@ public class BoomerangItem extends ItemBase {
     switch (this.type) {
       case CARRY:
         e = new BoomerangEntityCarry(world, player);
-      break;
+        break;
       case DAMAGE:
         e = new BoomerangEntityDamage(world, player);
-      break;
+        break;
       default:
       case STUN:
         e = new BoomerangEntityStun(world, player);
-      break;
+        break;
     }
     shootMe(world, player, e, 0, percentageCharged * ItemBase.VELOCITY_MAX);
     UtilItemStack.damageItem(player, stack);
     player.setHeldItem(player.getActiveHand(), ItemStack.EMPTY);
     e.setBoomerangThrown(stack.copy());
     e.setOwner(player);
+  }
+
+  public static enum Boomer {
+    STUN, DAMAGE, CARRY;
   }
 }

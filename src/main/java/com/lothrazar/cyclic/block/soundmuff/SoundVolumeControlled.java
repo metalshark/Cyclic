@@ -18,13 +18,13 @@ public class SoundVolumeControlled implements ISound {
     sound = s;
   }
 
-  public void setVolume(float v) {
-    this.volume = v;
-  }
-
   @Override
   public float getVolume() {
     return volume * sound.getVolume(); //not from the input, our own control
+  }
+
+  public void setVolume(float v) {
+    this.volume = v;
   }
 
   @Override

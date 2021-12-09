@@ -18,6 +18,8 @@ public class TextBoxAutosave extends TextFieldWidget {
   private static final int KEY_BACKSPACE = 259;
   private BlockPos pos;
   private TileEntityBase tile;
+  private int tileFieldId;
+  private List<ITextComponent> tooltip;
 
   public TextBoxAutosave(FontRenderer fontIn, int xIn, int yIn, int widthIn, BlockPos pos, int field) {
     super(fontIn, xIn, yIn, widthIn, 16, null);
@@ -58,9 +60,6 @@ public class TextBoxAutosave extends TextFieldWidget {
     tile.setFieldString(tileFieldId, current);
     PacketRegistry.INSTANCE.sendToServer(new PacketTileString(this.tileFieldId, current, pos));
   }
-
-  private int tileFieldId;
-  private List<ITextComponent> tooltip;
 
   public List<ITextComponent> getTooltip() {
     return tooltip;

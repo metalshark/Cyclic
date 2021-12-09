@@ -32,6 +32,7 @@ import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilShape;
 import java.util.List;
 import java.util.function.Predicate;
+import javax.annotation.Nonnull;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -62,15 +63,11 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TilePeatFarm extends TileEntityBase implements ITickableTileEntity, INamedContainerProvider {
 
-  static enum Fields {
-    REDSTONE, RENDER;
-  }
-
-  public static IntValue POWERCONF;
   public static final int CAPACITY = 64 * FluidAttributes.BUCKET_VOLUME;
+  public static final int TIMER_FULL = 10;
   static final int MAX = 64000;
-  public static final int TIMER_FULL = 1 * 10;
   private static final int PER_TICK = 1;
+  public static IntValue POWERCONF;
   FluidTankBase tank;
   private final LazyOptional<FluidTankBase> tankWrapper = LazyOptional.of(() -> tank);
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
@@ -81,9 +78,17 @@ public class TilePeatFarm extends TileEntityBase implements ITickableTileEntity,
       return Block.getBlockFromItem(stack.getItem()) == BlockRegistry.peat_unbaked;
     }
   };
+  Block baked = null;
+  Block unbaked = null;
+  List<BlockPos> outer = null;
   private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
   private int blockPointer = 0;
+
+  public TilePeatFarm() {
+    super(TileRegistry.PEAT_FARM);
+    tank = new FluidTankBase(this, CAPACITY, isFluidValid());
+  }
 
   @Override
   public ITextComponent getDisplayName() {
@@ -111,6 +116,9 @@ public class TilePeatFarm extends TileEntityBase implements ITickableTileEntity,
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     this.init();
     if (this.requiresRedstone() && !this.isPowered()) {
@@ -136,13 +144,11 @@ public class TilePeatFarm extends TileEntityBase implements ITickableTileEntity,
           if (tryPlaceWater(target)) {
             energy.extractEnergy(cost, false);
           }
-        }
-        else if (tryPlacePeat(target)) {
+        } else if (tryPlacePeat(target)) {
           energy.extractEnergy(cost, false);
         }
         blockPointer++;
-      }
-      else {
+      } else {
         blockPointer = 0;
       }
     }
@@ -154,10 +160,10 @@ public class TilePeatFarm extends TileEntityBase implements ITickableTileEntity,
     switch (TilePeatFarm.Fields.values()[field]) {
       case REDSTONE:
         this.setNeedsRedstone(value);
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
     }
   }
 
@@ -171,15 +177,6 @@ public class TilePeatFarm extends TileEntityBase implements ITickableTileEntity,
     }
     return 0;
   }
-
-  public TilePeatFarm() {
-    super(TileRegistry.PEAT_FARM);
-    tank = new FluidTankBase(this, CAPACITY, isFluidValid());
-  }
-
-  Block baked = null;
-  Block unbaked = null;
-  List<BlockPos> outer = null;
 
   public Predicate<FluidStack> isFluidValid() {
     return p -> true;
@@ -197,13 +194,13 @@ public class TilePeatFarm extends TileEntityBase implements ITickableTileEntity,
   }
 
   @Override
-  public void setFluid(FluidStack fluid) {
-    tank.setFluid(fluid);
+  public FluidStack getFluid() {
+    return tank == null ? FluidStack.EMPTY : tank.getFluid();
   }
 
   @Override
-  public FluidStack getFluid() {
-    return tank == null ? FluidStack.EMPTY : tank.getFluid();
+  public void setFluid(FluidStack fluid) {
+    tank.setFluid(fluid);
   }
 
   public float getCapacity() {
@@ -257,13 +254,22 @@ public class TilePeatFarm extends TileEntityBase implements ITickableTileEntity,
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    tankWrapper.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     tank.readFromNBT(tag.getCompound(NBTFLUID));
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     CompoundNBT fluid = new CompoundNBT();
@@ -272,5 +278,9 @@ public class TilePeatFarm extends TileEntityBase implements ITickableTileEntity,
     tag.put(NBTENERGY, energy.serializeNBT());
     tag.put(NBTINV, inventory.serializeNBT());
     return super.write(tag);
+  }
+
+  static enum Fields {
+    REDSTONE, RENDER;
   }
 }

@@ -10,9 +10,8 @@ import org.lwjgl.opengl.GL11;
 
 /**
  * Source from MIT open source https://github.com/mekanism/Mekanism/tree/1.15x
- * 
+ * <p>
  * https://github.com/mekanism/Mekanism/blob/1.15x/LICENSE
- * 
  */
 public class FluidTankRenderType extends RenderType {
 

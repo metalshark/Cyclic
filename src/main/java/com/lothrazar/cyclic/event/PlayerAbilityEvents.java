@@ -27,8 +27,7 @@ public class PlayerAbilityEvents {
     }
     if (datFile.spectatorTicks > DISABLE_OFFSET) {
       player.noClip = true;
-    }
-    else if (datFile.spectatorTicks <= DISABLE_OFFSET) {
+    } else if (datFile.spectatorTicks <= DISABLE_OFFSET) {
       player.noClip = false;
     }
     datFile.spectatorTicks--;
@@ -42,8 +41,7 @@ public class PlayerAbilityEvents {
     if (datFile.flyTicks > DISABLE_OFFSET) {
       player.abilities.allowFlying = true;
       ModCyclic.LOGGER.info("allowFlying");
-    }
-    else if (datFile.flyTicks <= DISABLE_OFFSET) {
+    } else if (datFile.flyTicks <= DISABLE_OFFSET) {
       player.abilities.allowFlying = false;
       player.abilities.isFlying = false;
       player.fallDistance = 0.0F;

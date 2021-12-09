@@ -46,15 +46,14 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EnchantGrowth extends EnchantBase {
 
+  public static final String ID = "growth";
   private static final double ODDS_ROTATE = 0.04;
+  public static BooleanValue CFG;
 
   public EnchantGrowth(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
     super(rarityIn, typeIn, slots);
     MinecraftForge.EVENT_BUS.register(this);
   }
-
-  public static BooleanValue CFG;
-  public static final String ID = "growth";
 
   @Override
   public boolean isEnabled() {
@@ -91,26 +90,25 @@ public class EnchantGrowth extends EnchantBase {
       if (entity.world.rand.nextDouble() > ODDS_ROTATE / level) {
         return; //slow the dice down
       }
-      final int growthLimit = level * 2 + (entity.world.isRaining() ? 4 : 1); //faster when raining too 
+      final int growthLimit = level * 2 + (entity.world.isRaining() ? 4 : 1); //faster when raining too
       int grown = 0;
       List<BlockPos> shape = UtilShape.squareHorizontalFull(entity.getPosition().down(), level + 2);
       shape = UtilShape.repeatShapeByHeight(shape, 2);
       Collections.shuffle(shape);
-      for (int i = 0; i < shape.size(); i++) {
+      for (BlockPos blockPos : shape) {
         if (grown >= growthLimit) {
           break;
         }
         //do one
-        BlockPos pos = shape.get(i);
-        BlockState target = entity.world.getBlockState(pos);
+        BlockState target = entity.world.getBlockState(blockPos);
         IntegerProperty propAge = TileHarvester.getAgeProp(target);
         if (propAge == null) {
           continue;
         }
         int maxAge = Collections.max(propAge.getAllowedValues());
-        Integer currentAge = target.get(propAge);
+        int currentAge = target.get(propAge);
         if (currentAge < maxAge) {
-          if (entity.world.setBlockState(pos,
+          if (entity.world.setBlockState(blockPos,
               target.with(propAge, currentAge + 1))) {
             grown++;
           }

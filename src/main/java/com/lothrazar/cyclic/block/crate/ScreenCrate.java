@@ -26,7 +26,8 @@ public class ScreenCrate extends ScreenBase<ContainerCrate> {
   }
 
   @Override
-  protected void drawGuiContainerForegroundLayer(MatrixStack ms, int mouseX, int mouseY) {}
+  protected void drawGuiContainerForegroundLayer(MatrixStack ms, int mouseX, int mouseY) {
+  }
 
   @Override
   protected void drawGuiContainerBackgroundLayer(MatrixStack ms, float partialTicks, int mouseX, int mouseY) {

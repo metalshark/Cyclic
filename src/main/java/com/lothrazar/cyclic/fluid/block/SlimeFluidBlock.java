@@ -19,6 +19,60 @@ import net.minecraftforge.fluids.ForgeFlowingFluid;
 
 public class SlimeFluidBlock extends FlowingFluidBlock {
 
+  VoxelShape[] shapes = new VoxelShape[16];
+
+  public SlimeFluidBlock(java.util.function.Supplier<? extends FlowingFluid> supplier, Block.Properties props) {
+    super(supplier, props);
+    int max = 15; //max of the property LEVEL.getAllowedValues()
+    float offset = 0.875F;
+    for (int i = 0; i <= max; i++) { //x and z go from [0,1]
+      shapes[i] = VoxelShapes.create(new AxisAlignedBB(0, 0, 0, 1, offset - i / 8F, 1));
+    }
+  }
+
+  @Override
+  @Deprecated
+  public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    return shapes[state.get(LEVEL)];
+  }
+
+  @Override
+  @Deprecated
+  public VoxelShape getRenderShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
+    return shapes[state.get(LEVEL)];
+  }
+
+  @Override
+  public void onFallenUpon(World worldIn, BlockPos pos, Entity entityIn, float fallDistance) {
+    if (entityIn.isSuppressingBounce()) {
+      super.onFallenUpon(worldIn, pos, entityIn, fallDistance);
+    } else {
+      entityIn.onLivingFall(fallDistance, 0.0F);
+    }
+  }
+
+  @Override
+  public void onLanded(IBlockReader worldIn, Entity entityIn) {
+    if (entityIn.isSuppressingBounce()) {
+      super.onLanded(worldIn, entityIn);
+    } else {
+      this.collision(entityIn);
+    }
+  }
+
+  /**
+   * From SlimeBlock.java func_226946_a_
+   *
+   * @param entity
+   */
+  private void collision(Entity entity) {
+    Vector3d vec3d = entity.getMotion();
+    if (vec3d.y < 0.0D) {
+      double d0 = entity instanceof LivingEntity ? 1.0D : 0.8D;
+      entity.setMotion(vec3d.x, -vec3d.y * d0, vec3d.z);
+    }
+  }
+
   public static class Flowing extends ForgeFlowingFluid.Flowing {
 
     public Flowing(Properties properties) {
@@ -50,62 +104,6 @@ public class SlimeFluidBlock extends FlowingFluidBlock {
     @Override
     public int getLevelDecreasePerBlock(IWorldReader worldIn) {
       return 6;
-    }
-  }
-
-  VoxelShape shapes[] = new VoxelShape[16];
-
-  public SlimeFluidBlock(java.util.function.Supplier<? extends FlowingFluid> supplier, Block.Properties props) {
-    super(supplier, props);
-    int max = 15; //max of the property LEVEL.getAllowedValues()
-    float offset = 0.875F;
-    for (int i = 0; i <= max; i++) { //x and z go from [0,1] 
-      shapes[i] = VoxelShapes.create(new AxisAlignedBB(0, 0, 0, 1, offset - i / 8F, 1));
-    }
-  }
-
-  @Override
-  @Deprecated
-  public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-    return shapes[state.get(LEVEL).intValue()];
-  }
-
-  @Override
-  @Deprecated
-  public VoxelShape getRenderShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
-    return shapes[state.get(LEVEL).intValue()];
-  }
-
-  @Override
-  public void onFallenUpon(World worldIn, BlockPos pos, Entity entityIn, float fallDistance) {
-    if (entityIn.isSuppressingBounce()) {
-      super.onFallenUpon(worldIn, pos, entityIn, fallDistance);
-    }
-    else {
-      entityIn.onLivingFall(fallDistance, 0.0F);
-    }
-  }
-
-  @Override
-  public void onLanded(IBlockReader worldIn, Entity entityIn) {
-    if (entityIn.isSuppressingBounce()) {
-      super.onLanded(worldIn, entityIn);
-    }
-    else {
-      this.collision(entityIn);
-    }
-  }
-
-  /**
-   * From SlimeBlock.java func_226946_a_
-   * 
-   * @param entity
-   */
-  private void collision(Entity entity) {
-    Vector3d vec3d = entity.getMotion();
-    if (vec3d.y < 0.0D) {
-      double d0 = entity instanceof LivingEntity ? 1.0D : 0.8D;
-      entity.setMotion(vec3d.x, -vec3d.y * d0, vec3d.z);
     }
   }
 }

@@ -2,6 +2,7 @@ package com.lothrazar.cyclic.block.eye;
 
 import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.registry.TileRegistry;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
@@ -17,22 +18,22 @@ public class TileEye extends TileEntityBase implements ITickableTileEntity {
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, @Nonnull CompoundNBT tag) {
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
-  public CompoundNBT write(CompoundNBT tag) {
+  public CompoundNBT write(@Nonnull CompoundNBT tag) {
     return super.write(tag);
   }
 
   @Override
   public void tick() {
-    if (world.isRemote) {
+    if (world == null || world.isRemote) {
       return;
     }
-    timer--;
-    if (timer > 0) {
+    if (timer-- > 0) {
       return;
     }
     timer = FREQUENCY.get();
@@ -42,7 +43,8 @@ public class TileEye extends TileEntityBase implements ITickableTileEntity {
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {

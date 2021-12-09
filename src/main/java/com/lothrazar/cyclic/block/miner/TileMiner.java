@@ -11,6 +11,7 @@ import com.lothrazar.cyclic.util.UtilShape;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -41,20 +42,14 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileMiner extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    REDSTONE, RENDER, SIZE, HEIGHT, DIRECTION;
-  }
-
-  public static IntValue POWERCONF;
-  private int shapeIndex = 0;
+  public static final int MAX_SIZE = 12; //radius 7 translates to 15x15 area (center block + 7 each side)
   static final int SLOT_TOOL = 0;
   static final int SLOT_FILTER = 1;
   static final int MAX_HEIGHT = 64;
-  public static final int MAX_SIZE = 12; //radius 7 translates to 15x15 area (center block + 7 each side)
-  private int height = MAX_HEIGHT / 2;
-  private int radius = 5;
   static final int MAX = 64000;
+  public static IntValue POWERCONF;
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
+  private final LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   ItemStackHandler inventory = new ItemStackHandler(2) {
 
     @Override
@@ -66,20 +61,19 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
     }
 
     @Override
-    public int getSlotLimit(int slot) {
+    public int getSlotLimit(final int slot) {
       return 1;
     }
 
     @Override
-    public boolean isItemValid(int slot, ItemStack stack) {
-      if (slot == SLOT_FILTER && stack.getItem() != ItemRegistry.STATECARD.get()) {
-        return false;
-      }
-      return true;
+    public boolean isItemValid(final int slot, @Nonnull final ItemStack stack) {
+      return slot != SLOT_FILTER || stack.getItem() == ItemRegistry.STATECARD.get();
     }
   };
-  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
-  private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
+  private final LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
+  private int shapeIndex = 0;
+  private int height = MAX_HEIGHT / 2;
+  private int radius = 5;
   private WeakReference<FakePlayer> fakePlayer;
   private boolean isCurrentlyMining;
   private float curBlockDamage;
@@ -95,16 +89,18 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
     return TileEntity.INFINITE_EXTENT_AABB;
   }
 
+  @Nonnull
   @Override
   public ITextComponent getDisplayName() {
     return new StringTextComponent(getType().getRegistryName().getPath());
   }
 
   @Override
-  public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+  public Container createMenu(int i, @Nonnull final PlayerInventory playerInventory, @Nonnull final PlayerEntity playerEntity) {
     return new ContainerMiner(i, world, pos, playerInventory, playerEntity);
   }
 
+  @Nonnull
   @Override
   public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
     if (cap == CapabilityEnergy.ENERGY && POWERCONF.get() > 0) {
@@ -117,7 +113,14 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     radius = tag.getInt("size");
     height = tag.getInt("height");
     isCurrentlyMining = tag.getBoolean("isCurrentlyMining");
@@ -127,6 +130,7 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("size", radius);
@@ -140,6 +144,9 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
@@ -156,8 +163,7 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
       }
       setLitProperty(true);
       updateMiningProgress(shape);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       ModCyclic.LOGGER.error("Miner action error", e);
     }
   }
@@ -173,8 +179,7 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
     if (isTargetValid()) { //if target is valid, allow mining (no air, no blacklist, etc)
       isCurrentlyMining = true;
       //then keep current target
-    }
-    else { // no valid target, back out 
+    } else { // no valid target, back out
       updateTargetPos(shape);
       resetProgress();
     }
@@ -193,21 +198,19 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
       if (curBlockDamage >= 1.0f || relative == 0) {
         boolean harvested = fakePlayer.get().interactionManager.tryHarvestBlock(targetPos);
         if (!harvested) {
-          //            world.destroyBlock(targetPos, true, fakePlayer.get()); 
+          //            world.destroyBlock(targetPos, true, fakePlayer.get());
           harvested = world.getBlockState(targetPos).removedByPlayer(world, pos, fakePlayer.get(), true, world.getFluidState(pos));
           //   ModCyclic.LOGGER.info("Miner:removedByPlayer hacky workaround " + targetPos);
         }
         if (harvested) {
-          // success 
+          // success
           energy.extractEnergy(cost, false);
           resetProgress();
-        }
-        else {
+        } else {
           world.sendBlockBreakProgress(fakePlayer.get().getUniqueID().hashCode(), targetPos, (int) (curBlockDamage * 10.0F) - 1);
         }
       }
-    }
-    else { //is mining is false 
+    } else { //is mining is false
       world.sendBlockBreakProgress(fakePlayer.get().getUniqueID().hashCode(), targetPos, (int) (curBlockDamage * 10.0F) - 1);
     }
     return false;
@@ -221,7 +224,7 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
     for (BlockStateMatcher m : BlockstateCard.getSavedStates(filter)) {
       BlockState st = m.getState();
       if (targetState.getBlock() == st.getBlock()) {
-        if (m.isExactProperties() == false) {
+        if (!m.isExactProperties()) {
           // the blocks DO match, isExact is flagged as no, so we are good
           return true;
         }
@@ -239,8 +242,7 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
           return false;
         }
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       return false;
     }
     //none had a mismatch
@@ -252,17 +254,17 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
    */
   private boolean isTargetValid() {
     if (targetPos == null || world.isAirBlock(targetPos) || fakePlayer == null) {
-      return false; //dont mine air or liquid. 
+      return false; //dont mine air or liquid.
     }
     //is this valid
     BlockState blockSt = world.getBlockState(targetPos);
     if (blockSt.hardness < 0) {
-      return false; //unbreakable 
+      return false; //unbreakable
     }
-    //water logged is 
-    if (blockSt.getFluidState() != null && blockSt.getFluidState().isEmpty() == false) {
+    //water logged is
+    if (blockSt.getFluidState() != null && !blockSt.getFluidState().isEmpty()) {
       //am i PURE liquid? or just a WATERLOGGED block
-      if (blockSt.hasProperty(BlockStateProperties.WATERLOGGED) == false) {
+      if (!blockSt.hasProperty(BlockStateProperties.WATERLOGGED)) {
         //    ModCyclic.LOGGER.info(targetPos + " Mining FLUID is not valid  " + blockSt);
         //pure liquid. but this will make canHarvestBlock go true , which is a lie actually so, no. dont get stuck here
         return false;
@@ -306,7 +308,7 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
   }
 
   public List<BlockPos> getShapeHollow() {
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     shape = UtilShape.squareHorizontalHollow(this.getCurrentFacingPos(radius + 1), radius);
     int diff = directionIsUp ? 1 : -1;
     if (height > 0) {
@@ -340,19 +342,23 @@ public class TileMiner extends TileEntityBase implements INamedContainerProvider
     switch (Fields.values()[id]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
       case DIRECTION:
         this.directionIsUp = value == 1;
-      break;
+        break;
       case HEIGHT:
         height = Math.min(value, MAX_HEIGHT);
-      break;
+        break;
       case SIZE:
         radius = Math.min(value, MAX_SIZE);
-      break;
+        break;
     }
+  }
+
+  static enum Fields {
+    REDSTONE, RENDER, SIZE, HEIGHT, DIRECTION;
   }
 }

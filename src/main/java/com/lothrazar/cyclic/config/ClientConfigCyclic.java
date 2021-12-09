@@ -33,47 +33,36 @@ public class ClientConfigCyclic {
     // but client config makes sense right now
     if (tile.getType() == TileRegistry.COLLECTOR_ITEM) {
       return parseColor(COLLECTOR_ITEM.get());
-    }
-    else if (tile.getType() == TileRegistry.COLLECTOR_FLUID) {
+    } else if (tile.getType() == TileRegistry.COLLECTOR_FLUID) {
       return parseColor(COLLECTOR_FLUID.get());
-    }
-    else if (tile.getType() == TileRegistry.DETECTOR_ENTITY) {
+    } else if (tile.getType() == TileRegistry.DETECTOR_ENTITY) {
       return parseColor(DETECTOR_ENTITY.get());
-    }
-    else if (tile.getType() == TileRegistry.DETECTOR_ITEM) {
+    } else if (tile.getType() == TileRegistry.DETECTOR_ITEM) {
       return parseColor(DETECTOR_ITEM.get());
-    }
-    else if (tile.getType() == TileRegistry.DROPPER) {
+    } else if (tile.getType() == TileRegistry.DROPPER) {
       return parseColor(DROPPER.get());
-    }
-    else if (tile.getType() == TileRegistry.FORESTER) {
+    } else if (tile.getType() == TileRegistry.FORESTER) {
       return parseColor(FORESTER.get());
-    }
-    else if (tile.getType() == TileRegistry.HARVESTER) {
+    } else if (tile.getType() == TileRegistry.HARVESTER) {
       return parseColor(HARVESTER.get());
-    }
-    else if (tile.getType() == TileRegistry.MINER) {
+    } else if (tile.getType() == TileRegistry.MINER) {
       return parseColor(MINER.get());
-    }
-    else if (tile.getType() == TileRegistry.PEAT_FARM) {
+    } else if (tile.getType() == TileRegistry.PEAT_FARM) {
       return parseColor(PEAT_FARM.get());
-    }
-    else if (tile.getType() == TileRegistry.STRUCTURE) {
+    } else if (tile.getType() == TileRegistry.STRUCTURE) {
       return parseColor(STRUCTURE.get());
-    }
-    else {
+    } else {
       ModCyclic.LOGGER.info("Default color for tile " + tile);
       return DEFAULTC;
     }
   }
 
   private static Color parseColor(String string) {
-    //the reverse is 
+    //the reverse is
     //   String h = String.format("#%02x%02x%02x", Color.DARK_GRAY.getRed(), Color.DARK_GRAY.getGreen(), Color.DARK_GRAY.getBlue());
     try {
       return Color.decode(string);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       ModCyclic.LOGGER.error("Invalid color string in client config, try default #404040" + string);
     }
     return DEFAULTC;
@@ -82,23 +71,17 @@ public class ClientConfigCyclic {
   public static Color getColor(ItemStack item) {
     if (item.getItem() == ItemRegistry.location) {
       return parseColor(LOCATION.get());
-    }
-    else if (item.getItem() == ItemRegistry.shape_data) {
+    } else if (item.getItem() == ItemRegistry.shape_data) {
       return parseColor(SHAPE_DATA.get());
-    }
-    else if (item.getItem() == ItemRegistry.RANDOMIZE_SCEPTER.get()) {
+    } else if (item.getItem() == ItemRegistry.RANDOMIZE_SCEPTER.get()) {
       return parseColor(RANDOMIZE_SCEPTER.get());
-    }
-    else if (item.getItem() == ItemRegistry.OFFSET_SCEPTER.get()) {
+    } else if (item.getItem() == ItemRegistry.OFFSET_SCEPTER.get()) {
       return parseColor(OFFSET_SCEPTER.get());
-    }
-    else if (item.getItem() == ItemRegistry.REPLACE_SCEPTER.get()) {
+    } else if (item.getItem() == ItemRegistry.REPLACE_SCEPTER.get()) {
       return parseColor(REPLACE_SCEPTER.get());
-    }
-    else if (item.getItem() == ItemRegistry.BUILD_SCEPTER.get()) {
+    } else if (item.getItem() == ItemRegistry.BUILD_SCEPTER.get()) {
       return parseColor(BUILD_SCEPTER.get());
-    }
-    else {
+    } else {
       ModCyclic.LOGGER.info("Default color for item " + item.getItem());
       return DEFAULTC;
     }

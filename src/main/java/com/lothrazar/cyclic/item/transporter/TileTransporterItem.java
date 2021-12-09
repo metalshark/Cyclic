@@ -1,18 +1,18 @@
 /*******************************************************************************
  * The MIT License (MIT)
- * 
+ *
  * Copyright (C) 2014-2018 Sam Bassett (aka Lothrazar)
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -76,13 +76,13 @@ public class TileTransporterItem extends ItemBase {
     Direction side = context.getFace();
     World world = context.getWorld();
     BlockPos offset = pos.offset(side);
-    if (world.isAirBlock(offset) == false) {
+    if (!world.isAirBlock(offset)) {
       return ActionResultType.FAIL;
     }
     if (placeStoredTileEntity(player, stack, offset)) {
       player.setHeldItem(context.getHand(), ItemStack.EMPTY);
       UtilSound.playSound(player, SoundRegistry.THUNK);
-      if (player.isCreative() == false) {
+      if (!player.isCreative()) {
         UtilItemStack.drop(world, player.getPosition(), new ItemStack(ItemRegistry.tile_transporterempty));
       }
     }
@@ -114,8 +114,7 @@ public class TileTransporterItem extends ItemBase {
         tile.markDirty();
         world.markChunkDirty(pos, tile);
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       ModCyclic.LOGGER.error("Error attempting to place block in world", e);
       UtilChat.sendStatusMessage(player, "chest_sack.error.place");
       world.setBlockState(pos, Blocks.AIR.getDefaultState());
@@ -137,8 +136,7 @@ public class TileTransporterItem extends ItemBase {
         t.mergeStyle(TextFormatting.DARK_GREEN);
         list.add(t);
       }
-    }
-    else {
+    } else {
       TranslationTextComponent t = new TranslationTextComponent(UtilChat.lang("invalid"));
       t.mergeStyle(TextFormatting.DARK_RED);
       list.add(t);

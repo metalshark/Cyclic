@@ -9,9 +9,6 @@ import com.lothrazar.cyclic.util.UtilChat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fluids.FluidAttributes;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -19,6 +16,9 @@ import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fluids.FluidAttributes;
 
 @SuppressWarnings("rawtypes")
 public class MelterRecipeCategory implements IRecipeCategory<RecipeMelter> {
@@ -79,15 +79,15 @@ public class MelterRecipeCategory implements IRecipeCategory<RecipeMelter> {
     guiItemStacks.init(3, true, 3, 120);
     List<List<ItemStack>> inputs = ingredients.getInputs(VanillaTypes.ITEM);
     List<ItemStack> input = inputs.get(0);
-    if (input != null && input.isEmpty() == false) {
+    if (input != null && !input.isEmpty()) {
       guiItemStacks.set(0, input);
     }
     input = inputs.get(1);
-    if (input != null && input.isEmpty() == false) {
+    if (input != null && !input.isEmpty()) {
       guiItemStacks.set(1, input);
     }
     ingredients.setOutput(VanillaTypes.FLUID, recipe.getRecipeFluid());
-    //getname is the same   
+    //getname is the same
     recipeLayout.getFluidStacks().init(0, true, 140, Const.SQ + 1, Const.SQ - 2, Const.SQ - 2,
         FluidAttributes.BUCKET_VOLUME, false,
         null);

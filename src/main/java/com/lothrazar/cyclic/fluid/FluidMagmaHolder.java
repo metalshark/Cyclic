@@ -26,12 +26,17 @@ public class FluidMagmaHolder {
   private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, ModCyclic.MODID);
   private static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(ForgeRegistries.FLUIDS, ModCyclic.MODID);
   private static final String id = "magma";
+
+  public FluidMagmaHolder(IEventBus modEventBus) {
+    BLOCKS.register(modEventBus);
+    ITEMS.register(modEventBus);
+    FLUIDS.register(modEventBus);
+  }
+
   public static RegistryObject<FlowingFluid> STILL = FLUIDS.register(id, () -> new MagmaFluidBlock.Source(FluidMagmaHolder.properties));
   public static RegistryObject<FlowingFluid> FLOWING = FLUIDS.register(id + "_flowing", () -> new MagmaFluidBlock.Flowing(FluidMagmaHolder.properties));
   public static RegistryObject<FlowingFluidBlock> BLOCK = BLOCKS.register(id + "_block",
-      () -> new MagmaFluidBlock(STILL, Block.Properties.create(Material.WATER).hardnessAndResistance(100.0F).setLightLevel((p_235456_0_) -> {
-        return 8;
-      }).noDrops()));
+      () -> new MagmaFluidBlock(STILL, Block.Properties.create(Material.WATER).hardnessAndResistance(100.0F).setLightLevel((p_235456_0_) -> 8).noDrops()));
   public static RegistryObject<Item> BUCKET = ITEMS.register(id + "_bucket",
       () -> new BucketItem(STILL, new Item.Properties().containerItem(Items.BUCKET).maxStackSize(1).group(MaterialRegistry.ITEM_GROUP)));
   private static final ForgeFlowingFluid.Properties properties = new ForgeFlowingFluid.Properties(
@@ -40,11 +45,7 @@ public class FluidMagmaHolder {
       FluidAttributes.builder(
           new ResourceLocation("minecraft:block/magma"),
           new ResourceLocation("minecraft:block/magma")))
-              .bucket(BUCKET).block(BLOCK);
+      .bucket(BUCKET).block(BLOCK);
 
-  public FluidMagmaHolder(IEventBus modEventBus) {
-    BLOCKS.register(modEventBus);
-    ITEMS.register(modEventBus);
-    FLUIDS.register(modEventBus);
-  }
+
 }

@@ -17,8 +17,8 @@ import net.minecraft.util.text.ITextComponent;
 
 public class ScreenShapedata extends ScreenBase<ContainerShapedata> {
 
-  private ButtonMachineField btnRender;
   Map<StructCommands, ButtonMachine> map = new HashMap<>();
+  private ButtonMachineField btnRender;
 
   public ScreenShapedata(ContainerShapedata screenContainer, PlayerInventory inv, ITextComponent titleIn) {
     super(screenContainer, inv, titleIn);
@@ -40,11 +40,11 @@ public class ScreenShapedata extends ScreenBase<ContainerShapedata> {
     for (StructCommands shape : StructCommands.values()) {
       ButtonMachine btnShape = addButton(new ButtonMachine(x, y, width, 20,
           shape.name(), (p) -> {
-            //      container.tile.setFlowing((container.getFlowing() + 1) % 2);
-            PacketRegistry.INSTANCE.sendToServer(
-                new PacketTileData(Fields.COMMAND.ordinal(),
-                    shape.ordinal(), container.tile.getPos()));
-          }));
+        //      container.tile.setFlowing((container.getFlowing() + 1) % 2);
+        PacketRegistry.INSTANCE.sendToServer(
+            new PacketTileData(Fields.COMMAND.ordinal(),
+                shape.ordinal(), container.tile.getPos()));
+      }));
       btnShape.setTooltip("block.cyclic.computer_shape.command");
       map.put(shape, btnShape);
       y += 20;

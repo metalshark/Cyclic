@@ -18,19 +18,18 @@ import net.minecraftforge.common.MinecraftForge;
 
 public class EnchantCurse extends EnchantBase {
 
+  public static final String ID = "curse";
   private static final double BASE_ACTIVATION_CHANCE = 0.1;
   private static final double BASE_APPLY_CHANCE = 0.3;
   private static final double MIN_EFFECTS = 1;
   private static final double MAX_EFFECTS = 3;
   private static final int EFFECT_DURATION = 20 * 5;
+  public static BooleanValue CFG;
 
   public EnchantCurse(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
     super(rarityIn, typeIn, slots);
     MinecraftForge.EVENT_BUS.register(this);
   }
-
-  public static BooleanValue CFG;
-  public static final String ID = "curse";
 
   @Override
   public boolean isEnabled() {

@@ -35,6 +35,18 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EventRender {
 
+  public static void drawString(MatrixStack ms, String str, int x, int y) {
+    Minecraft mc = Minecraft.getInstance();
+    mc.fontRenderer.drawString(ms, str, x, y, 0xFFFFFF);
+  }
+
+  public static void drawStack(ItemStack stack) {
+    Minecraft mc = Minecraft.getInstance();
+    int width = mc.getMainWindow().getScaledWidth();
+    int height = mc.getMainWindow().getScaledHeight();
+    mc.getItemRenderer().renderItemAndEffectIntoGUI(stack, width / 2, height / 2);
+  }
+
   @SubscribeEvent
   public void overlay(RenderGameOverlayEvent.Post event) {
     //Build scepter feature : render selected blockstate in cross hair
@@ -46,7 +58,7 @@ public class EventRender {
         //
         BlockState targetState = BuilderActionType.getBlockState(itemStackHeld);
         if (targetState != null) {
-          //ok still 
+          //ok still
           drawStack(new ItemStack(targetState.getBlock()));
           int slot = UtilPlayer.getFirstSlotWithBlock(player, targetState);
           if (slot < 0) {
@@ -57,12 +69,11 @@ public class EventRender {
           }
         }
       }
-    }
-    else if (event.getType() == ElementType.TEXT) {
+    } else if (event.getType() == ElementType.TEXT) {
       int height = mc.getMainWindow().getScaledHeight();
       //      int width = mc.getMainWindow().getScaledWidth();
       //      //
-      //      // 
+      //      //
       //      int seconds = (int) (player.world.getDayTime() / 20);
       //      int minutes = seconds / 60;
       //      int hours = minutes / 60;
@@ -82,18 +93,6 @@ public class EventRender {
         drawString(event.getMatrixStack(), "noClip " + sec, 10, height - 10);
       }
     }
-  }
-
-  public static void drawString(MatrixStack ms, String str, int x, int y) {
-    Minecraft mc = Minecraft.getInstance();
-    mc.fontRenderer.drawString(ms, str, x, y, 0xFFFFFF);
-  }
-
-  public static void drawStack(ItemStack stack) {
-    Minecraft mc = Minecraft.getInstance();
-    int width = mc.getMainWindow().getScaledWidth();
-    int height = mc.getMainWindow().getScaledHeight();
-    mc.getItemRenderer().renderItemAndEffectIntoGUI(stack, width / 2, height / 2);
   }
   //  @SubscribeEvent
   //  public void addCustomButtonToInventory(GuiScreenEvent.InitGuiEvent.Post event) {
@@ -120,7 +119,7 @@ public class EventRender {
   //    }
   //  }
 
-  ///////////////////// asdfasdf TODO REFACTOR THIS 
+  ///////////////////// asdfasdf TODO REFACTOR THIS
   @SubscribeEvent
   public void renderOverlay(RenderWorldLastEvent event) {
     PlayerEntity player = Minecraft.getInstance().player;

@@ -34,6 +34,29 @@ public class LocationGpsCard extends ItemBase {
     super(properties);
   }
 
+  public static BlockPosDim getPosition(ItemStack item) {
+    BlockPos pos = UtilNBT.getItemStackBlockPos(item);
+    if (pos == null) {
+      return null;
+    }
+    //    this.read
+    CompoundNBT tag = item.getOrCreateTag();
+    item.getDisplayName();
+    BlockPosDim dim = new BlockPosDim(pos, tag.getString(NBT_DIM), tag);
+    try {
+      dim.setSidePlayerFacing(Direction.values()[tag.getInt(NBT_SIDE + "facing")]);
+      dim.setSide(Direction.values()[tag.getInt(NBT_SIDE)]);
+      Vector3d vec = new Vector3d(
+          tag.getDouble("hitx"),
+          tag.getDouble("hity"),
+          tag.getDouble("hitz"));
+      dim.setHitVec(vec);
+    } catch (Throwable e) {
+      ModCyclic.LOGGER.error("SIde error in GPS", e);
+    }
+    return dim;
+  }
+
   @Override
   @OnlyIn(Dist.CLIENT)
   public void addInformation(ItemStack stack, World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
@@ -48,12 +71,10 @@ public class LocationGpsCard extends ItemBase {
         if (!dim.getHitVec().equals(Vector3d.ZERO)) {
           tooltip.add(new TranslationTextComponent("H: " + dim.getHitVec().toString()).mergeStyle(TextFormatting.GRAY));
         }
-      }
-      else {
+      } else {
         tooltip.add(new TranslationTextComponent("item.cyclic.shift").mergeStyle(TextFormatting.DARK_GRAY));
       }
-    }
-    else {
+    } else {
       TranslationTextComponent t = new TranslationTextComponent(getTranslationKey() + ".tooltip");
       t.mergeStyle(TextFormatting.GRAY);
       tooltip.add(t);
@@ -82,29 +103,5 @@ public class LocationGpsCard extends ItemBase {
     held.getOrCreateTag().putDouble("hity", vec.y - pos.getY());
     held.getOrCreateTag().putDouble("hitz", vec.z - pos.getZ());
     return ActionResultType.SUCCESS;
-  }
-
-  public static BlockPosDim getPosition(ItemStack item) {
-    BlockPos pos = UtilNBT.getItemStackBlockPos(item);
-    if (pos == null) {
-      return null;
-    }
-    //    this.read 
-    CompoundNBT tag = item.getOrCreateTag();
-    item.getDisplayName();
-    BlockPosDim dim = new BlockPosDim(pos, tag.getString(NBT_DIM), tag);
-    try {
-      dim.setSidePlayerFacing(Direction.values()[tag.getInt(NBT_SIDE + "facing")]);
-      dim.setSide(Direction.values()[tag.getInt(NBT_SIDE)]);
-      Vector3d vec = new Vector3d(
-          tag.getDouble("hitx"),
-          tag.getDouble("hity"),
-          tag.getDouble("hitz"));
-      dim.setHitVec(vec);
-    }
-    catch (Throwable e) {
-      ModCyclic.LOGGER.error("SIde error in GPS", e);
-    }
-    return dim;
   }
 }

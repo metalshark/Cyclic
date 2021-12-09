@@ -6,6 +6,7 @@ import com.lothrazar.cyclic.block.detectorentity.CompareType;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilShape;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,16 +23,12 @@ import net.minecraft.util.text.StringTextComponent;
 
 public class TileDetectorItem extends TileEntityBase implements ITickableTileEntity, INamedContainerProvider {
 
-  static enum Fields {
-    GREATERTHAN, LIMIT, RANGEX, RANGEY, RANGEZ, RENDER;
-  }
-
-  private static final int PER_TICK = 10;
   public static final int MAX_RANGE = 32;
+  private static final int PER_TICK = 10;
   private int rangeX = 5;
   private int rangeY = 1;
   private int rangeZ = 5;
-  //default is > 0 living entities 
+  //default is > 0 living entities
   private int limitUntilRedstone = 0;
   private CompareType compType = CompareType.GREATER;
   private boolean isPoweredNow = false;
@@ -42,8 +39,10 @@ public class TileDetectorItem extends TileEntityBase implements ITickableTileEnt
 
   @Override
   public void tick() {
-    timer--;
-    if (world.isRemote || timer > 0) {
+    if (world == null || world.isRemote) {
+      return;
+    }
+    if (timer-- > 0) {
       return;
     }
     timer = PER_TICK;
@@ -53,15 +52,15 @@ public class TileDetectorItem extends TileEntityBase implements ITickableTileEnt
     switch (this.compType) {
       case LESS:
         trigger = (entitiesFound < limitUntilRedstone);
-      break;
+        break;
       case GREATER:
         trigger = (entitiesFound > limitUntilRedstone);
-      break;
+        break;
       case EQUAL:
         trigger = (entitiesFound == limitUntilRedstone);
-      break;
+        break;
       default:
-      break;
+        break;
     }
     if (isPoweredNow != trigger) {
       isPoweredNow = trigger;
@@ -69,14 +68,13 @@ public class TileDetectorItem extends TileEntityBase implements ITickableTileEnt
       world.notifyBlockUpdate(this.getPos(), state, state, 3);
       try {
         world.notifyNeighborsOfStateChange(this.getPos(), this.getBlockState().getBlock());
-      }
-      catch (Throwable e) {
-        //somehow this lead to a  
+      } catch (Throwable e) {
+        //somehow this lead to a
         //        java.lang.NullPointerException
         //        at net.minecraft.block.BlockDoor.neighborChanged(BlockDoor.java:228)
         // from the notifyNeighborsOfStateChange(...)
         // door was doing a get state on pos.up() , so its top half..
-        //this catch means no game crash 
+        //this catch means no game crash
         ModCyclic.LOGGER.error("Detector: State change error in adjacent block ", e);
       }
     }
@@ -116,10 +114,9 @@ public class TileDetectorItem extends TileEntityBase implements ITickableTileEnt
     double x = pos.getX();
     double y = pos.getY();
     double z = pos.getZ();
-    AxisAlignedBB entityRange = new AxisAlignedBB(
+    return new AxisAlignedBB(
         x - this.rangeX, y - this.rangeY, z - this.rangeZ,
         x + this.rangeX + 1, y + this.rangeY, z + this.rangeZ + 1);
-    return entityRange;
   }
 
   @Override
@@ -138,7 +135,7 @@ public class TileDetectorItem extends TileEntityBase implements ITickableTileEnt
       case RENDER:
         return this.render;
       default:
-      break;
+        break;
     }
     return 0;
   }
@@ -163,7 +160,7 @@ public class TileDetectorItem extends TileEntityBase implements ITickableTileEnt
           value = CompareType.values().length - 1;
         }
         this.compType = CompareType.values()[value];
-      break;
+        break;
       case LIMIT:
         if (value > 999) {
           value = MAX_RANGE;
@@ -172,24 +169,24 @@ public class TileDetectorItem extends TileEntityBase implements ITickableTileEnt
           value = 0;
         }
         this.limitUntilRedstone = value;
-      break;
+        break;
       case RANGEX:
         this.rangeX = value;
-      break;
+        break;
       case RANGEY:
         this.rangeY = value;
-      break;
+        break;
       case RANGEZ:
         this.rangeZ = value;
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
     }
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     this.rangeX = tag.getInt("ox");
     this.rangeY = tag.getInt("oy");
     this.rangeZ = tag.getInt("oz");
@@ -201,6 +198,7 @@ public class TileDetectorItem extends TileEntityBase implements ITickableTileEnt
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("ox", rangeX);
@@ -213,5 +211,9 @@ public class TileDetectorItem extends TileEntityBase implements ITickableTileEnt
 
   public List<BlockPos> getShape() {
     return UtilShape.getShape(getRange(), pos.getY());
+  }
+
+  static enum Fields {
+    GREATERTHAN, LIMIT, RANGEX, RANGEY, RANGEZ, RENDER;
   }
 }

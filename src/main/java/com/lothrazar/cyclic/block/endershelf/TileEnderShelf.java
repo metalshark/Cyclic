@@ -2,6 +2,7 @@ package com.lothrazar.cyclic.block.endershelf;
 
 import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.registry.TileRegistry;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
@@ -15,16 +16,13 @@ public class TileEnderShelf extends TileEntityBase {
   private final LazyOptional<EnderShelfItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
   public RenderTextType renderStyle = RenderTextType.TEXT;
 
-  public static enum RenderTextType {
-    TEXT, STACK, NONE;
-  }
-
   public TileEnderShelf() {
     super(TileRegistry.ender_shelf);
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {
@@ -40,7 +38,13 @@ public class TileEnderShelf extends TileEntityBase {
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     if (tag.contains("RenderTextType")) {
       int rt = tag.getInt("RenderTextType");
@@ -50,6 +54,7 @@ public class TileEnderShelf extends TileEntityBase {
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTINV, inventory.serializeNBT());
@@ -63,5 +68,9 @@ public class TileEnderShelf extends TileEntityBase {
       ord = 0;
     }
     this.renderStyle = RenderTextType.values()[ord];
+  }
+
+  public static enum RenderTextType {
+    TEXT, STACK, NONE;
   }
 }

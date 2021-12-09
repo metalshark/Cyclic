@@ -28,8 +28,8 @@ public class GuiSliderInteger extends AbstractSlider implements IHasTooltip {
   private List<ITextComponent> tooltip;
 
   public GuiSliderInteger(int x, int y, int width, int height, int field,
-      BlockPos pos, int min, int max,
-      double initialVal) {
+                          BlockPos pos, int min, int max,
+                          double initialVal) {
     super(x, y, width, height, StringTextComponent.EMPTY, 0);
     this.field = field;
     this.pos = pos;
@@ -53,8 +53,7 @@ public class GuiSliderInteger extends AbstractSlider implements IHasTooltip {
       int height = this.height - 2;
       this.blit(matrixStack, this.x + (int) (this.sliderValue * (this.width - 8)), this.y, 0, 46 + i, 4, height);
       this.blit(matrixStack, this.x + (int) (this.sliderValue * (this.width - 8)) + 4, this.y, 196, 46 + i, 4, height);
-    }
-    else {
+    } else {
       this.blit(matrixStack, this.x + (int) (this.sliderValue * (this.width - 8)), this.y, 0, 46 + i, 4, this.height);
       this.blit(matrixStack, this.x + (int) (this.sliderValue * (this.width - 8)) + 4, this.y, 196, 46 + i, 4, this.height);
     }
@@ -111,8 +110,7 @@ public class GuiSliderInteger extends AbstractSlider implements IHasTooltip {
       int delta = (keyCode == ARROW_LEFT) ? -1 : 1;
       if (Screen.hasShiftDown()) {
         delta = delta * 5;
-      }
-      else if (Screen.hasAltDown()) {
+      } else if (Screen.hasAltDown()) {
         delta = delta * 10;
       }
       setSliderValueActual(this.getSliderValueActual() + delta);
@@ -149,6 +147,10 @@ public class GuiSliderInteger extends AbstractSlider implements IHasTooltip {
     func_230979_b_();
   }
 
+  public int getSliderValueActual() {
+    return MathHelper.floor(MathHelper.clampedLerp(min, max, this.sliderValue));
+  }
+
   /**
    * Set inner [0,1] value relative to maximum and trigger save/ & refresh
    */
@@ -156,10 +158,6 @@ public class GuiSliderInteger extends AbstractSlider implements IHasTooltip {
     this.sliderValue = val / max;
     this.func_230979_b_();
     this.func_230972_a_();
-  }
-
-  public int getSliderValueActual() {
-    return MathHelper.floor(MathHelper.clampedLerp(min, max, this.sliderValue));
   }
 
   public int getField() {

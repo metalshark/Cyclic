@@ -24,7 +24,7 @@ public class WorldGenEvents {
    */
   @SubscribeEvent
   public void onBiomeLoadingEvent(BiomeLoadingEvent event) {
-    if (ConfigRegistry.CYAN_GENERATES.get() == false) {
+    if (!ConfigRegistry.CYAN_GENERATES.get()) {
       return;
     }
     //spawn depend on biome type
@@ -33,7 +33,7 @@ public class WorldGenEvents {
         || event.getCategory() == Biome.Category.TAIGA
         || event.getCategory() == Biome.Category.EXTREME_HILLS) {
       //      ModCyclic.LOGGER.info(String.format("cyan_flower in BIOME=%s; category=%s", event.getName(), event.getCategory().getName()));
-      //spawn 
+      //spawn
       event.getGeneration().withFeature(
           GenerationStage.Decoration.VEGETAL_DECORATION,
           CYAN_FLOWER_FEATURE);

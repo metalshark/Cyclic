@@ -3,6 +3,7 @@ package com.lothrazar.cyclic.block.spikes;
 import com.lothrazar.cyclic.base.BlockBase;
 import com.lothrazar.cyclic.registry.SoundRegistry;
 import com.lothrazar.cyclic.util.UtilSound;
+import javax.annotation.Nonnull;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.IWaterLoggable;
@@ -85,16 +86,16 @@ public class SpikesBlock extends BlockBase implements IWaterLoggable {
       switch (this.type) {
         case CURSE:
           triggerCurse(worldIn, entity);
-        break;
+          break;
         case FIRE:
           entity.setFire(FIRE_TIME);
-        break;
+          break;
         case PLAIN:
           entity.attackEntityFrom(DamageSource.CACTUS, 1);
-        break;
+          break;
         default:
         case NONE:
-        break;
+          break;
       }
     }
   }
@@ -102,50 +103,49 @@ public class SpikesBlock extends BlockBase implements IWaterLoggable {
   private void triggerCurse(World worldIn, Entity entity) {
     if (worldIn.rand.nextDouble() < CURSE_CHANCE) {
       LivingEntity living = (LivingEntity) entity;
-      switch (worldIn.rand.nextInt(4)) { //[0,3] if nextInt(4) given 
+      switch (worldIn.rand.nextInt(4)) { //[0,3] if nextInt(4) given
         case 0:
           if (!living.isPotionActive(Effects.SLOWNESS)) {
             living.addPotionEffect(new EffectInstance(Effects.SLOWNESS, CURSE_TIME, 2));
           }
-        break;
+          break;
         case 1:
           if (!living.isPotionActive(Effects.WEAKNESS)) {
             living.addPotionEffect(new EffectInstance(Effects.WEAKNESS, CURSE_TIME, 2));
           }
-        break;
+          break;
         case 2:
           if (!living.isPotionActive(Effects.UNLUCK)) {
             living.addPotionEffect(new EffectInstance(Effects.UNLUCK, CURSE_TIME, 1));
           }
-        break;
+          break;
         case 3:
           if (!living.isPotionActive(Effects.MINING_FATIGUE)) {
             living.addPotionEffect(new EffectInstance(Effects.MINING_FATIGUE, CURSE_TIME, 2));
           }
-        break;
+          break;
         case 4:
           entity.attackEntityFrom(DamageSource.MAGIC, 1);
-        break;
+          break;
         case 5:
           if (!living.isPotionActive(Effects.BLINDNESS)) {
             living.addPotionEffect(new EffectInstance(Effects.BLINDNESS, CURSE_TIME, 1));
           }
-        break;
+          break;
       }
     }
   }
 
   @SuppressWarnings("deprecation")
   @Override
-  public void neighborChanged(BlockState state, World world, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
-    if (state.get(ACTIVATED).booleanValue() == false && world.isBlockPowered(pos)) {
+  public void neighborChanged(BlockState state, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull Block blockIn, @Nonnull BlockPos fromPos, boolean isMoving) {
+    if (!state.get(ACTIVATED) && world.isBlockPowered(pos)) {
       world.setBlockState(pos, state.with(ACTIVATED, true));
       if (!world.isRemote) {
         //playSoundFromServer
         UtilSound.playSoundFromServer((ServerWorld) world, pos, SoundRegistry.SPIKES_ON);
       }
-    }
-    else if (state.get(ACTIVATED).booleanValue() && world.isBlockPowered(pos) == false) {
+    } else if (state.get(ACTIVATED) && !world.isBlockPowered(pos)) {
       world.setBlockState(pos, state.with(ACTIVATED, false));
       if (!world.isRemote) {
         UtilSound.playSoundFromServer((ServerWorld) world, pos, SoundRegistry.SPIKES_OFF);
@@ -155,7 +155,7 @@ public class SpikesBlock extends BlockBase implements IWaterLoggable {
   }
 
   @Override
-  public boolean propagatesSkylightDown(BlockState state, IBlockReader reader, BlockPos pos) {
+  public boolean propagatesSkylightDown(@Nonnull BlockState state, @Nonnull IBlockReader reader, @Nonnull BlockPos pos) {
     return true;
   }
 
@@ -168,21 +168,22 @@ public class SpikesBlock extends BlockBase implements IWaterLoggable {
     BlockState state = this.getDefaultState().with(WATERLOGGED, context.getWorld().getFluidState(context.getPos()).getFluid() == Fluids.WATER);
     if (isSolid) {
       return state.with(BlockStateProperties.FACING, facing).with(ACTIVATED, false);
-    }
-    else {
+    } else {
       return state.with(BlockStateProperties.FACING, Direction.DOWN).with(ACTIVATED, false);
     }
   }
 
+  @Nonnull
   @Override
   @SuppressWarnings("deprecation")
-  public FluidState getFluidState(BlockState state) {
+  public FluidState getFluidState(@Nonnull BlockState state) {
     return state.get(WATERLOGGED) ? Fluids.WATER.getStillFluidState(false) : super.getFluidState(state);
   }
 
+  @Nonnull
   @Override
   @SuppressWarnings("deprecation")
-  public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+  public BlockState updatePostPlacement(@Nonnull BlockState stateIn, @Nonnull Direction facing, @Nonnull BlockState facingState, @Nonnull IWorld worldIn, @Nonnull BlockPos currentPos, @Nonnull BlockPos facingPos) {
     if (stateIn.get(WATERLOGGED)) {
       worldIn.getPendingFluidTicks().scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(worldIn));
     }
@@ -190,7 +191,7 @@ public class SpikesBlock extends BlockBase implements IWaterLoggable {
   }
 
   @Override
-  protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+  protected void fillStateContainer(@Nonnull StateContainer.Builder<Block, BlockState> builder) {
     builder.add(BlockStateProperties.FACING).add(ACTIVATED).add(WATERLOGGED);
   }
 }

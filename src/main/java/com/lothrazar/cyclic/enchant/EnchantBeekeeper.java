@@ -40,13 +40,13 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EnchantBeekeeper extends EnchantBase {
 
+  public static final String ID = "beekeeper";
+  public static BooleanValue CFG;
+
   public EnchantBeekeeper(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
     super(rarityIn, typeIn, slots);
     MinecraftForge.EVENT_BUS.register(this);
   }
-
-  public static BooleanValue CFG;
-  public static final String ID = "beekeeper";
 
   @Override
   public boolean isEnabled() {

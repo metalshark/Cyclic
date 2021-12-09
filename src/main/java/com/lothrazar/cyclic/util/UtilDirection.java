@@ -10,6 +10,9 @@ import net.minecraft.util.math.MathHelper;
 
 public class UtilDirection {
 
+  public static final List<List<Direction>> ALL_DIFFERENT_ORDER = permutateDirections(Arrays.asList(Direction.values()), 0);
+  public static int allDifferentOrderIndex = -1;
+
   //determine all permutations of direction order at compile time and cycle through them at runtime
   //the alternative of using a random order is costly and left to chance
   private static List<List<Direction>> permutateDirections(final List<Direction> list, int pos) {
@@ -24,9 +27,6 @@ public class UtilDirection {
     }
     return results;
   }
-
-  public static final List<List<Direction>> ALL_DIFFERENT_ORDER = permutateDirections(Arrays.asList(Direction.values()), 0);
-  public static int allDifferentOrderIndex = -1;
 
   public static List<Direction> getAllInDifferentOrder() {
     allDifferentOrderIndex++;

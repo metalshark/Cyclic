@@ -2,6 +2,7 @@ package com.lothrazar.cyclic.block.breaker;
 
 import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.registry.TileRegistry;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
@@ -16,30 +17,26 @@ import net.minecraft.util.text.StringTextComponent;
 
 public class TileBreaker extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    REDSTONE, TIMER;
-  }
-
-  static final int MAX = 64000;
   public static final int TIMER_FULL = 500;
-  //  public static IntValue POWERCONF;
-  //  private CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
-  //  private final LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
+  static final int MAX = 64000;
 
   public TileBreaker() {
     super(TileRegistry.breakerTile);
   }
+  //  public static IntValue POWERCONF;
+  //  private CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
+  //  private final LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
       return;
     }
     setLitProperty(true);
-    if (world.isRemote) {
-      return;
-    }
     BlockPos target = pos.offset(this.getCurrentFacing());
     BlockState state = world.getBlockState(target);
     if (state.getBlock() != Blocks.AIR &&
@@ -53,13 +50,6 @@ public class TileBreaker extends TileEntityBase implements INamedContainerProvid
     }
     //else unbreakable
   }
-  //  @Override
-  //  public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-  //    if (cap == CapabilityEnergy.ENERGY && POWERCONF.get() > 0) {
-  //      return energyCap.cast();
-  //    }
-  //    return super.getCapability(cap, side);
-  //  }
 
   @Override
   public ITextComponent getDisplayName() {
@@ -72,13 +62,14 @@ public class TileBreaker extends TileEntityBase implements INamedContainerProvid
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, @Nonnull CompoundNBT tag) {
     //    energy.deserializeNBT(tag.getCompound(NBTENERGY));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
-  public CompoundNBT write(CompoundNBT tag) {
+  public CompoundNBT write(@Nonnull CompoundNBT tag) {
     //    tag.put(NBTENERGY, energy.serializeNBT());
     return super.write(tag);
   }
@@ -88,10 +79,10 @@ public class TileBreaker extends TileEntityBase implements INamedContainerProvid
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case TIMER:
         timer = value;
-      break;
+        break;
     }
   }
 
@@ -108,5 +99,9 @@ public class TileBreaker extends TileEntityBase implements INamedContainerProvid
 
   public int getEnergyMax() {
     return MAX;
+  }
+
+  static enum Fields {
+    REDSTONE, TIMER;
   }
 }

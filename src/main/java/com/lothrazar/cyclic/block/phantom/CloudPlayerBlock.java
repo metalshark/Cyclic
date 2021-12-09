@@ -39,8 +39,7 @@ public class CloudPlayerBlock extends BlockBase {
   public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
     if (worldIn instanceof EmptyBlockReader || context.getEntity() instanceof PlayerEntity) {
       return VoxelShapes.empty();
-    }
-    else {
+    } else {
       return VoxelShapes.fullCube();
     }
   }
@@ -57,5 +56,6 @@ public class CloudPlayerBlock extends BlockBase {
   }
 
   @Override
-  public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn) {}
+  public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn) {
+  }
 }

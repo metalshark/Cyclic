@@ -1,27 +1,23 @@
 package com.lothrazar.cyclic.render;
 
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fluids.FluidStack;
-import it.unimi.dsi.fastutil.Hash;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 
 /**
  * Source from MIT open source https://github.com/mekanism/Mekanism/tree/1.15x
- * 
+ * <p>
  * https://github.com/mekanism/Mekanism/blob/1.15x/LICENSE
- * 
+ * <p>
  * Map which uses FluidStacks as keys, ignoring amount. Primary use: caching FluidStack aware fluid rendering (NBT, yay)
  */
 @SuppressWarnings("serial")
 public class FluidRenderMap<V> extends Object2ObjectOpenCustomHashMap<FluidStack, V> {
-
-  public enum FluidType {
-    STILL, FLOWING
-  }
 
   public FluidRenderMap() {
     super(FluidHashStrategy.INSTANCE);
@@ -32,8 +28,7 @@ public class FluidRenderMap<V> extends Object2ObjectOpenCustomHashMap<FluidStack
     ResourceLocation spriteLocation;
     if (type == FluidType.STILL) {
       spriteLocation = fluid.getAttributes().getStillTexture(fluidStack);
-    }
-    else {
+    } else {
       spriteLocation = fluid.getAttributes().getFlowingTexture(fluidStack);
     }
     return getSprite(spriteLocation);
@@ -41,6 +36,10 @@ public class FluidRenderMap<V> extends Object2ObjectOpenCustomHashMap<FluidStack
 
   public static TextureAtlasSprite getSprite(ResourceLocation spriteLocation) {
     return Minecraft.getInstance().getAtlasSpriteGetter(PlayerContainer.LOCATION_BLOCKS_TEXTURE).apply(spriteLocation);
+  }
+
+  public enum FluidType {
+    STILL, FLOWING
   }
 
   /**

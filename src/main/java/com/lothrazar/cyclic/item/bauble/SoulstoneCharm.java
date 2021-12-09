@@ -15,11 +15,6 @@ public class SoulstoneCharm extends ItemBaseToggle {
     super(properties);
   }
 
-  @Override
-  public Rarity getRarity(ItemStack stack) {
-    return Rarity.UNCOMMON;
-  }
-
   //from LivingEntity class
   public static boolean checkTotemDeathProtection(DamageSource damageSourceIn, PlayerEntity player, ItemStack itemstack) {
     if (itemstack.getItem() != ItemRegistry.SOULSTONE.get()) { // != this
@@ -27,8 +22,7 @@ public class SoulstoneCharm extends ItemBaseToggle {
     }
     if (damageSourceIn.canHarmInCreative()) {
       return false;
-    }
-    else {
+    } else {
       //       for(Hand hand : Hand.values()) {
       //          ItemStack itemstack1 = this.getHeldItem(hand);
       //          if (itemstack1.getItem() == Items.TOTEM_OF_UNDYING) {
@@ -52,5 +46,10 @@ public class SoulstoneCharm extends ItemBaseToggle {
       UtilItemStack.damageItem(player, itemstack);
       return true;
     }
+  }
+
+  @Override
+  public Rarity getRarity(ItemStack stack) {
+    return Rarity.UNCOMMON;
   }
 }

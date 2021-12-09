@@ -2,9 +2,11 @@ package com.lothrazar.cyclic.block.generatorfluid;
 
 import com.google.gson.JsonObject;
 import com.lothrazar.cyclic.ModCyclic;
+import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.recipe.CyclicRecipe;
 import com.lothrazar.cyclic.recipe.CyclicRecipeType;
 import com.lothrazar.cyclic.recipe.FluidTagIngredient;
+import javax.annotation.Nonnull;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.item.crafting.IRecipeType;
@@ -17,12 +19,13 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 @SuppressWarnings("rawtypes")
-public class RecipeGeneratorFluid<TileEntityBase> extends CyclicRecipe {
+public class RecipeGeneratorFluid<T> extends CyclicRecipe {
 
-  private NonNullList<Ingredient> ingredients = NonNullList.create();
+  public static final SerializeGenerateFluid SERIALGENERATORF = new SerializeGenerateFluid();
+  public final FluidTagIngredient fluidIng;
   private final int ticks;
   private final int rfpertick;
-  public final FluidTagIngredient fluidIng;
+  private NonNullList<Ingredient> ingredients = NonNullList.create();
 
   public RecipeGeneratorFluid(ResourceLocation id, FluidTagIngredient in, int ticks, int rfpertick) {
     super(id);
@@ -41,8 +44,7 @@ public class RecipeGeneratorFluid<TileEntityBase> extends CyclicRecipe {
     try {
       TileGeneratorFluid tile = (TileGeneratorFluid) inv;
       return CyclicRecipe.matchFluid(tile.getFluid(), this.fluidIng);
-    }
-    catch (ClassCastException e) {
+    } catch (ClassCastException e) {
       return false;
     }
   }
@@ -91,7 +93,9 @@ public class RecipeGeneratorFluid<TileEntityBase> extends CyclicRecipe {
     return rfpertick;
   }
 
-  public static final SerializeGenerateFluid SERIALGENERATORF = new SerializeGenerateFluid();
+  public int getRfTotal() {
+    return this.getRfpertick() * this.getTicks();
+  }
 
   public static class SerializeGenerateFluid extends ForgeRegistryEntry<IRecipeSerializer<?>> implements IRecipeSerializer<RecipeGeneratorFluid<? extends com.lothrazar.cyclic.base.TileEntityBase>> {
 
@@ -103,9 +107,10 @@ public class RecipeGeneratorFluid<TileEntityBase> extends CyclicRecipe {
     /**
      * The fluid stuff i was helped out a ton by looking at this https://github.com/mekanism/Mekanism/blob/921d10be54f97518c1f0cb5a6fc64bf47d5e6773/src/api/java/mekanism/api/SerializerHelper.java#L129
      */
+    @Nonnull
     @SuppressWarnings("unchecked")
     @Override
-    public RecipeGeneratorFluid<? extends com.lothrazar.cyclic.base.TileEntityBase> read(ResourceLocation recipeId, JsonObject json) {
+    public RecipeGeneratorFluid<? extends TileEntityBase> read(@Nonnull final ResourceLocation recipeId, @Nonnull final JsonObject json) {
       RecipeGeneratorFluid r = null;
       try {
         //        Ingredient inputFirst = Ingredient.deserialize(JSONUtils.getJsonObject(json, "fuel"));
@@ -114,8 +119,7 @@ public class RecipeGeneratorFluid<TileEntityBase> extends CyclicRecipe {
         int ticks = result.get("ticks").getAsInt();
         int rfpertick = result.get("rfpertick").getAsInt();
         r = new RecipeGeneratorFluid(recipeId, fs, ticks, rfpertick);
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         ModCyclic.LOGGER.error("Error loading recipe" + recipeId, e);
       }
       ModCyclic.LOGGER.info("Recipe loaded " + r);
@@ -123,23 +127,18 @@ public class RecipeGeneratorFluid<TileEntityBase> extends CyclicRecipe {
     }
 
     @Override
-    public RecipeGeneratorFluid read(ResourceLocation recipeId, PacketBuffer buffer) {
-      RecipeGeneratorFluid r = new RecipeGeneratorFluid(recipeId,
+    public RecipeGeneratorFluid<TileEntityBase> read(@Nonnull final ResourceLocation recipeId, @Nonnull final PacketBuffer buffer) {
+      //server reading recipe from client or vice/versa
+      return new RecipeGeneratorFluid<TileEntityBase>(recipeId,
           FluidTagIngredient.readFromPacket(buffer),
           buffer.readInt(), buffer.readInt());
-      //server reading recipe from client or vice/versa 
-      return r;
     }
 
     @Override
-    public void write(PacketBuffer buffer, RecipeGeneratorFluid recipe) {
+    public void write(@Nonnull final PacketBuffer buffer, @Nonnull final RecipeGeneratorFluid recipe) {
       recipe.fluidIng.writeToPacket(buffer);
       buffer.writeInt(recipe.getTicks());
       buffer.writeInt(recipe.rfpertick);
     }
-  }
-
-  public int getRfTotal() {
-    return this.getRfpertick() * this.getTicks();
   }
 }

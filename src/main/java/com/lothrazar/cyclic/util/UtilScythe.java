@@ -39,10 +39,10 @@ public class UtilScythe {
     switch (type) {
       case LEAVES:
         doBreak = blockState.isIn(BlockTags.LEAVES);
-      break;
+        break;
       case BRUSH:
         doBreak = blockState.isIn(DataTags.PLANTS);
-      break;
+        break;
       case FORAGE:
         doBreak = blockState.isIn(BlockTags.FLOWERS)
             || blockState.isIn(BlockTags.CORALS) || blockState.isIn(BlockTags.WALL_CORALS)
@@ -50,7 +50,7 @@ public class UtilScythe {
             || blockState.isIn(DataTags.VINES)
             || blockState.isIn(DataTags.CACTUS)
             || blockState.isIn(DataTags.CROP_BLOCKS);
-      break;
+        break;
     }
     if (doBreak) {
       //harvest block with player context: better mod compatibility

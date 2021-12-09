@@ -22,14 +22,14 @@ public class CyclicFile {
   public ItemStackHandler inventory = new ItemStackHandler(5 * 9);
   public boolean stepHeightForceOff;
 
+  public CyclicFile(UUID playerId) {
+    this.playerId = playerId;
+  }
+
   @Override
   public String toString() {
     return "CyclicFile [playerId=" + playerId + ", storageVisible=" + storageVisible + ", todoVisible=" + todoVisible + ", stepHeight=" + stepHeight +
         ", todoTasks=" + todoTasks + ", flyTicks=" + flyTicks + ", spectatorTicks=" + spectatorTicks + ", inventory=" + inventory + ", stepHeightForceOff=" + stepHeightForceOff + "]";
-  }
-
-  public CyclicFile(UUID playerId) {
-    this.playerId = playerId;
   }
 
   public void read(CompoundNBT tag) {

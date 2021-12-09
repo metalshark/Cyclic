@@ -44,7 +44,7 @@ import net.minecraft.world.server.ServerWorld;
 
 public class EnderWingItem extends ItemBase implements IHasClickToggle {
 
-  private static final int COOLDOWN = 600; //ticks not seconds 
+  private static final int COOLDOWN = 600; //ticks not seconds
 
   public EnderWingItem(Properties properties) {
     super(properties);
@@ -79,16 +79,13 @@ public class EnderWingItem extends ItemBase implements IHasClickToggle {
           if (spawnWorld != null && spawnWorldKey == World.THE_NETHER) {
             if (worldIn.getDimensionKey() == World.THE_NETHER) {
               needsTeleport = true;
-            }
-            else {
+            } else {
               UtilChat.sendStatusMessage(playerIn, "command.cyclic.home.nether");
             }
-          }
-          else if (spawnWorld != null && spawnWorldKey == World.OVERWORLD) {
+          } else if (spawnWorld != null && spawnWorldKey == World.OVERWORLD) {
             if (worldIn.getDimensionKey() == World.OVERWORLD) {
               needsTeleport = true;
-            }
-            else {
+            } else {
               UtilChat.sendStatusMessage(playerIn, "command.cyclic.home.overworld");
             }
           }
@@ -98,8 +95,7 @@ public class EnderWingItem extends ItemBase implements IHasClickToggle {
             UtilEntity.enderTeleportEvent(playerIn, spawnWorld, pos);
             UtilSound.playSound(playerIn, SoundRegistry.WARP_ECHO);
           }
-        }
-        else {
+        } else {
           UtilChat.sendStatusMessage(playerIn, "command.cyclic.home.obstructed");
         }
       }

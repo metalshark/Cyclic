@@ -16,9 +16,9 @@ import net.minecraftforge.common.ForgeConfigSpec.IntValue;
 
 public class HeartItem extends ItemBase {
 
-  public static IntValue MAX;
-  static final int COOLDOWN = 10;
   public static final UUID ID = UUID.fromString("06d30aa2-eff2-4a81-b92b-a1cb95f115c6");
+  static final int COOLDOWN = 10;
+  public static IntValue MAX;
 
   public HeartItem(Properties properties) {
     super(properties);

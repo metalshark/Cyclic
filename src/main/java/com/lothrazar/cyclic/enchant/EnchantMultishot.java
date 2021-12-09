@@ -40,26 +40,11 @@ import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 
 public class EnchantMultishot extends EnchantBase {
 
+  public static final String ID = "multishot";
+  public static BooleanValue CFG;
+
   public EnchantMultishot(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
     super(rarityIn, typeIn, slots);
-  }
-
-  public static BooleanValue CFG;
-  public static final String ID = "multishot";
-
-  @Override
-  public boolean isEnabled() {
-    return CFG.get();
-  }
-
-  @Override
-  public boolean canApply(ItemStack stack) {
-    return stack.getItem() instanceof BowItem;
-  }
-
-  @Override
-  public int getMaxLevel() {
-    return 1;
   }
 
   public static void spawnArrow(World worldIn, PlayerEntity player, ItemStack stackBow, int charge, Vector3d offsetVector) {
@@ -84,5 +69,20 @@ public class EnchantMultishot extends EnchantBase {
       abstractarrowentity.setFire(100);
     }
     worldIn.addEntity(abstractarrowentity);
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return CFG.get();
+  }
+
+  @Override
+  public boolean canApply(ItemStack stack) {
+    return stack.getItem() instanceof BowItem;
+  }
+
+  @Override
+  public int getMaxLevel() {
+    return 1;
   }
 }

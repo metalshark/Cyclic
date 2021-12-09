@@ -9,10 +9,6 @@ import com.lothrazar.cyclic.util.UtilChat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fluids.FluidAttributes;
-import net.minecraftforge.fluids.FluidStack;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -20,6 +16,10 @@ import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fluids.FluidAttributes;
+import net.minecraftforge.fluids.FluidStack;
 
 @SuppressWarnings("rawtypes")
 public class SolidifierRecipeCategory implements IRecipeCategory<RecipeSolidifier> {
@@ -65,8 +65,7 @@ public class SolidifierRecipeCategory implements IRecipeCategory<RecipeSolidifie
       if (matchingFluids != null) {
         ingredients.setInputs(VanillaTypes.FLUID, recipe.fluidIngredient.getMatchingFluids());
       }
-    }
-    else {
+    } else {
       ingredients.setInput(VanillaTypes.FLUID, recipe.getRecipeFluid());
     }
     List<List<ItemStack>> in = new ArrayList<>();
@@ -97,10 +96,10 @@ public class SolidifierRecipeCategory implements IRecipeCategory<RecipeSolidifie
     List<ItemStack> input = null;
     for (int i = 0; i <= 2; i++) {
       input = inputs.get(i);
-      if (input != null && input.isEmpty() == false) {
+      if (input != null && !input.isEmpty()) {
         guiItemStacks.set(i, input);
       }
-    } //getname is the same   
+    } //getname is the same
     recipeLayout.getFluidStacks().init(0, true, 4, 25, Const.SQ - 2, Const.SQ - 2, FluidAttributes.BUCKET_VOLUME, false, null);
     //tag or stack?
     if (recipe.fluidIngredient.hasTag()) {
@@ -108,8 +107,7 @@ public class SolidifierRecipeCategory implements IRecipeCategory<RecipeSolidifie
       if (matchingFluids != null) {
         recipeLayout.getFluidStacks().set(0, matchingFluids);
       }
-    }
-    else if (!recipe.getRecipeFluid().isEmpty()) {
+    } else if (!recipe.getRecipeFluid().isEmpty()) {
       recipeLayout.getFluidStacks().set(0, recipe.getRecipeFluid());
     }
   }

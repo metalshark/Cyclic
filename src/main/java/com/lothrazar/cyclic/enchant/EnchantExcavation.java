@@ -57,13 +57,14 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EnchantExcavation extends EnchantBase {
 
+  public static final String ID = "excavate";
+  private static final Direction[] VALUES = Direction.values();
+  public static BooleanValue CFG;
+
   public EnchantExcavation(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
     super(rarityIn, typeIn, slots);
     MinecraftForge.EVENT_BUS.register(this);
   }
-
-  public static BooleanValue CFG;
-  public static final String ID = "excavate";
 
   @Override
   public boolean isEnabled() {
@@ -108,11 +109,10 @@ public class EnchantExcavation extends EnchantBase {
     if (ForgeHooks.canHarvestBlock(eventState, player, world, pos)) {
       int harvested = this.harvestSurrounding((World) world, player, pos, block, 1, level, player.swingingHand);
       if (harvested > 0) {
-        //damage but also respect the unbreaking chant  
+        //damage but also respect the unbreaking chant
         UtilItemStack.damageItem(player, stackHarvestingWith);
       }
-    }
-    else {
+    } else {
       ModCyclic.LOGGER.info(stackHarvestingWith + "  TOOL NOT EFFECTIVE ON " + world.getBlockState(pos));
     }
     //else wtf why is this false for redstone ore
@@ -127,7 +127,7 @@ public class EnchantExcavation extends EnchantBase {
     if (totalBroken >= this.getHarvestMax(level) || player.getHeldItem(player.swingingHand).isEmpty()) {
       return totalBroken;
     }
-    Set<BlockPos> wasHarvested = new HashSet<BlockPos>();
+    Set<BlockPos> wasHarvested = new HashSet<>();
     Set<BlockPos> theFuture = this.getMatchingSurrounding(world, posIn, block);
     for (BlockPos targetPos : theFuture) {
       BlockState targetState = world.getBlockState(targetPos);
@@ -169,10 +169,8 @@ public class EnchantExcavation extends EnchantBase {
     return totalBroken;
   }
 
-  private static final Direction[] VALUES = Direction.values();
-
   private Set<BlockPos> getMatchingSurrounding(World world, BlockPos start, Block blockIn) {
-    Set<BlockPos> list = new HashSet<BlockPos>();
+    Set<BlockPos> list = new HashSet<>();
     List<Direction> targetFaces = Arrays.asList(VALUES);
     try {
       // cannot replicate this error at all at max level (5 = V)
@@ -181,9 +179,8 @@ public class EnchantExcavation extends EnchantBase {
       //      at java.util.Collections.shuffle(Unknown Source) ~[?:1.8.0_201] {}
       //      at java.util.Collections.shuffle(Unknown Source) ~[?:1.8.0_201] {}
       Collections.shuffle(targetFaces);
-    }
-    catch (Exception e) {
-      // java.util shit the bed not my problem 
+    } catch (Exception e) {
+      // java.util shit the bed not my problem
     }
     for (Direction fac : targetFaces) {
       Block target = world.getBlockState(start.offset(fac)).getBlock();

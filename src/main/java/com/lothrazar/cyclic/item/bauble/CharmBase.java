@@ -28,14 +28,14 @@ import net.minecraft.world.World;
 
 public abstract class CharmBase extends ItemBaseToggle {
 
+  public static final UUID ID_SPEED = UUID.fromString("12230aa2-eff2-4a81-b92b-a1cb95f115c6");
+  public static final UUID ID_LUCK = UUID.fromString("acc30aa2-eff2-4a81-b92b-a1cb95f115c6");
+  public static final UUID ID_ATTACKSPEED = UUID.fromString("b4678aa2-eff2-4a81-b92b-a1cb95f115c6");
   private static final int YLOWEST = -30;
   private static final int YDEST = 255;
   private static final int FIREPROTSECONDS = 10;
   private static final int FALLDISTANCESECONDS = 5;
   private static final int FALLDISTANCELIMIT = 5; // was 6 in 1.12.2
-  public static final UUID ID_SPEED = UUID.fromString("12230aa2-eff2-4a81-b92b-a1cb95f115c6");
-  public static final UUID ID_LUCK = UUID.fromString("acc30aa2-eff2-4a81-b92b-a1cb95f115c6");
-  public static final UUID ID_ATTACKSPEED = UUID.fromString("b4678aa2-eff2-4a81-b92b-a1cb95f115c6");
   boolean fireProt;
   boolean poisonProt;
   boolean witherProt;
@@ -47,6 +47,49 @@ public abstract class CharmBase extends ItemBaseToggle {
     super(properties);
   }
 
+  private static void toggleAttribute(PlayerEntity player, Item charm, Attribute attr, UUID id, float factor, int flatIncrease) {
+    ItemStack charmStack = CharmUtil.getIfEnabled(player, charm);
+    ModifiableAttributeInstance attrPlayer = player.getAttribute(attr);
+    AttributeModifier oldValue = attrPlayer.getModifier(id);
+    if (charmStack.isEmpty()) {
+      ///i am NOT holding it. OR im holding but its OFF
+      //remove my modifier
+      if (oldValue != null) {
+        attrPlayer.removeModifier(id);
+      }
+    } else { // im   holding it AND its enabled
+      if (oldValue == null) {
+        /// add new
+        double baseSpeed = attrPlayer.getBaseValue();
+        AttributeModifier newValue = new AttributeModifier(id, "Bonus from " + ModCyclic.MODID, baseSpeed * factor + flatIncrease, AttributeModifier.Operation.ADDITION);
+        attrPlayer.applyPersistentModifier(newValue);
+        //        ModCyclic.LOGGER.info(baseSpeed + " becinesNEW value " + newValue.getAmount() + " -> " + attrPlayer.getValue());
+        UtilItemStack.damageItem(player, charmStack);
+      }
+      //not newly triggered so countdown tick damage
+      UtilItemStack.damageItemRandomly(player, charmStack);
+    }
+  }
+
+  public static void charmSpeed(PlayerEntity player) {
+    toggleAttribute(player, ItemRegistry.CHARM_SPEED.get(), Attributes.MOVEMENT_SPEED, ID_SPEED, ConfigRegistry.CHARM_SPEED.get().floatValue(), 0);
+  }
+
+  public static void charmLuck(PlayerEntity player) {
+    toggleAttribute(player, ItemRegistry.CHARM_LUCK.get(), Attributes.LUCK, ID_LUCK, 0, ConfigRegistry.CHARM_LUCK.get());
+  }
+
+  public static void charmAttackSpeed(PlayerEntity player) {
+    toggleAttribute(player, ItemRegistry.CHARM_ATTACKSPEED.get(), Attributes.ATTACK_SPEED, ID_ATTACKSPEED, ConfigRegistry.CHARM_ATTACKSPEED.get().floatValue(), 0);
+  }
+
+  public static void charmExpSpeed(PlayerEntity player) {
+    ItemStack charmStack = CharmUtil.getIfEnabled(player, ItemRegistry.CHARM_XPSPEED.get());
+    if (!charmStack.isEmpty()) {
+      player.xpCooldown = 0;
+    }
+  }
+
   @Override
   public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
     if (!this.canUse(stack)) {
@@ -56,7 +99,7 @@ public abstract class CharmBase extends ItemBaseToggle {
       return;
     }
     tryVoidTick(stack, worldIn, entityIn);
-    if (entityIn instanceof LivingEntity == false) {
+    if (!(entityIn instanceof LivingEntity)) {
       return;
     }
     LivingEntity living = (LivingEntity) entityIn;
@@ -110,50 +153,6 @@ public abstract class CharmBase extends ItemBaseToggle {
         UtilItemStack.damageItem((LivingEntity) entityIn, stack);
       }
       UtilSound.playSound(entityIn, SoundEvents.ENTITY_ENDERMAN_TELEPORT);
-    }
-  }
-
-  private static void toggleAttribute(PlayerEntity player, Item charm, Attribute attr, UUID id, float factor, int flatIncrease) {
-    ItemStack charmStack = CharmUtil.getIfEnabled(player, charm);
-    ModifiableAttributeInstance attrPlayer = player.getAttribute(attr);
-    AttributeModifier oldValue = attrPlayer.getModifier(id);
-    if (charmStack.isEmpty()) {
-      ///i am NOT holding it. OR im holding but its OFF
-      //remove my modifier
-      if (oldValue != null) {
-        attrPlayer.removeModifier(id);
-      }
-    }
-    else { // im   holding it AND its enabled
-      if (oldValue == null) {
-        /// add new
-        double baseSpeed = attrPlayer.getBaseValue();
-        AttributeModifier newValue = new AttributeModifier(id, "Bonus from " + ModCyclic.MODID, baseSpeed * factor + flatIncrease, AttributeModifier.Operation.ADDITION);
-        attrPlayer.applyPersistentModifier(newValue);
-        //        ModCyclic.LOGGER.info(baseSpeed + " becinesNEW value " + newValue.getAmount() + " -> " + attrPlayer.getValue());
-        UtilItemStack.damageItem(player, charmStack);
-      }
-      //not newly triggered so countdown tick damage  
-      UtilItemStack.damageItemRandomly(player, charmStack);
-    }
-  }
-
-  public static void charmSpeed(PlayerEntity player) {
-    toggleAttribute(player, ItemRegistry.CHARM_SPEED.get(), Attributes.MOVEMENT_SPEED, ID_SPEED, ConfigRegistry.CHARM_SPEED.get().floatValue(), 0);
-  }
-
-  public static void charmLuck(PlayerEntity player) {
-    toggleAttribute(player, ItemRegistry.CHARM_LUCK.get(), Attributes.LUCK, ID_LUCK, 0, ConfigRegistry.CHARM_LUCK.get());
-  }
-
-  public static void charmAttackSpeed(PlayerEntity player) {
-    toggleAttribute(player, ItemRegistry.CHARM_ATTACKSPEED.get(), Attributes.ATTACK_SPEED, ID_ATTACKSPEED, ConfigRegistry.CHARM_ATTACKSPEED.get().floatValue(), 0);
-  }
-
-  public static void charmExpSpeed(PlayerEntity player) {
-    ItemStack charmStack = CharmUtil.getIfEnabled(player, ItemRegistry.CHARM_XPSPEED.get());
-    if (!charmStack.isEmpty()) {
-      player.xpCooldown = 0;
     }
   }
 }

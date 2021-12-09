@@ -12,6 +12,9 @@ public class MembraneLampTile extends TileEntityBase implements ITickableTileEnt
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     int newPower = this.getRedstonePower();
     int previous = this.getBlockState().get(MembraneLamp.POWER);
     if (newPower != previous) {
@@ -20,7 +23,8 @@ public class MembraneLampTile extends TileEntityBase implements ITickableTileEnt
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {

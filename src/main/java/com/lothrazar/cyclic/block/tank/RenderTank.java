@@ -12,6 +12,8 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import javax.annotation.Nonnull;
+
 public class RenderTank extends TileEntityRenderer<TileTank> {
 
   public RenderTank(TileEntityRendererDispatcher d) {
@@ -19,18 +21,16 @@ public class RenderTank extends TileEntityRenderer<TileTank> {
   }
 
   @Override
-  public void render(TileTank tankHere, float v, MatrixStack matrix,
-      IRenderTypeBuffer renderer, int light, int overlayLight) {
-    IFluidHandler handler = tankHere.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, null).orElse(null);
-    if (handler == null || handler.getFluidInTank(0) == null) {
-      return;
-    }
+  public void render(TileTank tankHere, float v, @Nonnull MatrixStack matrix,
+                     @Nonnull IRenderTypeBuffer renderer, int light, int overlayLight) {
+    IFluidHandler handler = tankHere.getFluidHandler();
+    handler.getFluidInTank(0);
     FluidStack fluid = handler.getFluidInTank(0);
     if (fluid.isEmpty()) {
       return;
     }
     IVertexBuilder buffer = renderer.getBuffer(FluidTankRenderType.resizableCuboid());
-    matrix.scale(1F, UtilFluid.getScale(tankHere.tank), 1F);
+    matrix.scale(1F, UtilFluid.getScale(tankHere.fluidTank), 1F);
     UtilRender.renderObject(UtilFluid.getFluidModel(fluid, UtilFluid.STAGES - 1),
         matrix, buffer, UtilRender.getColorARGB(fluid, 0.1F),
         UtilRender.calculateGlowLight(light, fluid));

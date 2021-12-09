@@ -38,6 +38,11 @@ public class BlockEnderShelf extends BlockBase {
     super(properties.hardnessAndResistance(1.2F).notSolid());
   }
 
+  public static int getSlotFromHitVec(BlockPos pos, Direction face, Vector3d hitVec) {
+    double normalizedY = hitVec.getY() - pos.getY();
+    return (int) Math.floor(normalizedY / 0.20);
+  }
+
   @Override
   public float getEnchantPowerBonus(BlockState state, IWorldReader world, BlockPos pos) {
     return Blocks.BOOKSHELF.getEnchantPowerBonus(Blocks.BOOKSHELF.getDefaultState(), world, pos);
@@ -117,19 +122,13 @@ public class BlockEnderShelf extends BlockBase {
             player.swingArm(hand);
           }
         }
-      }
-      else if (heldItem.isEmpty()) {
+      } else if (heldItem.isEmpty()) {
         ItemStack retrievedBook = shelf.inventory.extractItem(slot, 1, false);
         player.setHeldItem(hand, retrievedBook);
         player.swingArm(hand);
       }
     }
     return ActionResultType.PASS;
-  }
-
-  public static int getSlotFromHitVec(BlockPos pos, Direction face, Vector3d hitVec) {
-    double normalizedY = hitVec.getY() - pos.getY();
-    return (int) Math.floor(normalizedY / 0.20);
   }
 
   public TileEnderShelf getTileEntity(World world, BlockPos pos) {
@@ -151,7 +150,7 @@ public class BlockEnderShelf extends BlockBase {
   @Override
   public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity entity, ItemStack stack) {
     if (entity != null) {
-      //facing state if needed 
+      //facing state if needed
       world.setBlockState(pos, state.with(BlockStateProperties.HORIZONTAL_FACING, UtilBlockstates.getFacingFromEntityHorizontal(pos, entity)), 2);
     }
     TileEntity tileentity = world.getTileEntity(pos);
@@ -167,7 +166,7 @@ public class BlockEnderShelf extends BlockBase {
       }
     }
     if (stack.getTag() != null) {
-      //to tile from tag 
+      //to tile from tag
       shelf.inventory.deserializeNBT(stack.getTag());
     }
   }
@@ -179,7 +178,7 @@ public class BlockEnderShelf extends BlockBase {
     if (tileentity instanceof TileEnderShelf) {
       TileEnderShelf shelf = (TileEnderShelf) tileentity;
       CompoundNBT tileData = shelf.inventory.serializeNBT();
-      //read from tile, write to itemstack 
+      //read from tile, write to itemstack
       newStack.setTag(tileData);
     }
     UtilItemStack.drop(world, pos, newStack);

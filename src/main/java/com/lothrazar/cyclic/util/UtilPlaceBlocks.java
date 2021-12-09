@@ -34,7 +34,7 @@ public class UtilPlaceBlocks {
       for (Property<?> prop : clicked.getProperties()) {
         //yes
         if (prop.getName().equals(key)) {
-          //then cycle me 
+          //then cycle me
           newState = clicked.func_235896_a_(prop); // cycle
           if (newState.get(prop).toString().equals(valueDupe)) {
             //haha just hack and skip. turns into length 2. dont worry about it
@@ -42,49 +42,47 @@ public class UtilPlaceBlocks {
           }
         }
       }
-    }
-    else if (clicked.hasProperty(RotatedPillarBlock.AXIS)) {
-      //axis 
+    } else if (clicked.hasProperty(RotatedPillarBlock.AXIS)) {
+      //axis
       Axis current = clicked.get(RotatedPillarBlock.AXIS);
       switch (current) {
         case X:
           newState = clicked.with(RotatedPillarBlock.AXIS, Axis.Y);
-        break;
+          break;
         case Y:
           newState = clicked.with(RotatedPillarBlock.AXIS, Axis.Z);
-        break;
+          break;
         case Z:
           newState = clicked.with(RotatedPillarBlock.AXIS, Axis.X);
-        break;
+          break;
         default:
-        break;
+          break;
         //
       }
-      //clicked.rot 
-    }
-    else {
+      //clicked.rot
+    } else {
       //default whatever
       switch (side) {
         case DOWN:
           newState = clicked.rotate(world, pos, Rotation.CLOCKWISE_180);
-        break;
+          break;
         case UP:
           newState = clicked.rotate(world, pos, Rotation.CLOCKWISE_180);
-        break;
+          break;
         case EAST:
           newState = clicked.rotate(world, pos, Rotation.CLOCKWISE_90);
-        break;
+          break;
         case NORTH:
           newState = clicked.rotate(world, pos, Rotation.COUNTERCLOCKWISE_90);
-        break;
+          break;
         case SOUTH:
           newState = clicked.rotate(world, pos, Rotation.CLOCKWISE_90);
-        break;
+          break;
         case WEST:
           newState = clicked.rotate(world, pos, Rotation.COUNTERCLOCKWISE_90);
-        break;
+          break;
         default:
-        break;
+          break;
       }
     }
     boolean win = false;
@@ -98,7 +96,7 @@ public class UtilPlaceBlocks {
   }
 
   public static boolean placeStateSafe(World world, PlayerEntity player,
-      BlockPos placePos, BlockState placeState) {
+                                       BlockPos placePos, BlockState placeState) {
     return placeStateSafe(world, player, placePos, placeState, false);
   }
 
@@ -120,7 +118,7 @@ public class UtilPlaceBlocks {
     //    if (player != null && PermissionRegistry.hasPermissionHere(player, placePos) == false) {
     //      return false;
     //    }
-    if (world.isAirBlock(placePos) == false) {
+    if (!world.isAirBlock(placePos)) {
       // if there is a block here, we might have to stop
       stateHere = world.getBlockState(placePos);
       if (stateHere != null) {
@@ -134,9 +132,9 @@ public class UtilPlaceBlocks {
         // ok its a soft (isReplaceable == true) block so try to break it first try to destroy it
         // unless it is liquid, don't try to destroy liquid
         //blockHere.getMaterial(stateHere)
-        if (stateHere.getMaterial().isLiquid() == false) {
+        if (!stateHere.getMaterial().isLiquid()) {
           boolean dropBlock = true;
-          if (world.isRemote == false) {
+          if (!world.isRemote) {
             world.destroyBlock(placePos, dropBlock);
           }
         }
@@ -149,11 +147,10 @@ public class UtilPlaceBlocks {
     try {
       // flags specifies what to update, '3' means notify client & neighbors
       // isRemote to make sure we are in a server thread
-      if (world.isRemote == false) {
+      if (!world.isRemote) {
         success = world.setBlockState(placePos, placeState, 3); // returns false when placement failed
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       // PR for context https://github.com/PrinceOfAmber/Cyclic/pull/577/files
       // and  https://github.com/PrinceOfAmber/Cyclic/pull/579/files
       // show exception from above, possibly failed placement

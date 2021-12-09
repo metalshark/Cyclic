@@ -26,8 +26,7 @@ public class RenderStructure extends TileEntityRenderer<TileStructure> {
       ItemStack stack = inv.getStackInSlot(0);
       if (stack.isEmpty()) {
         UtilRender.renderOutline(te.getPos(), te.getShape(), matrixStack, 0.7F, ClientConfigCyclic.getColor(te));
-      }
-      else {
+      } else {
         UtilRender.renderAsBlock(te.getPos(), te.getShape(), matrixStack, stack, 1, 1);
       }
     }

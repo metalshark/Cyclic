@@ -41,8 +41,7 @@ public enum BuilderActionType {
     try {
       CompoundNBT tags = wand.getOrCreateTag();
       return "tool.action." + values()[tags.getInt(NBT)].toString().toLowerCase();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       return "tool.action." + SINGLE.toString().toLowerCase();
     }
   }

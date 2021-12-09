@@ -8,6 +8,7 @@ import com.lothrazar.cyclic.registry.ItemRegistry;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -30,11 +31,6 @@ public class TileSoundRecorder extends TileEntityBase implements INamedContainer
   static final int MAX_SOUNDS = 10; // locked by gui size. TODO: scrollbar
   private static final String SOUNDAT = "soundat";
   private static final String IGNORED = "ignored";
-
-  static enum Fields {
-    CLEARALL, IGNORE, SAVE;
-  }
-
   ItemStackHandler inputSlots = new ItemStackHandler(1) {
 
     @Override
@@ -63,7 +59,7 @@ public class TileSoundRecorder extends TileEntityBase implements INamedContainer
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     for (int i = 0; i < MAX_SOUNDS; i++) {
       if (tag.contains(SOUNDAT + i)) {
@@ -78,6 +74,7 @@ public class TileSoundRecorder extends TileEntityBase implements INamedContainer
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTINV, inventory.serializeNBT());
@@ -99,17 +96,23 @@ public class TileSoundRecorder extends TileEntityBase implements INamedContainer
   }
 
   @Override
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
   public void setField(int field, int value) {
     switch (Fields.values()[field]) {
       case CLEARALL:
         this.clearSounds();
-      break;
+        break;
       case IGNORE:
         this.ignoreSound(value);
-      break;
+        break;
       case SAVE:
         this.saveSoundToCard(value);
-      break;
+        break;
     }
   }
 
@@ -132,8 +135,7 @@ public class TileSoundRecorder extends TileEntityBase implements INamedContainer
   public void setFieldString(int field, String value) {
     if (field < MAX_SOUNDS) {
       sounds.set(field, value);
-    }
-    else {
+    } else {
       ModCyclic.LOGGER.error("Invalid string " + field + value);
     }
   }
@@ -170,5 +172,9 @@ public class TileSoundRecorder extends TileEntityBase implements INamedContainer
       }
     }
     return false;
+  }
+
+  static enum Fields {
+    CLEARALL, IGNORE, SAVE;
   }
 }

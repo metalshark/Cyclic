@@ -7,6 +7,7 @@ import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilItemStack;
 import java.util.List;
 import java.util.Random;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -50,10 +51,6 @@ public class TileFisher extends TileEntityBase implements ITickableTileEntity, I
   };
   LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
 
-  static enum Fields {
-    REDSTONE;
-  }
-
   public TileFisher() {
     super(TileRegistry.fisher);
     this.needsRedstone = 0;
@@ -78,11 +75,18 @@ public class TileFisher extends TileEntityBase implements ITickableTileEntity, I
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTINV, inventory.serializeNBT());
@@ -91,6 +95,9 @@ public class TileFisher extends TileEntityBase implements ITickableTileEntity, I
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     if (this.requiresRedstone() && !this.isPowered()) {
       return;
     }
@@ -145,19 +152,20 @@ public class TileFisher extends TileEntityBase implements ITickableTileEntity, I
 
   @Override
   public void setField(int field, int value) {
-    switch (Fields.values()[field]) {
-      case REDSTONE:
-        this.needsRedstone = value % 2;
-      break;
+    if (Fields.values()[field] == Fields.REDSTONE) {
+      this.needsRedstone = value % 2;
     }
   }
 
   @Override
   public int getField(int field) {
-    switch (Fields.values()[field]) {
-      case REDSTONE:
-        return this.needsRedstone;
+    if (Fields.values()[field] == Fields.REDSTONE) {
+      return this.needsRedstone;
     }
     return 0;
+  }
+
+  static enum Fields {
+    REDSTONE;
   }
 }

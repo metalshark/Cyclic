@@ -46,8 +46,6 @@ public class MaterialRegistry {
   public static class ArmorMats {
 
     private static final String EMERALDID = ModCyclic.MODID + ":emerald";
-    private static final String CRYSTALID = ModCyclic.MODID + ":crystal";
-    private static final String GLOWINGID = ModCyclic.MODID + ":glowing";
     public static final IArmorMaterial EMERALD = new IArmorMaterial() {
 
       @Override
@@ -69,7 +67,7 @@ public class MaterialRegistry {
           case MAINHAND:
           case OFFHAND:
           default:
-          break;
+            break;
         }
         return 0; //ArmorMaterial.DIAMOND.getDamageReductionAmount(slot) + ArmorMaterial.IRON.getDamageReductionAmount(slot);
       }
@@ -104,6 +102,7 @@ public class MaterialRegistry {
         return ArmorMaterial.DIAMOND.getKnockbackResistance();
       }
     };
+    private static final String CRYSTALID = ModCyclic.MODID + ":crystal";
     public static final IArmorMaterial GEMOBSIDIAN = new IArmorMaterial() {
 
       @Override
@@ -125,7 +124,7 @@ public class MaterialRegistry {
           case MAINHAND:
           case OFFHAND:
           default:
-          break;
+            break;
         }
         return 0; // ArmorMaterial.DIAMOND.getDamageReductionAmount(slotIn) * 3;
       }
@@ -160,6 +159,7 @@ public class MaterialRegistry {
         return ArmorMaterial.NETHERITE.getKnockbackResistance();
       }
     };
+    private static final String GLOWINGID = ModCyclic.MODID + ":glowing";
     public static final IArmorMaterial GLOWING = new IArmorMaterial() {
 
       ArmorMaterial mimicArmor = ArmorMaterial.IRON;

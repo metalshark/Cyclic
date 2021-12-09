@@ -18,6 +18,8 @@ import net.minecraft.world.server.ServerWorld;
 
 public class EnderApple extends ItemBase {
 
+  private static final int NUM_PRINTED = 5;
+  private static final int COOLDOWN = 60;
   final String[] ignoreMe = new String[] {
       "minecraft:shipwreck",
       "minecraft:mineshaft",
@@ -27,8 +29,6 @@ public class EnderApple extends ItemBase {
       "minecraft:village",
       "minecraft:nether_fossil"
   };
-  private static final int NUM_PRINTED = 5;
-  private static final int COOLDOWN = 60;
 
   public EnderApple(Properties properties) {
     super(properties); // .food(new Food.Builder().hunger(h).saturation(0)
@@ -41,7 +41,7 @@ public class EnderApple extends ItemBase {
 
   @Override
   public ItemStack onItemUseFinish(ItemStack stack, World worldIn, LivingEntity entityLiving) {
-    if (entityLiving instanceof PlayerEntity == false) {
+    if (!(entityLiving instanceof PlayerEntity)) {
       return super.onItemUseFinish(stack, worldIn, entityLiving);
     }
     PlayerEntity player = (PlayerEntity) entityLiving;
@@ -58,7 +58,7 @@ public class EnderApple extends ItemBase {
         try {
           String name = structureFeature.getRegistryName().toString();
           if (!structIgnoreList.contains(name)) {
-            //then we are allowed to look fori t, we are not in ignore list 
+            //then we are allowed to look fori t, we are not in ignore list
             BlockPos targetPos = entityLiving.getPosition();
             final BlockPos posOfStructure = serverWorld.func_241117_a_(structureFeature, targetPos, 100, false);
             if (posOfStructure != null) {
@@ -66,14 +66,13 @@ public class EnderApple extends ItemBase {
               distanceStructNames.put(name, (int) distance);
             }
           }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
           //third party non vanilla mods can crash, or cause ServerWatchdog errors. example:
           //          java.lang.Error: ServerHangWatchdog detected that a single server tick took 192.11 seconds (should be max 0.05)
           // ...
           //          at com.telepathicgrunt.repurposedstructures.world.structures.AbstractBaseStructure.locateStructureFast(AbstractBaseStructure.java:61) ~[repurposed_structures:2.7.5] {re:classloading}
           //          at com.telepathicgrunt.repurposedstructures.world.structures.AbstractBaseStructure.func_236388_a_(AbstractBaseStructure.java:41) ~[repurposed_structures:2.7.5] {re:classloading}
-          //          
+          //
         }
       }
       //done loopiong on features
@@ -85,7 +84,7 @@ public class EnderApple extends ItemBase {
           .sorted(Map.Entry.comparingByValue())
           .forEachOrdered(x -> sortedMap.put(x.getKey(), x.getValue()));
       //
-      //      ModCyclic.LOGGER.info("Sorted Map   : " + sortedMap); 
+      //      ModCyclic.LOGGER.info("Sorted Map   : " + sortedMap);
       int count = 0;
       //      UtilChat.addServerChatMessage(player, "STARRT");
       for (Map.Entry<String, Integer> e : sortedMap.entrySet()) {
@@ -100,7 +99,7 @@ public class EnderApple extends ItemBase {
       //      String name = regName.replace("minecraft:", "");
       //      literalargumentbuilder = literalargumentbuilder.then(Commands.literal(name)
       //            .executes(ctx -> func_241053_a_(ctx.getSource(), structureFeature)));
-      //collections CUSTOM SORT by distance 
+      //collections CUSTOM SORT by distance
       //
     }
     return super.onItemUseFinish(stack, worldIn, entityLiving);

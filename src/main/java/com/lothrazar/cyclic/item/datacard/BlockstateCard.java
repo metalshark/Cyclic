@@ -33,25 +33,6 @@ public class BlockstateCard extends ItemBase {
     super(properties);
   }
 
-  @Override
-  @OnlyIn(Dist.CLIENT)
-  public void addInformation(ItemStack held, World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-    if (held.getTag() != null && held.getTag().contains(STATESTAG)) {
-      for (BlockStateMatcher m : getSavedStates(held)) {
-        BlockState st = m.getState();
-        TextFormatting c = m.isExactProperties() ? TextFormatting.LIGHT_PURPLE : TextFormatting.DARK_PURPLE;
-        String extra = m.isExactProperties() ? " [state]" : " [block]"; // star for not exact
-        tooltip.add(new TranslationTextComponent(st.getBlock().getTranslationKey()).appendString(extra).mergeStyle(c));
-        if (m.isExactProperties() && Screen.hasShiftDown()) {
-          tooltip.add(new TranslationTextComponent(st.toString()).mergeStyle(TextFormatting.DARK_GRAY));
-        }
-      }
-    }
-    else {
-      super.addInformation(held, worldIn, tooltip, flagIn);
-    }
-  }
-
   public static List<BlockStateMatcher> getSavedStates(ItemStack held) {
     List<BlockStateMatcher> st = new ArrayList<>();
     if (held.getTag() != null && held.getTag().contains(STATESTAG)) {
@@ -74,6 +55,24 @@ public class BlockstateCard extends ItemBase {
   }
 
   @Override
+  @OnlyIn(Dist.CLIENT)
+  public void addInformation(ItemStack held, World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
+    if (held.getTag() != null && held.getTag().contains(STATESTAG)) {
+      for (BlockStateMatcher m : getSavedStates(held)) {
+        BlockState st = m.getState();
+        TextFormatting c = m.isExactProperties() ? TextFormatting.LIGHT_PURPLE : TextFormatting.DARK_PURPLE;
+        String extra = m.isExactProperties() ? " [state]" : " [block]"; // star for not exact
+        tooltip.add(new TranslationTextComponent(st.getBlock().getTranslationKey()).appendString(extra).mergeStyle(c));
+        if (m.isExactProperties() && Screen.hasShiftDown()) {
+          tooltip.add(new TranslationTextComponent(st.toString()).mergeStyle(TextFormatting.DARK_GRAY));
+        }
+      }
+    } else {
+      super.addInformation(held, worldIn, tooltip, flagIn);
+    }
+  }
+
+  @Override
   public ActionResultType onItemUse(ItemUseContext context) {
     PlayerEntity player = context.getPlayer();
     Hand hand = context.getHand();
@@ -86,8 +85,7 @@ public class BlockstateCard extends ItemBase {
     if (held.getOrCreateTag().contains(STATESTAG)) {
       //get it
       stateTags = held.getOrCreateTag().getList(STATESTAG, 10);
-    }
-    else {
+    } else {
       stateTags = new ListNBT();
     }
     if (stateTags.size() >= MAXSIZE) {

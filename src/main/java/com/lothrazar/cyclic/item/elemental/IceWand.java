@@ -39,11 +39,11 @@ import net.minecraft.world.World;
 
 public class IceWand extends ItemBase {
 
+  private static final int RADIUS = 2;
+
   public IceWand(Properties properties) {
     super(properties);
   }
-
-  private static final int RADIUS = 2;
 
   @Override
   public ActionResultType onItemUse(ItemUseContext context) {

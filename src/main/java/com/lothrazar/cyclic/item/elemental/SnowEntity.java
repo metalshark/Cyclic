@@ -50,8 +50,7 @@ public class SnowEntity extends ProjectileItemEntity {
         //        if (world.isAirBlock(living.getPosition()))
         //          this.world.setBlockState(living.getPosition(), Blocks.SNOW.getDefaultState());
       }
-    }
-    else if (type == RayTraceResult.Type.BLOCK) {
+    } else if (type == RayTraceResult.Type.BLOCK) {
       BlockRayTraceResult ray = (BlockRayTraceResult) result;
       if (ray.getPos() == null || ray.getFace() == null) {
         return;

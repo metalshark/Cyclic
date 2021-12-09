@@ -35,7 +35,7 @@ public class PotionRegistry {
     IForgeRegistry<Effect> r = event.getRegistry();
     PotionEffects.stun = register(r, new StunEffect(EffectType.HARMFUL, 0xcccc00), "stun");
     PotionEffects.swimspeed = register(r, new SwimEffect(EffectType.BENEFICIAL, 0x663300), "swimspeed");
-    //from 1.12.2 
+    //from 1.12.2
     //slowfall NIX in vanilla
     //ender aura - pearl + awkward - no pearl/tp dmg
     //snow - snowball + awkward(change?) = snow
@@ -72,43 +72,6 @@ public class PotionRegistry {
     r.register(new Potion(ModCyclic.MODID + "_resistance", new EffectInstance(Effects.RESISTANCE, smal)).setRegistryName(ModCyclic.MODID + ":resistance"));
   }
 
-  public static class PotionEffects {
-
-    //for events
-    public static final List<TickableEffect> EFFECTS = new ArrayList<TickableEffect>();
-    @ObjectHolder(ModCyclic.MODID + ":stun")
-    public static TickableEffect stun;
-    @ObjectHolder(ModCyclic.MODID + ":swimspeed")
-    public static TickableEffect swimspeed;
-  }
-
-  public static class PotionItem {
-
-    @ObjectHolder(ModCyclic.MODID + ":strong_haste")
-    public static Potion strong_haste;
-    @ObjectHolder(ModCyclic.MODID + ":haste")
-    public static Potion haste;
-    @ObjectHolder(ModCyclic.MODID + ":stun")
-    public static Potion stun;
-    @ObjectHolder(ModCyclic.MODID + ":swimspeed")
-    public static Potion swimspeed;
-    @ObjectHolder(ModCyclic.MODID + ":blind")
-    public static Potion blind;
-    @ObjectHolder(ModCyclic.MODID + ":levitation")
-    public static Potion levitation;
-    @ObjectHolder(ModCyclic.MODID + ":hunger")
-    public static Potion hunger;
-    @ObjectHolder(ModCyclic.MODID + ":wither")
-    public static Potion wither;
-    @ObjectHolder(ModCyclic.MODID + ":resistance")
-    public static Potion resistance;
-    //    @ObjectHolder(ModCyclic.MODID + ":saturation")
-    //    public static Potion saturation;
-  }
-  //resistance : strength pot + iron ingot
-  //wither : fermented spider eye + weakness pot 
-  //saturation = cake + hunger pot 
-
   public static void setup(FMLCommonSetupEvent event) {
     ///haste recipes
     final ItemStack awkwardPotion = PotionUtils.addPotionToItemStack(new ItemStack(Items.POTION), Potions.AWKWARD);
@@ -139,10 +102,13 @@ public class PotionRegistry {
   }
 
   private static void basicBrewing(ItemStack inputPot, Potion pot, Item item) {
-    //hmm wat 
+    //hmm wat
     BrewingRecipeRegistry.addRecipe(new ModBrewingRecipe(inputPot, Ingredient.fromItems(item),
         PotionUtils.addPotionToItemStack(new ItemStack(Items.POTION), pot)));
   }
+  //resistance : strength pot + iron ingot
+  //wither : fermented spider eye + weakness pot
+  //saturation = cake + hunger pot
 
   static void splashBrewing(Potion pot, Item item) {
     BrewingRecipeRegistry.addRecipe(new ModBrewingRecipe(PotionUtils.addPotionToItemStack(
@@ -158,5 +124,39 @@ public class PotionRegistry {
         Ingredient.fromStacks(new ItemStack(item)),
         PotionUtils.addPotionToItemStack(
             new ItemStack(Items.LINGERING_POTION), pot)));
+  }
+
+  public static class PotionEffects {
+
+    //for events
+    public static final List<TickableEffect> EFFECTS = new ArrayList<>();
+    @ObjectHolder(ModCyclic.MODID + ":stun")
+    public static TickableEffect stun;
+    @ObjectHolder(ModCyclic.MODID + ":swimspeed")
+    public static TickableEffect swimspeed;
+  }
+
+  public static class PotionItem {
+
+    @ObjectHolder(ModCyclic.MODID + ":strong_haste")
+    public static Potion strong_haste;
+    @ObjectHolder(ModCyclic.MODID + ":haste")
+    public static Potion haste;
+    @ObjectHolder(ModCyclic.MODID + ":stun")
+    public static Potion stun;
+    @ObjectHolder(ModCyclic.MODID + ":swimspeed")
+    public static Potion swimspeed;
+    @ObjectHolder(ModCyclic.MODID + ":blind")
+    public static Potion blind;
+    @ObjectHolder(ModCyclic.MODID + ":levitation")
+    public static Potion levitation;
+    @ObjectHolder(ModCyclic.MODID + ":hunger")
+    public static Potion hunger;
+    @ObjectHolder(ModCyclic.MODID + ":wither")
+    public static Potion wither;
+    @ObjectHolder(ModCyclic.MODID + ":resistance")
+    public static Potion resistance;
+    //    @ObjectHolder(ModCyclic.MODID + ":saturation")
+    //    public static Potion saturation;
   }
 }

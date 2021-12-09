@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import net.minecraft.block.BlockState;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
@@ -14,14 +15,15 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeConfigSpec.IntValue;
 import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
 
 public class EnderShelfHelper {
 
-  public static IntValue MAX_DIST;
   public static final int MAX_ITERATIONS = 6400; // TODO config entry
+  public static IntValue MAX_DIST;
 
   public static BlockPos findConnectedController(World world, BlockPos shelfPos) {
-    return recursivelyFindConnectedController(world, shelfPos, new HashMap<BlockPos, Integer>(), 0);
+    return recursivelyFindConnectedController(world, shelfPos, new HashMap<>(), 0);
   }
 
   private static BlockPos recursivelyFindConnectedController(World world, BlockPos pos, Map<BlockPos, Integer> visitedLocations, int iterations) {
@@ -84,31 +86,37 @@ public class EnderShelfHelper {
     return shelves;
   }
 
-  public static EnderShelfItemHandler getShelfHandler(TileEntity te) {
-    if (te != null &&
-        te.getBlockState().getBlock() == BlockRegistry.ENDER_SHELF &&
-        te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).isPresent() &&
-        te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).resolve().get() instanceof EnderShelfItemHandler) {
-      return (EnderShelfItemHandler) te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).resolve().get();
+  public static EnderShelfItemHandler getShelfHandler(@Nullable final TileEntity tileEntity) {
+    if (tileEntity == null || tileEntity.getBlockState().getBlock() != BlockRegistry.ENDER_SHELF) {
+      return null;
     }
-    return null;
+    
+    final IItemHandler itemHandler = tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
+    
+    if (itemHandler == null || !(itemHandler instanceof EnderShelfItemHandler)) {
+      return null;
+    }
+    return (EnderShelfItemHandler) itemHandler;
   }
 
-  public static EnderControllerItemHandler getControllerHandler(TileEntity te) {
-    if (te != null &&
-        te.getBlockState().getBlock() == BlockRegistry.ENDER_CONTROLLER &&
-        te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).isPresent() &&
-        te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).resolve().get() instanceof EnderControllerItemHandler) {
-      return (EnderControllerItemHandler) te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).resolve().get();
+  public static EnderControllerItemHandler getControllerHandler(@Nullable final TileEntity tileEntity) {
+    if (tileEntity == null || tileEntity.getBlockState().getBlock() != BlockRegistry.ENDER_CONTROLLER) {
+      return null;
     }
-    return null;
+    
+    final IItemHandler itemHandler = tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null);
+    
+    if (itemHandler == null || !(itemHandler instanceof EnderControllerItemHandler)) {
+      return null;
+    }
+    return (EnderControllerItemHandler) itemHandler;
   }
 
-  public static boolean isController(BlockState state) {
+  public static boolean isController(final BlockState state) {
     return state.getBlock() == BlockRegistry.ENDER_CONTROLLER;
   }
 
-  public static boolean isShelf(BlockState state) {
+  public static boolean isShelf(final BlockState state) {
     return state.getBlock() == BlockRegistry.ENDER_SHELF;
   }
 }

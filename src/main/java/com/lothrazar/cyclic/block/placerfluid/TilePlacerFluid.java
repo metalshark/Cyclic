@@ -4,6 +4,7 @@ import com.lothrazar.cyclic.base.FluidTankBase;
 import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import java.util.function.Predicate;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -13,52 +14,46 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.Hand;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 public class TilePlacerFluid extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
   public static final int CAPACITY = 8 * FluidAttributes.BUCKET_VOLUME;
-  FluidTankBase tank;
-
-  static enum Fields {
-    REDSTONE, RENDER;
-  }
+  protected final FluidTankBase tank = new FluidTankBase(this, CAPACITY, isFluidValid());
+  private final LazyOptional<IFluidHandler> fluidHandlerLazyOptional = LazyOptional.of(() -> tank);
 
   public TilePlacerFluid() {
     super(TileRegistry.placer_fluid);
-    tank = new FluidTankBase(this, CAPACITY, isFluidValid());
     this.needsRedstone = 1;
   }
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
       return;
     }
     setLitProperty(true);
-    FluidStack test = tank.drain(FluidAttributes.BUCKET_VOLUME, FluidAction.SIMULATE);
-    if (test.getAmount() == FluidAttributes.BUCKET_VOLUME
-        && test.getFluid().getDefaultState() != null &&
-        test.getFluid().getDefaultState().getBlockState() != null) {
-      //we got enough
-      Direction dir = this.getBlockState().get(BlockStateProperties.FACING);
-      BlockPos offset = pos.offset(dir);
-      BlockState state = test.getFluid().getDefaultState().getBlockState();
-      if (world.isAirBlock(offset) &&
-          world.setBlockState(offset, state)) {
-        //pay
-        tank.drain(FluidAttributes.BUCKET_VOLUME, FluidAction.EXECUTE);
-      }
+
+    final int fluidAmount = tank.getFluidAmount();
+    if (fluidAmount <= FluidAttributes.BUCKET_VOLUME) {
+      return;
     }
+    final FluidStack fluidStack = new FluidStack(tank.getFluid(), FluidAttributes.BUCKET_VOLUME);
+    final Direction side = this.getBlockState().get(BlockStateProperties.FACING);
+    FluidUtil.tryPlaceFluid(null, world, Hand.MAIN_HAND, pos.offset(side), tank, fluidStack);
   }
 
   public Predicate<FluidStack> isFluidValid() {
@@ -66,13 +61,13 @@ public class TilePlacerFluid extends TileEntityBase implements INamedContainerPr
   }
 
   @Override
-  public void setFluid(FluidStack fluid) {
-    tank.setFluid(fluid);
+  public FluidStack getFluid() {
+    return tank.getFluid();
   }
 
   @Override
-  public FluidStack getFluid() {
-    return tank == null ? FluidStack.EMPTY : tank.getFluid();
+  public void setFluid(FluidStack fluid) {
+    tank.setFluid(fluid);
   }
 
   @Override
@@ -89,17 +84,24 @@ public class TilePlacerFluid extends TileEntityBase implements INamedContainerPr
   public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
     if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
       //      return tankWrapper.cast();
-      return LazyOptional.of(() -> tank).cast();
+      return fluidHandlerLazyOptional.cast();
     }
     return super.getCapability(cap, side);
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    fluidHandlerLazyOptional.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     tank.readFromNBT(tag.getCompound(NBTFLUID));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     CompoundNBT fluid = new CompoundNBT();
@@ -124,10 +126,14 @@ public class TilePlacerFluid extends TileEntityBase implements INamedContainerPr
     switch (Fields.values()[id]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
     }
+  }
+
+  enum Fields {
+    REDSTONE, RENDER;
   }
 }

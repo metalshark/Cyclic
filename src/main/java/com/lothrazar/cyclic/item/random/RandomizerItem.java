@@ -35,24 +35,8 @@ public class RandomizerItem extends ItemBase {
     return ItemStack.EMPTY;
   }
 
-  @Override
-  public ActionResultType onItemUse(ItemUseContext context) {
-    PlayerEntity player = context.getPlayer();
-    ItemStack stack = context.getItem();
-    if (player.getCooldownTracker().hasCooldown(stack.getItem())) {
-      return super.onItemUse(context);
-    }
-    BlockPos pos = context.getPos();
-    Direction side = context.getFace();
-    if (player.world.isRemote) {
-      PacketRegistry.INSTANCE.sendToServer(new PacketRandomize(pos, side, context.getHand()));
-    }
-    UtilEntity.setCooldownItem(player, this, COOLDOWN);
-    return super.onItemUse(context);
-  }
-
   public static List<BlockPos> getPlaces(final BlockPos pos, final Direction side) {
-    List<BlockPos> places = new ArrayList<BlockPos>();
+    List<BlockPos> places = new ArrayList<>();
     int xMin = pos.getX();
     int yMin = pos.getY();
     int zMin = pos.getZ();
@@ -78,8 +62,7 @@ public class RandomizerItem extends ItemBase {
         zMax += offsetRadius;
         yMin -= offsetRadius;
         yMax += offsetRadius;
-      }
-      else {
+      } else {
         //axis hit was north/south, so we go in YZ
         xMin -= offsetRadius;
         xMax += offsetRadius;
@@ -95,11 +78,24 @@ public class RandomizerItem extends ItemBase {
     if (stateHere.getBlockHardness(world, p) < 0) {
       return false; //unbreakable
     }
-    if (world.getTileEntity(p) == null
-        && world.isAirBlock(p) == false
-        && stateHere.getMaterial().isLiquid() == false) {
-      return true;
+    return world.getTileEntity(p) == null
+        && !world.isAirBlock(p)
+        && !stateHere.getMaterial().isLiquid();
+  }
+
+  @Override
+  public ActionResultType onItemUse(ItemUseContext context) {
+    PlayerEntity player = context.getPlayer();
+    ItemStack stack = context.getItem();
+    if (player.getCooldownTracker().hasCooldown(stack.getItem())) {
+      return super.onItemUse(context);
     }
-    return false;
+    BlockPos pos = context.getPos();
+    Direction side = context.getFace();
+    if (player.world.isRemote) {
+      PacketRegistry.INSTANCE.sendToServer(new PacketRandomize(pos, side, context.getHand()));
+    }
+    UtilEntity.setCooldownItem(player, this, COOLDOWN);
+    return super.onItemUse(context);
   }
 }

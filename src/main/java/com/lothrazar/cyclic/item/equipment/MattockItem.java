@@ -49,13 +49,11 @@ public class MattockItem extends ToolItem {
         if (radius == 2) {
           shape.addAll(UtilShape.squareHorizontalHollow(pos, radius - 1));
         }
-      }
-      else if (sideHit == Direction.EAST || sideHit == Direction.WEST) {
+      } else if (sideHit == Direction.EAST || sideHit == Direction.WEST) {
         int y = 1 + radius - yoff;
         int z = radius;
         shape = UtilShape.squareVerticalZ(pos, y, z);
-      }
-      else { //has to be NORTHSOUTH
+      } else { //has to be NORTHSOUTH
         int x = radius;
         int y = 1 + radius - yoff;
         shape = UtilShape.squareVerticalX(pos, x, y);
@@ -74,8 +72,7 @@ public class MattockItem extends ToolItem {
               blockCurrent.onPlayerDestroy(world, posCurrent, bsCurrent);
             }
             //            stack.onBlockDestroyed(world, bsCurrent, posCurrent, player);//update tool damage
-          }
-          else if (player instanceof ServerPlayerEntity) { //Server side, so this works
+          } else if (player instanceof ServerPlayerEntity) { //Server side, so this works
             ServerPlayerEntity mp = (ServerPlayerEntity) player;
             int xpGivenOnDrop = ForgeHooks.onBlockBreakEvent(world, ((ServerPlayerEntity) player).interactionManager.getGameType(), (ServerPlayerEntity) player, posCurrent);
             if (xpGivenOnDrop >= 0) {

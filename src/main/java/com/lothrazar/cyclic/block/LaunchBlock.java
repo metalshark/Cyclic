@@ -16,8 +16,8 @@ import net.minecraft.world.World;
 
 public class LaunchBlock extends BlockBase {
 
-  private static final float ANGLE = 90;
   protected static final VoxelShape PRESSED_AABB = Block.makeCuboidShape(1.0D, 0.0D, 1.0D, 15.0D, 0.5D, 15.0D);
+  private static final float ANGLE = 90;
   boolean sneakPlayerAvoid = true;
   boolean doRedstone;
 
@@ -49,14 +49,13 @@ public class LaunchBlock extends BlockBase {
     }
     if (worldIn.isRemote) {
       UtilEntity.launch(entity, ANGLE, getPower(worldIn, pos));
-    }
-    else if (entity instanceof PlayerEntity) {
+    } else if (entity instanceof PlayerEntity) {
       //          ((EntityPlayer) entity).addPotionEffect(new PotionEffect(PotionEffects.BOUNCE, 300, 0));
     }
   }
 
   private float getPower(World world, BlockPos pos) {
-    if (this.doRedstone == false) {
+    if (!this.doRedstone) {
       return 1.6F;
     }
     int power = 0;

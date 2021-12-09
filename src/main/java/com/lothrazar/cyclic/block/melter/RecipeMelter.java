@@ -2,8 +2,11 @@ package com.lothrazar.cyclic.block.melter;
 
 import com.google.gson.JsonObject;
 import com.lothrazar.cyclic.ModCyclic;
+import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.recipe.CyclicRecipe;
 import com.lothrazar.cyclic.recipe.CyclicRecipeType;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipeSerializer;
@@ -19,8 +22,9 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 @SuppressWarnings("rawtypes")
-public class RecipeMelter<TileEntityBase> extends CyclicRecipe {
+public class RecipeMelter<T> extends CyclicRecipe {
 
+  public static final SerializeMelter SERIALMELTER = new SerializeMelter();
   private NonNullList<Ingredient> ingredients = NonNullList.create();
   private FluidStack outFluid;
 
@@ -35,7 +39,7 @@ public class RecipeMelter<TileEntityBase> extends CyclicRecipe {
   }
 
   @Override
-  public boolean matches(com.lothrazar.cyclic.base.TileEntityBase inv, World worldIn) {
+  public boolean matches(@Nonnull final TileEntityBase inv, @Nonnull final World worldIn) {
     try {
       TileMelter tile = (TileMelter) inv;
       //if first one matches check second
@@ -43,8 +47,7 @@ public class RecipeMelter<TileEntityBase> extends CyclicRecipe {
       boolean matchLeft = matches(tile.getStackInputSlot(0), ingredients.get(0));
       boolean matchRight = matches(tile.getStackInputSlot(1), ingredients.get(1));
       return matchLeft && matchRight;
-    }
-    catch (ClassCastException e) {
+    } catch (ClassCastException e) {
       return false;
     }
   }
@@ -54,9 +57,6 @@ public class RecipeMelter<TileEntityBase> extends CyclicRecipe {
       //it must be empty
       return current.isEmpty();
     }
-    if (current.isEmpty()) {
-      return ing == Ingredient.EMPTY;
-    }
     return ing.test(current);
   }
 
@@ -65,6 +65,7 @@ public class RecipeMelter<TileEntityBase> extends CyclicRecipe {
     return ing.getMatchingStacks();
   }
 
+  @Nonnull
   @Override
   public NonNullList<Ingredient> getIngredients() {
     return ingredients;
@@ -80,6 +81,7 @@ public class RecipeMelter<TileEntityBase> extends CyclicRecipe {
     return outFluid.copy();
   }
 
+  @Nonnull
   @Override
   public IRecipeType<?> getType() {
     return CyclicRecipeType.MELTER;
@@ -89,8 +91,6 @@ public class RecipeMelter<TileEntityBase> extends CyclicRecipe {
   public IRecipeSerializer<?> getSerializer() {
     return SERIALMELTER;
   }
-
-  public static final SerializeMelter SERIALMELTER = new SerializeMelter();
 
   public static class SerializeMelter extends ForgeRegistryEntry<IRecipeSerializer<?>> implements IRecipeSerializer<RecipeMelter<? extends com.lothrazar.cyclic.base.TileEntityBase>> {
 
@@ -102,9 +102,10 @@ public class RecipeMelter<TileEntityBase> extends CyclicRecipe {
     /**
      * The fluid stuff i was helped out a ton by looking at this https://github.com/mekanism/Mekanism/blob/921d10be54f97518c1f0cb5a6fc64bf47d5e6773/src/api/java/mekanism/api/SerializerHelper.java#L129
      */
+    @Nullable
     @SuppressWarnings("unchecked")
     @Override
-    public RecipeMelter<? extends com.lothrazar.cyclic.base.TileEntityBase> read(ResourceLocation recipeId, JsonObject json) {
+    public RecipeMelter<? extends TileEntityBase> read(@Nonnull final ResourceLocation recipeId, @Nonnull final JsonObject json) {
       RecipeMelter r = null;
       try {
         Ingredient inputFirst = Ingredient.deserialize(JSONUtils.getJsonObject(json, "inputFirst"));
@@ -118,9 +119,10 @@ public class RecipeMelter<TileEntityBase> extends CyclicRecipe {
         String fluidId = JSONUtils.getString(result, "fluid");
         ResourceLocation resourceLocation = new ResourceLocation(fluidId);
         Fluid fluid = ForgeRegistries.FLUIDS.getValue(resourceLocation);
-        r = new RecipeMelter(recipeId, inputFirst, inputSecond, new FluidStack(fluid, count));
-      }
-      catch (Exception e) {
+        if (fluid != null) {
+          r = new RecipeMelter(recipeId, inputFirst, inputSecond, new FluidStack(fluid, count));
+        }
+      } catch (Exception e) {
         ModCyclic.LOGGER.error("Error loading recipe" + recipeId, e);
       }
       ModCyclic.LOGGER.info("Recipe loaded " + recipeId);
@@ -128,15 +130,14 @@ public class RecipeMelter<TileEntityBase> extends CyclicRecipe {
     }
 
     @Override
-    public RecipeMelter read(ResourceLocation recipeId, PacketBuffer buffer) {
-      RecipeMelter r = new RecipeMelter(recipeId,
-          Ingredient.read(buffer), Ingredient.read(buffer), FluidStack.readFromPacket(buffer));
-      //server reading recipe from client or vice/versa 
-      return r;
+    public RecipeMelter<? extends TileEntityBase> read(@Nonnull final ResourceLocation recipeId, @Nonnull final PacketBuffer buffer) {
+      //server reading recipe from client or vice/versa
+      return new RecipeMelter<>(recipeId,
+        Ingredient.read(buffer), Ingredient.read(buffer), FluidStack.readFromPacket(buffer));
     }
 
     @Override
-    public void write(PacketBuffer buffer, RecipeMelter recipe) {
+    public void write(@Nonnull final PacketBuffer buffer, @Nonnull final RecipeMelter recipe) {
       Ingredient zero = (Ingredient) recipe.ingredients.get(0);
       Ingredient one = (Ingredient) recipe.ingredients.get(1);
       zero.write(buffer);

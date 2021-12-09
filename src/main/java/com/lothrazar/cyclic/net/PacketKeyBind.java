@@ -58,8 +58,7 @@ public class PacketKeyBind extends PacketBase {
       CyclicFile datFile = PlayerDataEvents.getOrCreate(sender);
       if (datFile.storageVisible) {
         NetworkHooks.openGui(sender, new ContainerProviderCake(), sender.getPosition());
-      }
-      else {
+      } else {
         UtilChat.addServerChatMessage(sender, "cyclic.unlocks.extended.locked");
       }
     });

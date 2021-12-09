@@ -14,16 +14,14 @@ public class CyclicRecipeType<RECIPE_TYPE extends CyclicRecipe> implements IReci
   public static final CyclicRecipeType<RecipeMelter<TileEntityBase>> MELTER = create("melter");
   public static final CyclicRecipeType<RecipeGeneratorItem<TileEntityBase>> GENERATOR_ITEM = create("generator_item");
   public static final CyclicRecipeType<RecipeGeneratorFluid<TileEntityBase>> GENERATOR_FLUID = create("generator_fluid");
-
-  private static <RECIPE_TYPE extends CyclicRecipe> CyclicRecipeType<RECIPE_TYPE> create(String name) {
-    CyclicRecipeType<RECIPE_TYPE> type = new CyclicRecipeType<>(name);
-    return type;
-  }
-
-  private String registryName;
+  private final String registryName;
 
   private CyclicRecipeType(String name) {
     this.registryName = name;
+  }
+
+  private static <RECIPE_TYPE extends CyclicRecipe> CyclicRecipeType<RECIPE_TYPE> create(String name) {
+    return new CyclicRecipeType<>(name);
   }
 
   @Override

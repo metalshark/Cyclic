@@ -22,12 +22,10 @@ public class ContainerStorageBag extends ContainerBase {
     if (player.getHeldItemMainhand().getItem() instanceof ItemStorageBag) {
       this.bag = player.getHeldItemMainhand();
       this.slot = player.inventory.currentItem;
-    }
-    else if (player.getHeldItemOffhand().getItem() instanceof ItemStorageBag) {
+    } else if (player.getHeldItemOffhand().getItem() instanceof ItemStorageBag) {
       this.bag = player.getHeldItemOffhand();
       this.slot = 40;
-    }
-    else {
+    } else {
       for (int x = 0; x < playerInventory.getSizeInventory(); x++) {
         ItemStack stack = playerInventory.getStackInSlot(x);
         if (stack.getItem() instanceof ItemStorageBag) {

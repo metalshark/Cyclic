@@ -5,6 +5,7 @@ import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -18,14 +19,10 @@ import net.minecraft.util.text.StringTextComponent;
 
 public class TileRedstoneClock extends TileEntityBase implements ITickableTileEntity, INamedContainerProvider {
 
-  static enum Fields {
-    TIMER, DELAY, DURATION, POWER, REDSTONE, N, E, S, W, U, D;
-  }
-
   private int delay; //dont let these times be zero !!!
   private int duration;
   private int power;
-  private Map<Direction, Boolean> poweredSides = new HashMap<Direction, Boolean>();
+  private Map<Direction, Boolean> poweredSides = new HashMap<>();
 
   public TileRedstoneClock() {
     super(TileRegistry.clock);
@@ -39,10 +36,12 @@ public class TileRedstoneClock extends TileEntityBase implements ITickableTileEn
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     try {
       updateMyState();
-    }
-    catch (Throwable e) {
+    } catch (Throwable e) {
       ModCyclic.LOGGER.error("Clock blockstate update error", e);
     }
   }
@@ -60,8 +59,7 @@ public class TileRedstoneClock extends TileEntityBase implements ITickableTileEn
   public int getPowerForSide(Direction side) {
     if (this.getSideHasPower(side)) {
       return this.power;
-    }
-    else {
+    } else {
       return 0;
     }
   }
@@ -97,7 +95,7 @@ public class TileRedstoneClock extends TileEntityBase implements ITickableTileEn
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     delay = tag.getInt("redstone_delay");
     duration = tag.getInt("redstone_duration");
     power = tag.getInt("redstone_power");
@@ -110,6 +108,7 @@ public class TileRedstoneClock extends TileEntityBase implements ITickableTileEn
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("redstone_delay", delay);
@@ -123,7 +122,7 @@ public class TileRedstoneClock extends TileEntityBase implements ITickableTileEn
 
   private void updateMyState() throws IllegalArgumentException {
     BlockState blockState = world.getBlockState(pos);
-    if (blockState.hasProperty(BlockRedstoneClock.LIT) == false) {
+    if (!blockState.hasProperty(BlockRedstoneClock.LIT)) {
       return;
     }
     if (this.power == 0) {
@@ -135,12 +134,10 @@ public class TileRedstoneClock extends TileEntityBase implements ITickableTileEn
     boolean prevPowered = blockState.get(BlockRedstoneClock.LIT);
     if (timer < delay) {
       powered = false;
-    }
-    else if (timer < delay + duration) {
+    } else if (timer < delay + duration) {
       //we are in the ON section
       powered = true;
-    }
-    else {
+    } else {
       timer = 0;
       powered = false;
     }
@@ -192,37 +189,41 @@ public class TileRedstoneClock extends TileEntityBase implements ITickableTileEn
           value = 15;
         }
         power = value;
-      break;
+        break;
       case TIMER:
         timer = value;
-      break;
+        break;
       case DELAY:
         delay = Math.max(value, 1);
-      break;
+        break;
       case DURATION:
         duration = Math.max(value, 1);
-      break;
+        break;
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case D:
         this.setSideField(Direction.DOWN, value % 2);
-      break;
+        break;
       case E:
         this.setSideField(Direction.EAST, value % 2);
-      break;
+        break;
       case N:
         this.setSideField(Direction.NORTH, value % 2);
-      break;
+        break;
       case S:
         this.setSideField(Direction.SOUTH, value % 2);
-      break;
+        break;
       case U:
         this.setSideField(Direction.UP, value % 2);
-      break;
+        break;
       case W:
         this.setSideField(Direction.WEST, value % 2);
-      break;
+        break;
     }
+  }
+
+  static enum Fields {
+    TIMER, DELAY, DURATION, POWER, REDSTONE, N, E, S, W, U, D;
   }
 }

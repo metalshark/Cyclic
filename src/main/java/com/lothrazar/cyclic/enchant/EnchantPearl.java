@@ -21,16 +21,16 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EnchantPearl extends EnchantBase {
 
-  public EnchantPearl(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
-    super(rarityIn, typeIn, slots);
-    MinecraftForge.EVENT_BUS.register(this);
-  }
-
+  public static final String ID = "ender";
   private static final int COOLDOWN = 6 * 20;
   private static final float VELOCITY = 1.5F; //Same as EnderPearlItem
   private static final float INNACCURACY = 1F; //Same as EnderPearlItem
   public static BooleanValue CFG;
-  public static final String ID = "ender";
+
+  public EnchantPearl(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
+    super(rarityIn, typeIn, slots);
+    MinecraftForge.EVENT_BUS.register(this);
+  }
 
   @Override
   public boolean isEnabled() {
@@ -69,7 +69,7 @@ public class EnchantPearl extends EnchantBase {
         UtilEntity.setCooldownItem(player, event.getItemStack().getItem(), adjustedCooldown);
         UtilSound.playSound(player, SoundEvents.ENTITY_ENDER_PEARL_THROW, 0.5F, 0.4F / (world.rand.nextFloat() * 0.4F + 0.8F));
         world.addEntity(pearl);
-        //block propogation of event 
+        //block propogation of event
         event.setResult(Result.DENY);
         event.setCanceled(true);
       }

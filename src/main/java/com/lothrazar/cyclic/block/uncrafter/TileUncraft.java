@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -37,10 +38,6 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileUncraft extends TileEntityBase implements ITickableTileEntity, INamedContainerProvider {
 
-  static enum Fields {
-    REDSTONE, STATUS, TIMER;
-  }
-
   static final int MAX = 64000;
   public static IntValue POWERCONF;
   public static BooleanValue IGNORE_NBT;
@@ -48,12 +45,16 @@ public class TileUncraft extends TileEntityBase implements ITickableTileEntity, 
   public static ConfigValue<List<? extends String>> IGNORELIST;
   public static ConfigValue<List<? extends String>> IGNORELIST_RECIPES;
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
+  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
+  private UncraftStatusEnum status = UncraftStatusEnum.EMPTY;
   ItemStackHandler inputSlots = new ItemStackHandler(1) {
 
     @Override
     protected void onContentsChanged(int slot) {
       TileUncraft.this.status = UncraftStatusEnum.EMPTY;
-    };
+    }
+
+    ;
   };
   ItemStackHandler outputSlots = new ItemStackHandler(8 * 2) {
 
@@ -62,10 +63,11 @@ public class TileUncraft extends TileEntityBase implements ITickableTileEntity, 
       if (TileUncraft.this.status == UncraftStatusEnum.NOROOM) {
         TileUncraft.this.status = UncraftStatusEnum.EMPTY;
       }
-    };
+    }
+
+    ;
   };
   private ItemStackHandlerWrapper inventory = new ItemStackHandlerWrapper(inputSlots, outputSlots);
-  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
 
   public TileUncraft() {
@@ -74,6 +76,9 @@ public class TileUncraft extends TileEntityBase implements ITickableTileEntity, 
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     ItemStack dropMe = inputSlots.getStackInSlot(0).copy();
     if (dropMe.isEmpty()) {
@@ -112,13 +117,10 @@ public class TileUncraft extends TileEntityBase implements ITickableTileEntity, 
         // ModCyclic.LOGGER.info("AFTER  extract cost" + inputSlots.getStackInSlot(0));
         energy.extractEnergy(cost, false);
       }
-    }
-    else {
+    } else {
       this.status = UncraftStatusEnum.NORECIPE;
     }
   }
-
-  private UncraftStatusEnum status = UncraftStatusEnum.EMPTY;
 
   public UncraftStatusEnum getStatus() {
     return status;
@@ -146,13 +148,21 @@ public class TileUncraft extends TileEntityBase implements ITickableTileEntity, 
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     this.status = UncraftStatusEnum.values()[tag.getInt("ucstats")];
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("ucstats", status.ordinal());
@@ -163,10 +173,10 @@ public class TileUncraft extends TileEntityBase implements ITickableTileEntity, 
 
   private boolean uncraftRecipe(IRecipe<?> match) {
     List<ItemStack> result = match.getIngredients().stream().flatMap(ingredient -> Arrays.stream(ingredient.getMatchingStacks())
-        .filter(stack -> !stack.hasContainerItem())
-        .findAny()
-        .map(Stream::of)
-        .orElseGet(Stream::empty))
+            .filter(stack -> !stack.hasContainerItem())
+            .findAny()
+            .map(Stream::of)
+            .orElseGet(Stream::empty))
         .collect(Collectors.toList());
     if (result.isEmpty()) {
       this.status = UncraftStatusEnum.NORECIPE;
@@ -240,8 +250,7 @@ public class TileUncraft extends TileEntityBase implements ITickableTileEntity, 
     boolean matches = false;
     if (TileUncraft.IGNORE_NBT.get()) {
       matches = stack.getItem() == recipe.getRecipeOutput().getItem();
-    }
-    else {
+    } else {
       matches = stack.getItem() == recipe.getRecipeOutput().getItem() &&
           ItemStack.areItemStackTagsEqual(stack, recipe.getRecipeOutput());
     }
@@ -269,13 +278,17 @@ public class TileUncraft extends TileEntityBase implements ITickableTileEntity, 
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case STATUS:
         this.status = UncraftStatusEnum.values()[value];
-      break;
+        break;
       case TIMER:
         timer = value;
-      break;
+        break;
     }
+  }
+
+  static enum Fields {
+    REDSTONE, STATUS, TIMER;
   }
 }

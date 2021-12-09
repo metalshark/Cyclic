@@ -2,6 +2,7 @@ package com.lothrazar.cyclic.block.placer;
 
 import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.registry.TileRegistry;
+import javax.annotation.Nonnull;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -25,12 +26,8 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TilePlacer extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    REDSTONE, TIMER;
-  }
-
-  static final int MAX = 64000;
   public static final int TIMER_FULL = 500;
+  static final int MAX = 64000;
   ItemStackHandler inventory = new ItemStackHandler(1);
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
 
@@ -40,6 +37,9 @@ public class TilePlacer extends TileEntityBase implements INamedContainerProvide
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
       return;
@@ -81,11 +81,18 @@ public class TilePlacer extends TileEntityBase implements INamedContainerProvide
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTINV, inventory.serializeNBT());
@@ -97,10 +104,10 @@ public class TilePlacer extends TileEntityBase implements INamedContainerProvide
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case TIMER:
         timer = value;
-      break;
+        break;
     }
   }
 
@@ -113,5 +120,9 @@ public class TilePlacer extends TileEntityBase implements INamedContainerProvide
         return timer;
     }
     return 0;
+  }
+
+  static enum Fields {
+    REDSTONE, TIMER;
   }
 }

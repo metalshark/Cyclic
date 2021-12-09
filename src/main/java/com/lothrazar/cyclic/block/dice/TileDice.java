@@ -3,6 +3,7 @@ package com.lothrazar.cyclic.block.dice;
 import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilDirection;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.BlockStateProperties;
@@ -15,20 +16,17 @@ public class TileDice extends TileEntityBase implements ITickableTileEntity {
   private static final int TICKS_PER_CHANGE = 4;
   private int spinningIfZero = 1;
 
-  static enum Fields {
-    TIMER, SPINNING;
-  }
-
   public TileDice() {
     super(TileRegistry.dice);
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     tag.putInt("spinningIfZero", spinningIfZero);
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     spinningIfZero = tag.getInt("spinningIfZero");
@@ -42,11 +40,13 @@ public class TileDice extends TileEntityBase implements ITickableTileEntity {
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     if (this.timer == 0) {
       this.spinningIfZero = 1;
       world.updateComparatorOutputLevel(pos, this.getBlockState().getBlock());
-    }
-    else {
+    } else {
       this.timer--;
       //toggle block state
       if (this.timer % TICKS_PER_CHANGE == 0) {
@@ -96,10 +96,14 @@ public class TileDice extends TileEntityBase implements ITickableTileEntity {
     switch (Fields.values()[id]) {
       case TIMER:
         this.timer = value;
-      break;
+        break;
       case SPINNING:
         spinningIfZero = value;
-      break;
+        break;
     }
+  }
+
+  static enum Fields {
+    TIMER, SPINNING;
   }
 }

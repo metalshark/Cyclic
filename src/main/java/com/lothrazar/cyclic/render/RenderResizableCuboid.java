@@ -17,9 +17,9 @@ import net.minecraft.util.math.vector.Vector3f;
 
 /**
  * Source from MIT open source https://github.com/mekanism/Mekanism/tree/1.15x
- * 
+ * <p>
  * https://github.com/mekanism/Mekanism/blob/1.15x/LICENSE
- * 
+ * <p>
  * Adapted from BuildCraft
  */
 public class RenderResizableCuboid {
@@ -35,11 +35,9 @@ public class RenderResizableCuboid {
   private static Vector3f withValue(Vector3f vector, Axis axis, float value) {
     if (axis == Axis.X) {
       return new Vector3f(value, vector.getY(), vector.getZ());
-    }
-    else if (axis == Axis.Y) {
+    } else if (axis == Axis.Y) {
       return new Vector3f(vector.getX(), value, vector.getZ());
-    }
-    else if (axis == Axis.Z) {
+    } else if (axis == Axis.Z) {
       return new Vector3f(vector.getX(), vector.getY(), value);
     }
     throw new RuntimeException("Was given a null axis! That was probably not intentional, consider this a bug! (Vector = " + vector + ")");
@@ -48,11 +46,9 @@ public class RenderResizableCuboid {
   public static double getValue(Vector3d vector, Axis axis) {
     if (axis == Axis.X) {
       return vector.x;
-    }
-    else if (axis == Axis.Y) {
+    } else if (axis == Axis.Y) {
       return vector.y;
-    }
-    else if (axis == Axis.Z) {
+    } else if (axis == Axis.Z) {
       return vector.z;
     }
     throw new RuntimeException("Was given a null axis! That was probably not intentional, consider this a bug! (Vector = " + vector + ")");
@@ -91,7 +87,7 @@ public class RenderResizableCuboid {
           // Look into this more, as it makes tiling of multiple objects not render properly if they don't fit the full texture.
           // Example: Mechanical pipes rendering water or lava, makes it relatively easy to see the texture artifacts
           for (int uIndex = 0; uIndex < sizeU; uIndex++) {
-            float[] baseUV = new float[] { minU, maxU, minV, maxV };
+            float[] baseUV = new float[] {minU, maxU, minV, maxV};
             double addU = 1;
             // If the size of the texture is greater than the cuboid goes on for then make sure the texture positions are lowered
             if (uIndex + addU > sizeU) {
@@ -105,7 +101,7 @@ public class RenderResizableCuboid {
                 addV = sizeV - vIndex;
                 uv[V_MAX] = uv[V_MIN] + (uv[V_MAX] - uv[V_MIN]) * (float) addV;
               }
-              float[] xyz = new float[] { uIndex, (float) (uIndex + addU), vIndex, (float) (vIndex + addV) };
+              float[] xyz = new float[] {uIndex, (float) (uIndex + addU), vIndex, (float) (vIndex + addV)};
               renderPoint(matrix4f, buffer, face, u, v, other, uv, xyz, true, false, red, green, blue, alpha, light);
               renderPoint(matrix4f, buffer, face, u, v, other, uv, xyz, true, true, red, green, blue, alpha, light);
               renderPoint(matrix4f, buffer, face, u, v, other, uv, xyz, false, true, red, green, blue, alpha, light);
@@ -123,7 +119,7 @@ public class RenderResizableCuboid {
   }
 
   private void renderPoint(Matrix4f matrix4f, IVertexBuilder buffer, Direction face, Axis u, Axis v, float other, float[] uv, float[] xyz, boolean minU, boolean minV,
-      float red, float green, float blue, float alpha, int light) {
+                           float red, float green, float blue, float alpha, int light) {
     int uFinal = minU ? U_MIN : U_MAX;
     int vFinal = minV ? V_MIN : V_MAX;
     Vector3f vertex = withValue(VEC_ZERO, u, xyz[uFinal]);

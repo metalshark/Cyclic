@@ -21,24 +21,6 @@ public class RenderTransmit extends TileEntityRenderer<TileWirelessTransmit> {
     super(d);
   }
 
-  @Override
-  public void render(TileWirelessTransmit te, float v, MatrixStack matrixStack, IRenderTypeBuffer iRenderTypeBuffer, int partialTicks, int destroyStage) {
-    if (te.requiresRedstone() && !te.isPowered()) {
-      return;
-    }
-    if (te.getField(TileWirelessTransmit.Fields.RENDER.ordinal()) < 1) {
-      return;
-    }
-    try {
-      for (int slot = 0; slot < te.inventory.getSlots(); slot++) {
-        draw(slot, te, matrixStack, iRenderTypeBuffer);
-      }
-    }
-    catch (Exception e) {
-      ModCyclic.LOGGER.error("TileWirelessTransmit.java ", e);
-    }
-  }
-
   private static Vector3f adjustBeamToEyes(Vector3f from, Vector3f to, BlockPos tile) {
     //This method takes the player's position into account, and adjusts the beam so that its rendered properly whereever you stand
     PlayerEntity player = Minecraft.getInstance().player;
@@ -116,6 +98,23 @@ public class RenderTransmit extends TileEntityRenderer<TileWirelessTransmit> {
         .overlay(OverlayTexture.NO_OVERLAY)
         .lightmap(15728880)
         .endVertex();
+  }
+
+  @Override
+  public void render(TileWirelessTransmit te, float v, MatrixStack matrixStack, IRenderTypeBuffer iRenderTypeBuffer, int partialTicks, int destroyStage) {
+    if (te.requiresRedstone() && !te.isPowered()) {
+      return;
+    }
+    if (te.getField(TileWirelessTransmit.Fields.RENDER.ordinal()) < 1) {
+      return;
+    }
+    try {
+      for (int slot = 0; slot < te.inventory.getSlots(); slot++) {
+        draw(slot, te, matrixStack, iRenderTypeBuffer);
+      }
+    } catch (Exception e) {
+      ModCyclic.LOGGER.error("TileWirelessTransmit.java ", e);
+    }
   }
 
   @Override

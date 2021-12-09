@@ -21,16 +21,6 @@ public class UnbreakablePoweredBlock extends BlockBase {
     super(properties.hardnessAndResistance(50.0F, 1200.0F));
   }
 
-  @Override
-  public boolean hasTileEntity(BlockState state) {
-    return true;
-  }
-
-  @Override
-  public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-    return new UnbreakablePoweredTile();
-  }
-
   public static void setBreakable(World world, BlockPos pos, boolean isBreakable) {
     BlockState state = world.getBlockState(pos);
     boolean oldBreakable = state.get(BREAKABLE);
@@ -40,6 +30,16 @@ public class UnbreakablePoweredBlock extends BlockBase {
         UtilParticle.spawnParticle(world, RedstoneParticleData.REDSTONE_DUST, pos, 5);
       }
     }
+  }
+
+  @Override
+  public boolean hasTileEntity(BlockState state) {
+    return true;
+  }
+
+  @Override
+  public TileEntity createTileEntity(BlockState state, IBlockReader world) {
+    return new UnbreakablePoweredTile();
   }
 
   @Override

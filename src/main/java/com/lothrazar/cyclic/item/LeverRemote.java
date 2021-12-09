@@ -49,10 +49,9 @@ public class LeverRemote extends ItemBase {
     success = trigger(stack, worldIn, playerIn);
     if (success) {
       playerIn.swingArm(hand);
-      return new ActionResult<ItemStack>(ActionResultType.SUCCESS, stack);
-    }
-    else {
-      return new ActionResult<ItemStack>(ActionResultType.FAIL, stack);
+      return new ActionResult<>(ActionResultType.SUCCESS, stack);
+    } else {
+      return new ActionResult<>(ActionResultType.FAIL, stack);
     }
   }
 
@@ -75,14 +74,12 @@ public class LeverRemote extends ItemBase {
       }
       //      UtilSound.playSound(player, SoundEvents.BLOCK_LEVER_CLICK);
       return ActionResultType.SUCCESS;
-    }
-    else {
+    } else {
       boolean success = false;
       success = trigger(stack, world, player);
       if (success) {
         return ActionResultType.SUCCESS;
-      }
-      else {
+      } else {
         return ActionResultType.FAIL;
       }
     }
@@ -110,7 +107,7 @@ public class LeverRemote extends ItemBase {
         return false;
       }
       blockState = world.getBlockState(blockPos);
-      boolean hasPowerHere = blockState.get(LeverBlock.POWERED).booleanValue();
+      boolean hasPowerHere = blockState.get(LeverBlock.POWERED);
       UtilWorld.toggleLeverPowerState(world, blockPos, blockState);
       UtilChat.sendStatusMessage(player, this.getTranslationKey() + ".powered." + (!hasPowerHere));
       //      UtilSound.playSound(player, SoundEvents.BLOCK_LEVER_CLICK);

@@ -6,6 +6,7 @@ import com.lothrazar.cyclic.capability.CustomEnergyStorage;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilShape;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -38,21 +39,14 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileFluidCollect extends TileEntityBase implements ITickableTileEntity, INamedContainerProvider {
 
-  static enum Fields {
-    REDSTONE, RENDER, SIZE, HEIGHT;
-  }
-
-  static final int MAX_HEIGHT = 64;
   public static final int MAX_SIZE = 12; //radius 7 translates to 15x15 area (center block + 7 each side)
   public static final int CAPACITY = 64 * FluidAttributes.BUCKET_VOLUME;
+  static final int MAX_HEIGHT = 64;
+  static final int MAX = 64000;
   public static IntValue POWERCONF;
   FluidTankBase tank;
   private final LazyOptional<FluidTankBase> tankWrapper = LazyOptional.of(() -> tank);
-  private int shapeIndex = 0; // current index of shape array
-  private int size = 4 * 2;
-  private int height = 4;
   BlockPos targetPos = null;
-  static final int MAX = 64000;
   ItemStackHandler inventory = new ItemStackHandler(1) {
 
     @Override
@@ -61,6 +55,9 @@ public class TileFluidCollect extends TileEntityBase implements ITickableTileEnt
     }
   };
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
+  private int shapeIndex = 0; // current index of shape array
+  private int size = 4 * 2;
+  private int height = 4;
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
   private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
 
@@ -71,6 +68,9 @@ public class TileFluidCollect extends TileEntityBase implements ITickableTileEnt
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.requiresRedstone() && !this.isPowered()) {
       this.setLitProperty(false);
@@ -98,7 +98,7 @@ public class TileFluidCollect extends TileEntityBase implements ITickableTileEnt
       FluidStack fstack = new FluidStack(fluidState.getFluid(), FluidAttributes.BUCKET_VOLUME);
       int result = tank.fill(fstack, FluidAction.SIMULATE);
       if (result == FluidAttributes.BUCKET_VOLUME) {
-        //we got enough  
+        //we got enough
         if (world.setBlockState(targetPos, Block.getBlockFromItem(stack.getItem()).getDefaultState())) {
           //build the block, shrink the item
           stack.shrink(1);
@@ -111,13 +111,13 @@ public class TileFluidCollect extends TileEntityBase implements ITickableTileEnt
   }
 
   @Override
-  public void setFluid(FluidStack fluid) {
-    tank.setFluid(fluid);
+  public FluidStack getFluid() {
+    return tank == null ? FluidStack.EMPTY : tank.getFluid();
   }
 
   @Override
-  public FluidStack getFluid() {
-    return tank == null ? FluidStack.EMPTY : tank.getFluid();
+  public void setFluid(FluidStack fluid) {
+    tank.setFluid(fluid);
   }
 
   @Override
@@ -174,7 +174,15 @@ public class TileFluidCollect extends TileEntityBase implements ITickableTileEnt
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    tankWrapper.invalidate();
+    energyCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     shapeIndex = tag.getInt("shapeIndex");
     tank.readFromNBT(tag.getCompound(NBTFLUID));
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
@@ -182,6 +190,7 @@ public class TileFluidCollect extends TileEntityBase implements ITickableTileEnt
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTENERGY, energy.serializeNBT());
@@ -205,16 +214,16 @@ public class TileFluidCollect extends TileEntityBase implements ITickableTileEnt
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.setNeedsRedstone(value);
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
       case HEIGHT:
         height = Math.min(value, MAX_HEIGHT);
-      break;
+        break;
       case SIZE:
         size = Math.min(value, MAX_SIZE);
-      break;
+        break;
     }
   }
 
@@ -231,5 +240,9 @@ public class TileFluidCollect extends TileEntityBase implements ITickableTileEnt
         return size;
     }
     return 0;
+  }
+
+  static enum Fields {
+    REDSTONE, RENDER, SIZE, HEIGHT;
   }
 }

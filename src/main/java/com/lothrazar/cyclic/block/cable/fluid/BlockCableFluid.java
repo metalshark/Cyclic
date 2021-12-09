@@ -1,5 +1,6 @@
 package com.lothrazar.cyclic.block.cable.fluid;
 
+import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.block.cable.CableBase;
 import com.lothrazar.cyclic.block.cable.EnumConnectType;
 import com.lothrazar.cyclic.block.cable.ShapeCache;
@@ -45,8 +46,7 @@ public class BlockCableFluid extends CableBase {
     super.addInformation(stack, worldIn, tooltip, flagIn);
     if (Screen.hasShiftDown()) {
       tooltip.add(new TranslationTextComponent("block.cyclic.fluid_pipe.tooltip0").mergeStyle(TextFormatting.GRAY));
-    }
-    else {
+    } else {
       tooltip.add(new TranslationTextComponent("item.cyclic.shift").mergeStyle(TextFormatting.DARK_GRAY));
     }
   }
@@ -101,7 +101,9 @@ public class BlockCableFluid extends CableBase {
       IFluidHandler cap = facingTile == null ? null : facingTile.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, d.getOpposite()).orElse(null);
       if (cap != null) {
         stateIn = stateIn.with(FACING_TO_PROPERTY_MAP.get(d), EnumConnectType.INVENTORY);
-        worldIn.setBlockState(pos, stateIn);
+        if (worldIn.setBlockState(pos, stateIn)) {
+          updateConnection(worldIn, pos, d, EnumConnectType.INVENTORY);
+        };
       }
     }
     super.onBlockPlacedBy(worldIn, pos, stateIn, placer, stack);
@@ -123,6 +125,7 @@ public class BlockCableFluid extends CableBase {
   public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld world, BlockPos currentPos, BlockPos facingPos) {
     EnumProperty<EnumConnectType> property = FACING_TO_PROPERTY_MAP.get(facing);
     EnumConnectType oldProp = stateIn.get(property);
+    updateConnection(world, currentPos, facing, oldProp);
     if (oldProp.isBlocked() || oldProp.isExtraction()) {
       return stateIn;
     }
@@ -131,10 +134,10 @@ public class BlockCableFluid extends CableBase {
       if (world instanceof World && world.getBlockState(currentPos).getBlock() == this) {
         //hack to force {any} -> inventory IF its here
         ((World) world).setBlockState(currentPos, with);
+        updateConnection(world, currentPos, facing, EnumConnectType.INVENTORY);
       }
       return with;
-    }
-    else {
+    } else {
       return stateIn.with(property, EnumConnectType.NONE);
     }
   }

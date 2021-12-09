@@ -29,6 +29,22 @@ public class BuilderItem extends ItemBase {
     style = t;
   }
 
+  public static BuilderActionType getActionType(ItemStack stack) {
+    return BuilderActionType.values()[BuilderActionType.get(stack)];
+  }
+
+  public static ItemStack getIfHeld(PlayerEntity player) {
+    ItemStack heldItem = player.getHeldItemMainhand();
+    if (heldItem.getItem() instanceof BuilderItem) {
+      return heldItem;
+    }
+    heldItem = player.getHeldItemOffhand();
+    if (heldItem.getItem() instanceof BuilderItem) {
+      return heldItem;
+    }
+    return ItemStack.EMPTY;
+  }
+
   @Override
   @OnlyIn(Dist.CLIENT)
   public void addInformation(ItemStack stack, World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
@@ -65,22 +81,5 @@ public class BuilderItem extends ItemBase {
       return ActionResultType.SUCCESS;
     }
     return super.onItemUse(context);
-  }
-
-  public static BuilderActionType getActionType(ItemStack stack) {
-    BuilderActionType type = BuilderActionType.values()[BuilderActionType.get(stack)];
-    return type;
-  }
-
-  public static ItemStack getIfHeld(PlayerEntity player) {
-    ItemStack heldItem = player.getHeldItemMainhand();
-    if (heldItem.getItem() instanceof BuilderItem) {
-      return heldItem;
-    }
-    heldItem = player.getHeldItemOffhand();
-    if (heldItem.getItem() instanceof BuilderItem) {
-      return heldItem;
-    }
-    return ItemStack.EMPTY;
   }
 }

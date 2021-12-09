@@ -41,13 +41,13 @@ import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 public class EnchantQuickdraw extends EnchantBase {
 
+  public static final String ID = "quickshot";
+  public static BooleanValue CFG;
+
   public EnchantQuickdraw(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
     super(rarityIn, typeIn, slots);
     MinecraftForge.EVENT_BUS.register(this);
   }
-
-  public static BooleanValue CFG;
-  public static final String ID = "quickshot";
 
   @Override
   public boolean isEnabled() {
@@ -68,7 +68,7 @@ public class EnchantQuickdraw extends EnchantBase {
   public void onPlayerUpdate(LivingUpdateEvent event) {
     if (event.getEntity() instanceof PlayerEntity) {
       PlayerEntity player = (PlayerEntity) event.getEntity();
-      if (player.isHandActive() == false) {
+      if (!player.isHandActive()) {
         return;
       }
       Hand hand = player.getActiveHand();
@@ -76,7 +76,7 @@ public class EnchantQuickdraw extends EnchantBase {
         return;
       }
       ItemStack heldItem = player.getHeldItem(hand);
-      if (heldItem.getItem() instanceof BowItem == false) {
+      if (!(heldItem.getItem() instanceof BowItem)) {
         return;
       }
       int level = getCurrentLevelTool(heldItem);
@@ -96,8 +96,7 @@ public class EnchantQuickdraw extends EnchantBase {
       //      Method m = PlayerEntity.class.getDeclaredMethod("updateActiveHand");
       m.setAccessible(true);
       m.invoke(player);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       ModCyclic.LOGGER.error("Player quickdraw error", e);
     }
   }

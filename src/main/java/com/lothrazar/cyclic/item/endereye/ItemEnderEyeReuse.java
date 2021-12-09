@@ -23,16 +23,16 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 public class ItemEnderEyeReuse extends ItemBase {
 
-  public ItemEnderEyeReuse(Properties properties) {
-    super(properties.maxDamage(256));
-  }
-
   //compat with Repurposed Structures Mod see #1517
   private static final String RS_MODID = "repurposed_structures";
   private static final String RS_STRONGHOLD_ID = "stronghold_stonebrick";
   private static final String RS_NETHER_STRONGHOLD_ID = "stronghold_nether";
   private static final ResourceLocation RS_RESOURCE_LOCATION = new ResourceLocation(RS_MODID, RS_STRONGHOLD_ID);
   private static final ResourceLocation RS_NETHER_RESOURCE_LOCATION = new ResourceLocation(RS_MODID, RS_NETHER_STRONGHOLD_ID);
+
+  public ItemEnderEyeReuse(Properties properties) {
+    super(properties.maxDamage(256));
+  }
 
   @Override
   public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity player, Hand hand) {
@@ -83,14 +83,11 @@ public class ItemEnderEyeReuse extends ItemBase {
   private BlockPos returnClosest(BlockPos playerPos, BlockPos pos1, BlockPos pos2) {
     if (pos1 == null && pos2 == null) {
       return null;
-    }
-    else if (pos1 == null) {
+    } else if (pos1 == null) {
       return pos2;
-    }
-    else if (pos2 == null) {
+    } else if (pos2 == null) {
       return pos1;
-    }
-    else if (UtilWorld.distanceBetweenHorizontal(playerPos, pos1) <= UtilWorld.distanceBetweenHorizontal(playerPos, pos2)) {
+    } else if (UtilWorld.distanceBetweenHorizontal(playerPos, pos1) <= UtilWorld.distanceBetweenHorizontal(playerPos, pos2)) {
       return pos1;
     }
     return pos2;

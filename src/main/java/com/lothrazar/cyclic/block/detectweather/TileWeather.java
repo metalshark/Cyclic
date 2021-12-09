@@ -13,6 +13,9 @@ public class TileWeather extends TileEntityBase implements ITickableTileEntity {
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     //if we are going from unpowered to powered, meaning state isnt set but power is
     if (world instanceof ServerWorld) {
       //      ServerWorld sw = (ServerWorld) world;
@@ -24,8 +27,7 @@ public class TileWeather extends TileEntityBase implements ITickableTileEntity {
       int newPower = 0;
       if (world.isThundering()) {
         newPower = 2;
-      }
-      else if (world.isRaining()) {
+      } else if (world.isRaining()) {
         newPower = 1;
       }
       int level = this.getBlockState().get(BlockWeather.LEVEL);
@@ -38,7 +40,8 @@ public class TileWeather extends TileEntityBase implements ITickableTileEntity {
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {

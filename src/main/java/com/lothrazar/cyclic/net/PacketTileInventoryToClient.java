@@ -19,10 +19,6 @@ public class PacketTileInventoryToClient extends PacketBase {
   private ItemStack itemStack;
   private SyncPacketType type;
 
-  public static enum SyncPacketType {
-    CHANGE, SET
-  }
-
   public PacketTileInventoryToClient(BlockPos blockPos, int slot, ItemStack itemStack, SyncPacketType type) {
     this.blockPos = blockPos;
     this.slot = slot;
@@ -30,7 +26,8 @@ public class PacketTileInventoryToClient extends PacketBase {
     this.type = type;
   }
 
-  public PacketTileInventoryToClient() {}
+  public PacketTileInventoryToClient() {
+  }
 
   @SuppressWarnings("unused")
   public static void handle(PacketTileInventoryToClient message, Supplier<NetworkEvent.Context> ctx) {
@@ -45,11 +42,9 @@ public class PacketTileInventoryToClient extends PacketBase {
           if (message.type == SyncPacketType.SET) {
             if (h instanceof EnderShelfItemHandler) {
               ItemStack extracted = ((EnderShelfItemHandler) h).emptySlot(message.slot);
-            }
-            else if (h instanceof ClientAutoSyncItemHandler) {
+            } else if (h instanceof ClientAutoSyncItemHandler) {
               ItemStack extracted = ((ClientAutoSyncItemHandler) h).emptySlot(message.slot);
-            }
-            else {
+            } else {
               h.extractItem(message.slot, 64, false);
             }
           }
@@ -75,5 +70,9 @@ public class PacketTileInventoryToClient extends PacketBase {
     buf.writeInt(msg.slot);
     buf.writeItemStack(msg.itemStack);
     buf.writeEnumValue(msg.type);
+  }
+
+  public static enum SyncPacketType {
+    CHANGE, SET
   }
 }

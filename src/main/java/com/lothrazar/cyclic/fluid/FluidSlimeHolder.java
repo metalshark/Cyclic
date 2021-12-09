@@ -26,6 +26,13 @@ public class FluidSlimeHolder {
   private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, ModCyclic.MODID);
   private static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(ForgeRegistries.FLUIDS, ModCyclic.MODID);
   private static final String id = "slime";
+
+  public FluidSlimeHolder(IEventBus modEventBus) {
+    BLOCKS.register(modEventBus);
+    ITEMS.register(modEventBus);
+    FLUIDS.register(modEventBus);
+  }
+
   public static RegistryObject<FlowingFluid> STILL = FLUIDS.register(id, () -> new SlimeFluidBlock.Source(FluidSlimeHolder.properties));
   public static RegistryObject<FlowingFluid> FLOWING = FLUIDS.register(id + "_flowing", () -> new SlimeFluidBlock.Flowing(FluidSlimeHolder.properties));
   public static RegistryObject<FlowingFluidBlock> BLOCK = BLOCKS.register(id + "_block",
@@ -38,11 +45,7 @@ public class FluidSlimeHolder {
       FluidAttributes.builder(
           new ResourceLocation("minecraft:block/slime_block"),
           new ResourceLocation("minecraft:block/slime_block")))
-              .bucket(BUCKET).block(BLOCK);
+      .bucket(BUCKET).block(BLOCK);
 
-  public FluidSlimeHolder(IEventBus modEventBus) {
-    BLOCKS.register(modEventBus);
-    ITEMS.register(modEventBus);
-    FLUIDS.register(modEventBus);
-  }
+
 }

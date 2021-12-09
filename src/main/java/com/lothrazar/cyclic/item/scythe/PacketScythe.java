@@ -39,7 +39,8 @@ public class PacketScythe extends PacketBase {
   private ScytheType type;
   private int radius;
 
-  public PacketScythe() {}
+  public PacketScythe() {
+  }
 
   public PacketScythe(BlockPos mouseover, ScytheType t, int r) {
     pos = mouseover;
@@ -60,8 +61,7 @@ public class PacketScythe extends PacketBase {
   }
 
   public static PacketScythe decode(PacketBuffer buf) {
-    PacketScythe p = new PacketScythe(buf.readBlockPos(), ScytheType.values()[buf.readInt()], buf.readInt());
-    return p;
+    return new PacketScythe(buf.readBlockPos(), ScytheType.values()[buf.readInt()], buf.readInt());
   }
 
   public static void encode(PacketScythe msg, PacketBuffer buf) {

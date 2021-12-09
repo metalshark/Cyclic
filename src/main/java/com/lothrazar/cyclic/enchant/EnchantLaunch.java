@@ -46,23 +46,22 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EnchantLaunch extends EnchantBase {
 
+  public static final String ID = "launch";
+  private static final float LAUNCH_POWER = 1.05F;
+  private static final int ROTATIONPITCH = 70;
+  private static final int COOLDOWN = 3 * 20;
+  private static final String NBT_USES = "launchuses";
+  public static BooleanValue CFG;
+
   public EnchantLaunch(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
     super(rarityIn, typeIn, slots);
     MinecraftForge.EVENT_BUS.register(this);
   }
 
-  public static BooleanValue CFG;
-  public static final String ID = "launch";
-
   @Override
   public boolean isEnabled() {
     return CFG.get();
   }
-
-  private static final float LAUNCH_POWER = 1.05F;
-  private static final int ROTATIONPITCH = 70;
-  private static final int COOLDOWN = 3 * 20;
-  private static final String NBT_USES = "launchuses";
 
   @Override
   public int getMaxLevel() {
@@ -71,11 +70,10 @@ public class EnchantLaunch extends EnchantBase {
 
   @Override
   public boolean canApply(ItemStack stack) {
-    //anything that goes on your feet 
-    boolean yes = stack.getItem() instanceof ElytraItem ||
+    //anything that goes on your feet
+    return stack.getItem() instanceof ElytraItem ||
         (stack.getItem() instanceof ArmorItem)
             && ((ArmorItem) stack.getItem()).getEquipmentSlot() == EquipmentSlotType.FEET;
-    return yes;
   }
 
   @Override
@@ -92,7 +90,7 @@ public class EnchantLaunch extends EnchantBase {
         return;
       }
       //if you are on the ground (or not airborne, should be same thing
-      if ((p.isAirBorne == false || p.isOnGround()) && //onGround
+      if ((!p.isAirBorne || p.isOnGround()) && //onGround
           armorStack.getOrCreateTag().getInt(NBT_USES) > 0) {
         //you have landed on the ground, dont count previous jumps
         UtilNBT.setItemStackNBTVal(armorStack, NBT_USES, 0);
@@ -108,14 +106,14 @@ public class EnchantLaunch extends EnchantBase {
     if (feet.isEmpty() || player.isCrouching()) {
       return;
     } //sneak to not double jump
-    if (EnchantmentHelper.getEnchantments(feet).containsKey(this) == false) {
+    if (!EnchantmentHelper.getEnchantments(feet).containsKey(this)) {
       return;
     }
     if (player.getCooldownTracker().hasCooldown(feet.getItem())) {
       return;
     }
     if (Minecraft.getInstance().gameSettings.keyBindJump.isKeyDown()
-        && player.getPosY() < player.lastTickPosY && player.isAirBorne && player.isInWater() == false) {
+        && player.getPosY() < player.lastTickPosY && player.isAirBorne && !player.isInWater()) {
       //JUMP IS pressed and you are moving down
       int level = EnchantmentHelper.getEnchantments(feet).get(this);
       int uses = feet.getOrCreateTag().getInt(NBT_USES);

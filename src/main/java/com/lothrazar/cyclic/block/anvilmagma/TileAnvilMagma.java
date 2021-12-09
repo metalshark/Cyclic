@@ -8,6 +8,7 @@ import com.lothrazar.cyclic.fluid.FluidMagmaHolder;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilItemStack;
 import java.util.function.Predicate;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -33,12 +34,9 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileAnvilMagma extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    TIMER, REDSTONE;
-  }
-
   public static final int CAPACITY = 64 * FluidAttributes.BUCKET_VOLUME;
   public static IntValue FLUIDCOST;
+  public FluidTankBase tank;
   ItemStackHandler inputSlots = new ItemStackHandler(1) {
 
     @Override
@@ -49,7 +47,6 @@ public class TileAnvilMagma extends TileEntityBase implements INamedContainerPro
   ItemStackHandler outputSlots = new ItemStackHandler(1);
   private ItemStackHandlerWrapper inventory = new ItemStackHandlerWrapper(inputSlots, outputSlots);
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
-  public FluidTankBase tank;
 
   public TileAnvilMagma() {
     super(TileRegistry.anvil_magma);
@@ -59,6 +56,9 @@ public class TileAnvilMagma extends TileEntityBase implements INamedContainerPro
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
       return;
@@ -75,7 +75,7 @@ public class TileAnvilMagma extends TileEntityBase implements INamedContainerPro
     }
     boolean done = (stack.getDamage() == 0);
     if (done && outputSlots.getStackInSlot(0).isEmpty()) {
-      // 
+      //
       outputSlots.insertItem(0, stack.copy(), false);
       inputSlots.extractItem(0, stack.getCount(), false);
     }
@@ -85,8 +85,8 @@ public class TileAnvilMagma extends TileEntityBase implements INamedContainerPro
         tank.getFluidAmount() >= repair &&
         stack.isRepairable() &&
         stack.getDamage() > 0) {
-      //we can repair so steal some power 
-      //ok drain power  
+      //we can repair so steal some power
+      //ok drain power
       work = true;
       tank.drain(repair, FluidAction.EXECUTE);
     }
@@ -125,12 +125,19 @@ public class TileAnvilMagma extends TileEntityBase implements INamedContainerPro
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     tank.readFromNBT(tag.getCompound(NBTFLUID));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     CompoundNBT fluid = new CompoundNBT();
@@ -156,11 +163,15 @@ public class TileAnvilMagma extends TileEntityBase implements INamedContainerPro
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case TIMER:
         this.timer = value;
-      break;
+        break;
     }
+  }
+
+  public FluidStack getFluid() {
+    return tank == null ? FluidStack.EMPTY : tank.getFluid();
   }
 
   @Override
@@ -168,7 +179,7 @@ public class TileAnvilMagma extends TileEntityBase implements INamedContainerPro
     tank.setFluid(fluid);
   }
 
-  public FluidStack getFluid() {
-    return tank == null ? FluidStack.EMPTY : tank.getFluid();
+  static enum Fields {
+    TIMER, REDSTONE;
   }
 }

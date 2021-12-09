@@ -19,7 +19,7 @@ public class RenderFisher extends TileEntityRenderer<TileFisher> {
 
   @Override
   public void render(TileFisher tankHere, float v, MatrixStack matrixStack,
-      IRenderTypeBuffer buffer, int light, int overlayLight) {
+                     IRenderTypeBuffer buffer, int light, int overlayLight) {
     IItemHandler itemHandler = tankHere.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, Direction.UP).orElse(null);
     if (itemHandler != null) {
       ItemStack stack = itemHandler.getStackInSlot(0);

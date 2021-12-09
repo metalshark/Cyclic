@@ -25,7 +25,8 @@ public class PacketTileString extends PacketBase {
     this.pos = pos;
   }
 
-  public PacketTileString() {}
+  public PacketTileString() {
+  }
 
   public static void handle(PacketTileString message, Supplier<NetworkEvent.Context> ctx) {
     ctx.get().enqueueWork(() -> {

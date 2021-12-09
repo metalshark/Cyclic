@@ -1,5 +1,6 @@
 package com.lothrazar.cyclic.block.cable.energy;
 
+import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.block.cable.CableBase;
 import com.lothrazar.cyclic.block.cable.EnumConnectType;
 import com.lothrazar.cyclic.block.cable.ShapeCache;
@@ -76,6 +77,7 @@ public class BlockCableEnergy extends CableBase {
       if (energy != null) {
         stateIn = stateIn.with(FACING_TO_PROPERTY_MAP.get(d), EnumConnectType.INVENTORY);
         worldIn.setBlockState(pos, stateIn);
+        updateConnection(worldIn, pos, d, EnumConnectType.INVENTORY);
       }
     }
     super.onBlockPlacedBy(worldIn, pos, stateIn, placer, stack);
@@ -93,10 +95,10 @@ public class BlockCableEnergy extends CableBase {
       if (world instanceof World && world.getBlockState(currentPos).getBlock() == this) {
         //hack to force {any} -> inventory IF its here
         ((World) world).setBlockState(currentPos, with);
+        updateConnection(world, currentPos, facing, EnumConnectType.INVENTORY);
       }
       return with;
-    }
-    else {
+    } else {
       return stateIn.with(property, EnumConnectType.NONE);
     }
   }

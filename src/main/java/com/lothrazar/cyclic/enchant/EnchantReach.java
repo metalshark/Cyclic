@@ -39,16 +39,16 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EnchantReach extends EnchantBase {
 
-  public EnchantReach(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
-    super(rarityIn, typeIn, slots);
-    MinecraftForge.EVENT_BUS.register(this);
-  }
-
+  public static final String ID = "reach";
   private static final String NBT_REACH_ON = "reachon";
   private static final int REACH_VANILLA = 5;
   private static final int REACH_BOOST = 16;
   public static BooleanValue CFG;
-  public static final String ID = "reach";
+
+  public EnchantReach(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
+    super(rarityIn, typeIn, slots);
+    MinecraftForge.EVENT_BUS.register(this);
+  }
 
   @Override
   public boolean isEnabled() {
@@ -63,10 +63,9 @@ public class EnchantReach extends EnchantBase {
   @Override
   public boolean canApply(ItemStack stack) {
     //anything that goes on your feet
-    boolean yes = stack.getItem() == Items.ELYTRA ||
+    return stack.getItem() == Items.ELYTRA ||
         (stack.getItem() instanceof ArmorItem)
             && ((ArmorItem) stack.getItem()).getEquipmentSlot() == EquipmentSlotType.CHEST;
-    return yes;
   }
 
   @Override
@@ -87,22 +86,21 @@ public class EnchantReach extends EnchantBase {
   @SubscribeEvent
   public void onEntityUpdate(LivingUpdateEvent event) {
     //check if NOT holding this harm
-    if (event.getEntityLiving() instanceof PlayerEntity == false) {
+    if (!(event.getEntityLiving() instanceof PlayerEntity)) {
       return;
     }
     PlayerEntity player = (PlayerEntity) event.getEntityLiving();
     //Ticking
     ItemStack armor = player.getItemStackFromSlot(EquipmentSlotType.CHEST);
     int level = 0;
-    if (armor.isEmpty() == false && EnchantmentHelper.getEnchantments(armor) != null
+    if (!armor.isEmpty() && EnchantmentHelper.getEnchantments(armor) != null
         && EnchantmentHelper.getEnchantments(armor).containsKey(this)) {
       //todo: maybe any armor?
       level = EnchantmentHelper.getEnchantments(armor).get(this);
     }
     if (level > 0) {
       turnReachOn(player);
-    }
-    else {
+    } else {
       //was it on before, do we need to do an off hit
       if (player.getPersistentData().contains(NBT_REACH_ON) && player.getPersistentData().getBoolean(NBT_REACH_ON)) {
         turnReachOff(player);

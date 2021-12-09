@@ -6,6 +6,7 @@ import com.lothrazar.cyclic.registry.PacketRegistry;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilShape;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,10 +23,6 @@ import net.minecraft.util.text.StringTextComponent;
 
 public class TileFan extends TileEntityBase implements ITickableTileEntity, INamedContainerProvider {
 
-  static enum Fields {
-    REDSTONE, RANGE, SPEED;
-  }
-
   public static final int MIN_RANGE = 1;
   public static final int MAX_RANGE = 64;
   public static final int MIN_SPEED = 1;
@@ -39,6 +36,9 @@ public class TileFan extends TileEntityBase implements ITickableTileEntity, INam
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
       return;
@@ -71,7 +71,7 @@ public class TileFan extends TileEntityBase implements ITickableTileEntity, INam
     for (int i = MIN_RANGE; i <= this.getRange(); i++) {
       //if we start at fan, we hit MYSELF (the fan)
       tester = this.getPos().offset(facing, i);
-      if (canBlowThrough(tester) == false) {
+      if (!canBlowThrough(tester)) {
         return i; //cant pass thru
       }
     }
@@ -98,15 +98,15 @@ public class TileFan extends TileEntityBase implements ITickableTileEntity, INam
       case X:
         end = end.add(0, 0, 1); //X means EASTorwest. adding +1z means GO 1 south
         end = end.add(0, 1, 0); //and of course go up one space. so we have a 3D range selected not a flat slice (ex: height 66 to 67)
-      break;
+        break;
       case Z:
         end = end.add(1, 0, 0);
         end = end.add(0, 1, 0); //and of course go up one space. so we have a 3D range selected not a flat slice (ex: height 66 to 67)
-      break;
+        break;
       case Y:
         start = start.add(1, 0, 0);
         end = end.add(0, 0, 1);
-      break;
+        break;
     }
     //ok now we have basically teh 3d box we wanted
     //problem: NORTH and WEST are skipping first blocks right at fan, but shouldnt.
@@ -116,21 +116,21 @@ public class TileFan extends TileEntityBase implements ITickableTileEntity, INam
     switch (face) {
       case NORTH:
         start = start.south();
-      break;
+        break;
       case SOUTH:
         end = end.south();
-      break;
+        break;
       case EAST:
         end = end.east();
-      break;
+        break;
       case WEST:
         start = start.east();
-      break;
+        break;
       case DOWN:
-      break;
+        break;
       case UP:
       default:
-      break;
+        break;
     }
     AxisAlignedBB region = new AxisAlignedBB(start, end);
     List<Entity> entitiesFound = this.getWorld().getEntitiesWithinAABB(Entity.class, region);
@@ -150,27 +150,27 @@ public class TileFan extends TileEntityBase implements ITickableTileEntity, INam
         case NORTH:
           direction = !doPush ? 1 : -1;
           newz += direction * speed;
-        break;
+          break;
         case SOUTH:
           direction = doPush ? 1 : -1;
           newz += direction * speed;
-        break;
+          break;
         case EAST:
           direction = doPush ? 1 : -1;
           newx += direction * speed;
-        break;
+          break;
         case WEST:
           direction = !doPush ? 1 : -1;
           newx += direction * speed;
-        break;
+          break;
         case DOWN:
           direction = !doPush ? 1 : -1;
           newy += direction * speed;
-        break;
+          break;
         case UP:
           direction = doPush ? 1 : -1;
           newy += direction * speed;
-        break;
+          break;
       }
       entity.setMotion(newx, newy, newz);
       if (world.isRemote && entity.ticksExisted % PacketPlayerFalldamage.TICKS_FALLDIST_SYNC == 0
@@ -182,12 +182,13 @@ public class TileFan extends TileEntityBase implements ITickableTileEntity, INam
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     speed = tag.getInt("speed");
     range = tag.getInt("range");
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("speed", speed);
@@ -220,10 +221,10 @@ public class TileFan extends TileEntityBase implements ITickableTileEntity, INam
         if (range > MAX_RANGE) {
           range = MAX_RANGE;
         }
-      break;
+        break;
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case SPEED:
         speed = value;
         if (speed < MIN_SPEED) {
@@ -232,7 +233,11 @@ public class TileFan extends TileEntityBase implements ITickableTileEntity, INam
         if (speed > MAX_SPEED) {
           speed = MAX_SPEED;
         }
-      break;
+        break;
     }
+  }
+
+  static enum Fields {
+    REDSTONE, RANGE, SPEED;
   }
 }

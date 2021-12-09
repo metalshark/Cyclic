@@ -6,9 +6,9 @@ import net.minecraft.util.Direction;
 
 /**
  * Source from MIT open source https://github.com/mekanism/Mekanism/tree/1.15x
- * 
+ * <p>
  * https://github.com/mekanism/Mekanism/blob/1.15x/LICENSE
- * 
+ * <p>
  * Map which uses FluidStacks as keys, ignoring amount. Primary use: caching FluidStack aware fluid rendering (NBT, yay)
  */
 public class Model3D {
@@ -16,7 +16,7 @@ public class Model3D {
   public double minX, minY, minZ;
   public double maxX, maxY, maxZ;
   public TextureAtlasSprite[] textures = new TextureAtlasSprite[6];
-  public boolean[] renderSides = new boolean[] { true, true, true, true, true, true, false };
+  public boolean[] renderSides = new boolean[] {true, true, true, true, true, true, false};
 
   public final void setBlockBounds(double xNeg, double yNeg, double zNeg, double xPos, double yPos, double zPos) {
     minX = xNeg;

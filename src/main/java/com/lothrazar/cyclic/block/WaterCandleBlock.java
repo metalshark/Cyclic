@@ -58,14 +58,14 @@ import net.minecraftforge.eventbus.api.Event;
 
 public class WaterCandleBlock extends BlockBase {
 
-  private static int TICK_RATE = 50;
-  private static int RADIUS = 5;
-  private static double CHANCE_OFF = 0.02;
-  private EntityClassification type = EntityClassification.MONSTER;
   private static final double BOUNDS = 3;
   private static final VoxelShape AABB = Block.makeCuboidShape(BOUNDS, 0, BOUNDS,
       16 - BOUNDS, 16 - BOUNDS, 16 - BOUNDS);
   private static final double CHANCE_SOUND = 0.3;
+  private static int TICK_RATE = 50;
+  private static int RADIUS = 5;
+  private static double CHANCE_OFF = 0.02;
+  private EntityClassification type = EntityClassification.MONSTER;
 
   public WaterCandleBlock(Properties properties) {
     super(properties.hardnessAndResistance(1.8F).notSolid().tickRandomly());
@@ -84,14 +84,13 @@ public class WaterCandleBlock extends BlockBase {
       world.setBlockState(pos, state.with(LIT, true));
       UtilSound.playSound(world, pos, SoundEvents.BLOCK_FIRE_AMBIENT);
       return ActionResultType.SUCCESS;
-    }
-    else if (state.get(LIT)
+    } else if (state.get(LIT)
         && player.getHeldItem(hand).isEmpty()) {
-          //turn it off
-          world.setBlockState(pos, state.with(LIT, false));
-          UtilSound.playSound(world, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH);
-          return ActionResultType.SUCCESS;
-        }
+      //turn it off
+      world.setBlockState(pos, state.with(LIT, false));
+      UtilSound.playSound(world, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH);
+      return ActionResultType.SUCCESS;
+    }
     return ActionResultType.FAIL;
   }
 
@@ -118,8 +117,7 @@ public class WaterCandleBlock extends BlockBase {
       if (!world.isRemote && world.getBlockState(pos).get(LIT)) {
         trySpawn(world, pos, rand);
       }
-    }
-    catch (Exception exception) {
+    } catch (Exception exception) {
       ModCyclic.LOGGER.error("Error spawning monster ", exception);
     }
   }
@@ -139,8 +137,7 @@ public class WaterCandleBlock extends BlockBase {
     Event.Result canSpawn = ForgeEventFactory.canEntitySpawn(monster, world, x, y, z, null, SpawnReason.SPAWNER);
     if (canSpawn == Event.Result.DENY || !monster.canSpawn(world, SpawnReason.SPAWNER)) {
       afterSpawnFailure(world, pos);
-    }
-    else if (world.addEntity(monster)) {
+    } else if (world.addEntity(monster)) {
       afterSpawnSuccess(monster, world, pos, rand);
     }
   }
@@ -153,8 +150,7 @@ public class WaterCandleBlock extends BlockBase {
     monster.onInitialSpawn(world.getServer().getWorld(world.getDimensionKey()), world.getDifficultyForLocation(pos), SpawnReason.SPAWNER, null, null);
     if (rand.nextDouble() < CHANCE_OFF) {
       turnOff(world, pos);
-    }
-    else {
+    } else {
       world.getPendingBlockTicks().scheduleTick(pos, this, TICK_RATE);
     }
   }

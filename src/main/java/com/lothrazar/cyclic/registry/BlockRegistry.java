@@ -120,7 +120,6 @@ import net.minecraftforge.registries.ObjectHolder;
 public class BlockRegistry {
 
   public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, ModCyclic.MODID);
-  public static List<BlockBase> blocksClientRegistry = new ArrayList<>();
   public static final RegistryObject<Block> FLUIDHOPPER = BLOCKS.register("hopper_fluid", () -> new BlockFluidHopper(Block.Properties.create(Material.ROCK)));
   public static final RegistryObject<Block> HOPPER = BLOCKS.register("hopper", () -> new BlockSimpleHopper(Block.Properties.create(Material.WOOD)));
   public static final RegistryObject<Block> HOPPERGOLD = BLOCKS.register("hopper_gold", () -> new BlockGoldHopper(Block.Properties.create(Material.IRON)));
@@ -158,6 +157,7 @@ public class BlockRegistry {
   public static final RegistryObject<Block> GHOST = BLOCKS.register("ghost", () -> new GhostBlock(Block.Properties.create(Material.ROCK), false));
   public static final RegistryObject<Block> GHOST_PHANTOM = BLOCKS.register("ghost_phantom", () -> new GhostBlock(Block.Properties.create(Material.ROCK), true));
   public static final RegistryObject<Block> WORKBENCH = BLOCKS.register("workbench", () -> new BlockWorkbench(Block.Properties.create(Material.ROCK)));
+  public static List<BlockBase> blocksClientRegistry = new ArrayList<>();
   @ObjectHolder(ModCyclic.MODID + ":solidifier")
   public static Block SOLIDIFIER;
   @ObjectHolder(ModCyclic.MODID + ":melter")
@@ -383,7 +383,7 @@ public class BlockRegistry {
     r.register(new WaterCandleBlock(Block.Properties.create(Material.ROCK)).setRegistryName("water_candle"));
     r.register(new FireplaceBlock(Block.Properties.create(Material.ROCK)).setRegistryName("fireplace"));
     r.register(new UnbreakableBlock(Block.Properties.create(Material.ROCK)).setRegistryName("unbreakable_block")); //stable, only changes with player interaction
-    r.register(new UnbreakablePoweredBlock(Block.Properties.create(Material.ROCK)).setRegistryName("unbreakable_reactive")); //reactive and unstable, ignores players and reads redstone 
+    r.register(new UnbreakablePoweredBlock(Block.Properties.create(Material.ROCK)).setRegistryName("unbreakable_reactive")); //reactive and unstable, ignores players and reads redstone
     r.register(new BlockEnderShelf(Block.Properties.create(Material.ROCK), false).setRegistryName("ender_shelf"));
     r.register(new BlockEnderCtrl(Block.Properties.create(Material.ROCK), true).setRegistryName("ender_controller"));
   }

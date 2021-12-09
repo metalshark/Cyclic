@@ -26,7 +26,7 @@ import net.minecraft.world.World;
 
 public class BlockAnvilVoid extends BlockBase {
 
-  //copy from anvilblock 
+  //copy from anvilblock
   public BlockAnvilVoid(Properties properties) {
     super(properties.hardnessAndResistance(1.8F).sound(SoundType.ANVIL));
     this.setHasGui();

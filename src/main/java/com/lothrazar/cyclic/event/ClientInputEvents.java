@@ -62,15 +62,13 @@ public class ClientInputEvents {
             PacketRegistry.INSTANCE.sendToServer(new PacketItemToggle(slotHit.slotNumber));
             event.setCanceled(true);
             //            UtilSound.playSound(ModCyclic.proxy.getClientPlayer(), SoundEvents.UI_BUTTON_CLICK);
-          }
-          else if (maybeCharm.getItem() instanceof ItemStorageBag) {
+          } else if (maybeCharm.getItem() instanceof ItemStorageBag) {
             PacketRegistry.INSTANCE.sendToServer(new PacketItemGui(slotHit.slotNumber));
             event.setCanceled(true);
           }
         }
       }
-    }
-    catch (Exception e) { //array out of bounds, or we are in a strange third party GUI that doesnt have slots like this
+    } catch (Exception e) { //array out of bounds, or we are in a strange third party GUI that doesnt have slots like this
       //EXAMPLE:  mod.chiselsandbits.bitbag.BagGui
       ModCyclic.LOGGER.error("click error", e);
       // so this fixes ithttps://github.com/PrinceOfAmber/Cyclic/issues/410

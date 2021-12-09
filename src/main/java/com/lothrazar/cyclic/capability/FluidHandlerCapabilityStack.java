@@ -19,10 +19,8 @@ public class FluidHandlerCapabilityStack implements IFluidHandlerItem, ICapabili
   protected int capacity;
 
   /**
-   * @param container
-   *          The container itemStack, data is stored on it directly as NBT.
-   * @param capacity
-   *          The maximum capacity of this fluid tank.
+   * @param container The container itemStack, data is stored on it directly as NBT.
+   * @param capacity  The maximum capacity of this fluid tank.
    */
   public FluidHandlerCapabilityStack(ItemStack container, int capacity) {
     this.container = container;
@@ -85,8 +83,7 @@ public class FluidHandlerCapabilityStack implements IFluidHandlerItem, ICapabili
         setFluid(filled);
       }
       return fillAmount;
-    }
-    else {
+    } else {
       if (contained.isFluidEqual(resource)) {
         int fillAmount = Math.min(capacity - contained.getAmount(), resource.getAmount());
         if (doFill.execute() && fillAmount > 0) {
@@ -123,8 +120,7 @@ public class FluidHandlerCapabilityStack implements IFluidHandlerItem, ICapabili
       contained.shrink(drainAmount);
       if (contained.isEmpty()) {
         setContainerToEmpty();
-      }
-      else {
+      } else {
         setFluid(contained);
       }
     }

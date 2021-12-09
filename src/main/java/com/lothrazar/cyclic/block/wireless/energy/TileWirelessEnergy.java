@@ -6,6 +6,7 @@ import com.lothrazar.cyclic.data.BlockPosDim;
 import com.lothrazar.cyclic.item.datacard.LocationGpsCard;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilWorld;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -25,20 +26,9 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileWirelessEnergy extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    RENDER, TRANSFER_RATE, REDSTONE;
-  }
-
-  public TileWirelessEnergy() {
-    super(TileRegistry.WIRELESS_ENERGY.get());
-    this.needsRedstone = 0;
-  }
-
   static final int MAX = 64000;
   public static final int MAX_TRANSFER = MAX;
-  private int transferRate = MAX_TRANSFER / 4;
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX / 4);
-  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   ItemStackHandler gpsSlots = new ItemStackHandler(1) {
 
     @Override
@@ -46,6 +36,13 @@ public class TileWirelessEnergy extends TileEntityBase implements INamedContaine
       return stack.getItem() instanceof LocationGpsCard;
     }
   };
+  private int transferRate = MAX_TRANSFER / 4;
+  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
+
+  public TileWirelessEnergy() {
+    super(TileRegistry.WIRELESS_ENERGY.get());
+    this.needsRedstone = 0;
+  }
 
   @Override
   public ITextComponent getDisplayName() {
@@ -66,13 +63,20 @@ public class TileWirelessEnergy extends TileEntityBase implements INamedContaine
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     gpsSlots.deserializeNBT(tag.getCompound(NBTINV));
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
     this.transferRate = tag.getInt("transferRate");
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("transferRate", transferRate);
@@ -83,21 +87,21 @@ public class TileWirelessEnergy extends TileEntityBase implements INamedContaine
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
       return;
     }
-    if (world.isRemote) {
-      return;
-    }
-    boolean moved = false;
+    int moved = 0;
     //run the transfer. one slot only
     BlockPosDim loc = getTargetInSlot(0);
     if (loc != null && UtilWorld.dimensionIsEqual(loc, world)) {
-      moved = moveEnergy(Direction.UP, loc.getPos(), transferRate);
+      moved = moveEnergyToBlockPos(energy, loc.getPos(), Direction.UP, transferRate);
     }
-    this.setLitProperty(moved);
+    this.setLitProperty(moved > 0);
   }
 
   BlockPosDim getTargetInSlot(int s) {
@@ -109,13 +113,13 @@ public class TileWirelessEnergy extends TileEntityBase implements INamedContaine
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
       case TRANSFER_RATE:
         transferRate = value;
-      break;
+        break;
     }
   }
 
@@ -150,5 +154,9 @@ public class TileWirelessEnergy extends TileEntityBase implements INamedContaine
 
   public float getThick() {
     return 0.065F;
+  }
+
+  static enum Fields {
+    RENDER, TRANSFER_RATE, REDSTONE;
   }
 }

@@ -16,28 +16,14 @@ import net.minecraft.util.math.vector.Vector3f;
 
 /**
  * laser rendering by direwolf20-MC from this MIT project
- * 
- * 
+ * <p>
+ * <p>
  * https://github.com/Direwolf20-MC/DireGoo2/blob/master/LICENSE.md
- *
  */
 public class RenderLaser extends TileEntityRenderer<TileLaser> {
 
   public RenderLaser(TileEntityRendererDispatcher d) {
     super(d);
-  }
-
-  @Override
-  public void render(TileLaser te, float v, MatrixStack matrixStack, IRenderTypeBuffer iRenderTypeBuffer, int partialTicks, int destroyStage) {
-    if (te.requiresRedstone() && !te.isPowered()) {
-      return;
-    }
-    try {
-      draw(te, matrixStack, iRenderTypeBuffer);
-    }
-    catch (Exception e) {
-      ModCyclic.LOGGER.error("RenderLaser.java ", e);
-    }
   }
 
   private static Vector3f adjustBeamToEyes(Vector3f from, Vector3f to, BlockPos tile) {
@@ -113,6 +99,18 @@ public class RenderLaser extends TileEntityRenderer<TileLaser> {
         .overlay(OverlayTexture.NO_OVERLAY)
         .lightmap(15728880)
         .endVertex();
+  }
+
+  @Override
+  public void render(TileLaser te, float v, MatrixStack matrixStack, IRenderTypeBuffer iRenderTypeBuffer, int partialTicks, int destroyStage) {
+    if (te.requiresRedstone() && !te.isPowered()) {
+      return;
+    }
+    try {
+      draw(te, matrixStack, iRenderTypeBuffer);
+    } catch (Exception e) {
+      ModCyclic.LOGGER.error("RenderLaser.java ", e);
+    }
   }
 
   @Override

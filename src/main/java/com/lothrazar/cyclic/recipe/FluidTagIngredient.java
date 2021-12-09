@@ -20,6 +20,10 @@ public class FluidTagIngredient {
     amount = cnt;
   }
 
+  public static FluidTagIngredient readFromPacket(PacketBuffer buffer) {
+    return new FluidTagIngredient(FluidStack.readFromPacket(buffer), buffer.readString(), buffer.readInt());
+  }
+
   public FluidStack getFluidStack() {
     return fluid;
   }
@@ -51,7 +55,7 @@ public class FluidTagIngredient {
 
   /**
    * create fluidstacks for all fluids matching the tag. if hastag
-   * 
+   *
    * @return
    */
   public List<FluidStack> getMatchingFluids() {
@@ -64,10 +68,6 @@ public class FluidTagIngredient {
       me.add(new FluidStack(f, this.amount));
     }
     return me;
-  }
-
-  public static FluidTagIngredient readFromPacket(PacketBuffer buffer) {
-    return new FluidTagIngredient(FluidStack.readFromPacket(buffer), buffer.readString(), buffer.readInt());
   }
 
   public void writeToPacket(PacketBuffer buffer) {

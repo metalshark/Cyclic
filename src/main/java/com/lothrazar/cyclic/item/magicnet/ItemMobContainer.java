@@ -34,8 +34,7 @@ public class ItemMobContainer extends ItemBase {
       TranslationTextComponent t = new TranslationTextComponent(stack.getTag().getString(EntityMagicNetEmpty.NBT_ENTITYID));
       t.mergeStyle(TextFormatting.GRAY);
       tooltip.add(t);
-    }
-    else {
+    } else {
       super.addInformation(stack, worldIn, tooltip, flagIn);
     }
   }
@@ -44,7 +43,7 @@ public class ItemMobContainer extends ItemBase {
   public ActionResultType onItemUse(ItemUseContext context) {
     PlayerEntity player = context.getPlayer();
     ItemStack stack = player.getHeldItem(context.getHand());
-    if (stack.hasTag() == false) {
+    if (!stack.hasTag()) {
       return ActionResultType.PASS;
     }
     BlockPos pos = context.getPos();
@@ -67,7 +66,7 @@ public class ItemMobContainer extends ItemBase {
           player.setHeldItem(context.getHand(), ItemStack.EMPTY);
         }
         if (!player.isCreative()) {
-          //and replace with empty 
+          //and replace with empty
           //if config says drop?
           player.dropItem(new ItemStack(ItemRegistry.magic_net), true);
         }

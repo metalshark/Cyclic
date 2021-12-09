@@ -18,9 +18,9 @@ public class ButtonMachineField extends ButtonMachine {
   }
 
   public ButtonMachineField(int xPos, int yPos, int field, BlockPos pos,
-      TextureEnum toff, TextureEnum tonn, String tooltipPrefix) {
+                            TextureEnum toff, TextureEnum tonn, String tooltipPrefix) {
     super(xPos, yPos, 20, 20, "", (p) -> {
-      //save included 
+      //save included
       PacketRegistry.INSTANCE.sendToServer(new PacketTileData(field, pos));
     });
     this.tilePos = pos;

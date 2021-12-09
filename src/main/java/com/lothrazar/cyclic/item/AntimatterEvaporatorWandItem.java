@@ -32,34 +32,32 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class AntimatterEvaporatorWandItem extends ItemBase {
 
+  public static final int COOLDOWN = 15;
   private static final int SIZE = 4;
   private static final String NBT_MODE = "mode";
-  public static final int COOLDOWN = 15;
-
-  public enum EvaporateMode implements IStringSerializable {
-
-    WATER, LAVA, GENERIC;
-
-    @Override
-    public String getString() {
-      return this.name().toLowerCase(Locale.ENGLISH);
-    }
-
-    public EvaporateMode getNext() {
-      switch (this) {
-        case WATER:
-          return LAVA;
-        case LAVA:
-          return GENERIC;
-        case GENERIC:
-          return WATER;
-      }
-      return WATER;
-    }
-  }
 
   public AntimatterEvaporatorWandItem(Properties properties) {
     super(properties);
+  }
+
+  private static TranslationTextComponent getModeTooltip(ItemStack stack) {
+    EvaporateMode mode = EvaporateMode.values()[stack.getOrCreateTag().getInt(NBT_MODE)];
+    return new TranslationTextComponent("item.cyclic.antimatter_wand.tooltip0",
+        new TranslationTextComponent(String.format("item.cyclic.antimatter_wand.mode.%s",
+            mode.getString())));
+  }
+
+  public static void toggleMode(PlayerEntity player, ItemStack stack) {
+    if (player.getCooldownTracker().hasCooldown(stack.getItem())) {
+      return;
+    }
+    EvaporateMode mode = EvaporateMode.values()[stack.getOrCreateTag().getInt(NBT_MODE)];
+    stack.getOrCreateTag().putInt(NBT_MODE, mode.getNext().ordinal());
+    player.getCooldownTracker().setCooldown(stack.getItem(), COOLDOWN);
+    if (player.world.isRemote) {
+      player.sendStatusMessage(getModeTooltip(stack), true);
+      UtilSound.playSound(player, SoundRegistry.TOOL_MODE);
+    }
   }
 
   @Override
@@ -73,13 +71,13 @@ public class AntimatterEvaporatorWandItem extends ItemBase {
     //    AtomicBoolean removed = new AtomicBoolean(false);
     switch (fluidMode) {
       case GENERIC:
-      break;
+        break;
       case LAVA:
-      break;
+        break;
       case WATER:
-      break;
+        break;
       default:
-      break;
+        break;
     }
     int countSuccess = 0;
     boolean tryHere = false;
@@ -93,11 +91,9 @@ public class AntimatterEvaporatorWandItem extends ItemBase {
       if (fluidMode == EvaporateMode.GENERIC && fluidHere.getFluid() != null
           && fluidHere.getFluid() != Fluids.EMPTY) {
         tryHere = true;
-      }
-      else if (fluidMode == EvaporateMode.WATER && fluidHere.getFluid().isIn(FluidTags.WATER)) {
+      } else if (fluidMode == EvaporateMode.WATER && fluidHere.getFluid().isIn(FluidTags.WATER)) {
         tryHere = true;
-      }
-      else if (fluidMode == EvaporateMode.LAVA && fluidHere.getFluid().isIn(FluidTags.LAVA)) {
+      } else if (fluidMode == EvaporateMode.LAVA && fluidHere.getFluid().isIn(FluidTags.LAVA)) {
         tryHere = true;
       }
       if (tryHere && removeLiquid(world, blockHere, posTarget)) {
@@ -122,17 +118,14 @@ public class AntimatterEvaporatorWandItem extends ItemBase {
       if (res == null || res == Fluids.EMPTY) {
         // flowing block
         return world.setBlockState(pos, Blocks.AIR.getDefaultState(), 18);
-      }
-      else {
+      } else {
         return true; // was source block
       }
-    }
-    else if (blockHere.hasProperty(BlockStateProperties.WATERLOGGED)) {
+    } else if (blockHere.hasProperty(BlockStateProperties.WATERLOGGED)) {
       // un-water log
       return world.setBlockState(pos, blockHere.with(BlockStateProperties.WATERLOGGED, false), 18);
-    }
-    else {
-      //ok just nuke it 
+    } else {
+      //ok just nuke it
       return world.setBlockState(pos, Blocks.AIR.getDefaultState(), 18);
     }
   }
@@ -150,23 +143,25 @@ public class AntimatterEvaporatorWandItem extends ItemBase {
     super.onCreated(stack, worldIn, playerIn);
   }
 
-  private static TranslationTextComponent getModeTooltip(ItemStack stack) {
-    EvaporateMode mode = EvaporateMode.values()[stack.getOrCreateTag().getInt(NBT_MODE)];
-    return new TranslationTextComponent("item.cyclic.antimatter_wand.tooltip0",
-        new TranslationTextComponent(String.format("item.cyclic.antimatter_wand.mode.%s",
-            mode.getString())));
-  }
+  public enum EvaporateMode implements IStringSerializable {
 
-  public static void toggleMode(PlayerEntity player, ItemStack stack) {
-    if (player.getCooldownTracker().hasCooldown(stack.getItem())) {
-      return;
+    WATER, LAVA, GENERIC;
+
+    @Override
+    public String getString() {
+      return this.name().toLowerCase(Locale.ENGLISH);
     }
-    EvaporateMode mode = EvaporateMode.values()[stack.getOrCreateTag().getInt(NBT_MODE)];
-    stack.getOrCreateTag().putInt(NBT_MODE, mode.getNext().ordinal());
-    player.getCooldownTracker().setCooldown(stack.getItem(), COOLDOWN);
-    if (player.world.isRemote) {
-      player.sendStatusMessage(getModeTooltip(stack), true);
-      UtilSound.playSound(player, SoundRegistry.TOOL_MODE);
+
+    public EvaporateMode getNext() {
+      switch (this) {
+        case WATER:
+          return LAVA;
+        case LAVA:
+          return GENERIC;
+        case GENERIC:
+          return WATER;
+      }
+      return WATER;
     }
   }
 }

@@ -6,6 +6,7 @@ import com.lothrazar.cyclic.data.EntityFilterType;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilShape;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,19 +23,15 @@ import net.minecraft.util.text.StringTextComponent;
 
 public class TileDetector extends TileEntityBase implements ITickableTileEntity, INamedContainerProvider {
 
-  static enum Fields {
-    GREATERTHAN, LIMIT, RANGEX, RANGEY, RANGEZ, ENTITYTYPE, RENDER;
-  }
-
-  private static final int PER_TICK = 10;
   public static final int MAX_RANGE = 32;
+  private static final int PER_TICK = 10;
+  EntityFilterType entityFilter = EntityFilterType.LIVING;
   private int rangeX = 5;
   private int rangeY = 1;
   private int rangeZ = 5;
-  //default is > 0 living entities 
+  //default is > 0 living entities
   private int limitUntilRedstone = 0;
   private CompareType compType = CompareType.GREATER;
-  EntityFilterType entityFilter = EntityFilterType.LIVING;
   private boolean isPoweredNow = false;
 
   public TileDetector() {
@@ -43,8 +40,10 @@ public class TileDetector extends TileEntityBase implements ITickableTileEntity,
 
   @Override
   public void tick() {
-    timer--;
-    if (world.isRemote || timer > 0) {
+    if (world == null || world.isRemote) {
+      return;
+    }
+    if (timer-- > 0) {
       return;
     }
     timer = PER_TICK;
@@ -54,15 +53,15 @@ public class TileDetector extends TileEntityBase implements ITickableTileEntity,
     switch (this.compType) {
       case LESS:
         trigger = (entitiesFound < limitUntilRedstone);
-      break;
+        break;
       case GREATER:
         trigger = (entitiesFound > limitUntilRedstone);
-      break;
+        break;
       case EQUAL:
         trigger = (entitiesFound == limitUntilRedstone);
-      break;
+        break;
       default:
-      break;
+        break;
     }
     if (isPoweredNow != trigger) {
       isPoweredNow = trigger;
@@ -70,14 +69,13 @@ public class TileDetector extends TileEntityBase implements ITickableTileEntity,
       world.notifyBlockUpdate(this.getPos(), state, state, 3);
       try {
         world.notifyNeighborsOfStateChange(this.getPos(), this.getBlockState().getBlock());
-      }
-      catch (Throwable e) {
-        //somehow this lead to a  
+      } catch (Throwable e) {
+        //somehow this lead to a
         //        java.lang.NullPointerException
         //        at net.minecraft.block.BlockDoor.neighborChanged(BlockDoor.java:228)
         // from the notifyNeighborsOfStateChange(...)
         // door was doing a get state on pos.up() , so its top half..
-        //this catch means no game crash 
+        //this catch means no game crash
         ModCyclic.LOGGER.error("State change error in adjacent block ", e);
       }
     }
@@ -116,10 +114,9 @@ public class TileDetector extends TileEntityBase implements ITickableTileEntity,
     double x = pos.getX();
     double y = pos.getY();
     double z = pos.getZ();
-    AxisAlignedBB entityRange = new AxisAlignedBB(
+    return new AxisAlignedBB(
         x - this.rangeX, y - this.rangeY, z - this.rangeZ,
         x + this.rangeX + 1, y + this.rangeY, z + this.rangeZ + 1);
-    return entityRange;
   }
 
   @Override
@@ -148,7 +145,7 @@ public class TileDetector extends TileEntityBase implements ITickableTileEntity,
     switch (Fields.values()[field]) {
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
       case GREATERTHAN:
         if (value >= CompareType.values().length) {
           value = 0;
@@ -157,7 +154,7 @@ public class TileDetector extends TileEntityBase implements ITickableTileEntity,
           value = CompareType.values().length - 1;
         }
         this.compType = CompareType.values()[value];
-      break;
+        break;
       case LIMIT:
         if (value > 999) {
           value = 999;
@@ -166,16 +163,16 @@ public class TileDetector extends TileEntityBase implements ITickableTileEntity,
           value = 0;
         }
         this.limitUntilRedstone = value;
-      break;
+        break;
       case RANGEX:
         this.rangeX = value;
-      break;
+        break;
       case RANGEY:
         this.rangeY = value;
-      break;
+        break;
       case RANGEZ:
         this.rangeZ = value;
-      break;
+        break;
       case ENTITYTYPE:
         if (value >= EntityFilterType.values().length) {
           value = 0;
@@ -184,12 +181,12 @@ public class TileDetector extends TileEntityBase implements ITickableTileEntity,
           value = EntityFilterType.values().length - 1;
         }
         this.entityFilter = EntityFilterType.values()[value];
-      break;
+        break;
     }
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     this.rangeX = tag.getInt("ox");
     this.rangeY = tag.getInt("oy");
     this.rangeZ = tag.getInt("oz");
@@ -205,6 +202,7 @@ public class TileDetector extends TileEntityBase implements ITickableTileEntity,
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("ox", rangeX);
@@ -214,5 +212,9 @@ public class TileDetector extends TileEntityBase implements ITickableTileEntity,
     tag.putInt("compare", compType.ordinal());
     tag.putInt("entityType", entityFilter.ordinal());
     return super.write(tag);
+  }
+
+  static enum Fields {
+    GREATERTHAN, LIMIT, RANGEX, RANGEY, RANGEZ, ENTITYTYPE, RENDER;
   }
 }

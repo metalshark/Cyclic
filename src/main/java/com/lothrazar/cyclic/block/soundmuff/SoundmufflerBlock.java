@@ -47,8 +47,7 @@ public class SoundmufflerBlock extends BlockBase {
       //at 6 blocks, it caps off the reduction
       newSound.setVolume((float) (Math.min(pct, 1.0) / blocks.size()));
       event.setResultSound(newSound);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       ModCyclic.LOGGER.error("Error trying to detect volume of sound from 3rd party ", e);
     }
   }

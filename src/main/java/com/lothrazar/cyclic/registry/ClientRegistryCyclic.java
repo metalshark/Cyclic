@@ -56,7 +56,7 @@ public class ClientRegistryCyclic {
 
       @Override
       public boolean isActive() {
-        //client side cant know when active. stored on server player file 
+        //client side cant know when active. stored on server player file
         //maybe when no gui is open
         PlayerEntity player = Minecraft.getInstance().player;
         ModCyclic.LOGGER.info("only active when this is null? " + player.openContainer);
@@ -76,14 +76,12 @@ public class ClientRegistryCyclic {
     Minecraft.getInstance().getItemColors().register((stack, tintIndex) -> {
       if (stack.getItem() == ItemRegistry.storage_bag) {
         // ok
-        if (tintIndex == 0) { //layer zero is outline, ignore this 
+        if (tintIndex == 0) { //layer zero is outline, ignore this
           return 0xFFFFFFFF;
         }
-        //layer 1 is overlay  
-        int c = ItemStorageBag.getColour(stack);
-        return c;
-      }
-      else if (stack.getItem() == ItemRegistry.mob_container) {
+        //layer 1 is overlay
+        return ItemStorageBag.getColour(stack);
+      } else if (stack.getItem() == ItemRegistry.mob_container) {
         if (stack.hasTag() && tintIndex > 0) {
           //what entity is inside
           EntityType<?> thing = ForgeRegistries.ENTITIES.getValue(new ResourceLocation(stack.getTag().getString(EntityMagicNetEmpty.NBT_ENTITYID)));

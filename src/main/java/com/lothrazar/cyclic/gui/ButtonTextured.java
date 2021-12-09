@@ -12,14 +12,13 @@ import org.lwjgl.opengl.GL11;
 
 /**
  * not bound to a tile entity unlike ButtonMachine. Textures bound to TextureEnum
- * 
  */
 public class ButtonTextured extends ExtendedButton implements IHasTooltip {
 
-  private TextureEnum textureId;
-  private List<ITextComponent> tooltip;
   public int xOffset = 0;
   public int yOffset = 0;
+  private TextureEnum textureId;
+  private List<ITextComponent> tooltip;
 
   public ButtonTextured(int xPos, int yPos, int width, int height, String displayString, IPressable handler) {
     super(xPos, yPos, width, height,

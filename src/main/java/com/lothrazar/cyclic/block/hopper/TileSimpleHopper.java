@@ -4,6 +4,7 @@ import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.block.hopperfluid.BlockFluidHopper;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
@@ -42,15 +43,24 @@ public class TileSimpleHopper extends TileEntityBase implements ITickableTileEnt
   }
 
   @Override
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     //block if redstone powered
     if (this.isPowered()) {
       return;
     }
     this.tryPullFromWorld(pos.offset(Direction.UP));
-    this.tryExtract(inventory, Direction.UP, getFlow(), null);
+    this.getItemsFromAdjacent(inventory, Direction.UP, getFlow());
     Direction exportToSide = this.getBlockState().get(BlockFluidHopper.FACING);
-    this.moveItems(exportToSide, getFlow(), inventory);
+    this.moveItemsToAdjacent(inventory, exportToSide, getFlow());
   }
 
   public int getFlow() {
@@ -81,11 +91,12 @@ public class TileSimpleHopper extends TileEntityBase implements ITickableTileEnt
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTINV, inventory.serializeNBT());
@@ -93,7 +104,8 @@ public class TileSimpleHopper extends TileEntityBase implements ITickableTileEnt
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {

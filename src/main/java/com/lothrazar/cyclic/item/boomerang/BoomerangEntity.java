@@ -41,6 +41,19 @@ import net.minecraftforge.fml.network.NetworkHooks;
 
 public class BoomerangEntity extends ProjectileItemEntity {
 
+  static final float DAMAGE_MIN = 1.5F;
+  static final float DAMAGE_MAX = 3.8F;
+  private static final int STUN_SECONDS = 7;
+  private static final int TICKS_UNTIL_RETURN = 15;
+  private static final int TICKS_UNTIL_DEATH = 900;
+  private static final double SPEED = 0.95;
+  private static final DataParameter<Byte> IS_RETURNING = EntityDataManager.createKey(BoomerangEntity.class, DataSerializers.BYTE);
+  private static final DataParameter<Byte> REDSTONE_TRIGGERED = EntityDataManager.createKey(BoomerangEntity.class, DataSerializers.BYTE);
+  private static final DataParameter<String> OWNER = EntityDataManager.createKey(BoomerangEntity.class, DataSerializers.STRING);
+  protected Boomer boomerangType;
+  private ItemStack boomerangThrown = ItemStack.EMPTY;
+  private PlayerEntity targetEntity;
+
   public BoomerangEntity(EntityType<? extends ProjectileItemEntity> type, World worldIn) {
     super(type, worldIn);
   }
@@ -56,19 +69,6 @@ public class BoomerangEntity extends ProjectileItemEntity {
     this.dataManager.register(REDSTONE_TRIGGERED, (byte) 0);
     this.dataManager.register(OWNER, "");
   }
-
-  private static final int STUN_SECONDS = 7;
-  private static final int TICKS_UNTIL_RETURN = 15;
-  private static final int TICKS_UNTIL_DEATH = 900;
-  private static final double SPEED = 0.95;
-  static final float DAMAGE_MIN = 1.5F;
-  static final float DAMAGE_MAX = 3.8F;
-  private static final DataParameter<Byte> IS_RETURNING = EntityDataManager.createKey(BoomerangEntity.class, DataSerializers.BYTE);
-  private static final DataParameter<Byte> REDSTONE_TRIGGERED = EntityDataManager.createKey(BoomerangEntity.class, DataSerializers.BYTE);
-  private static final DataParameter<String> OWNER = EntityDataManager.createKey(BoomerangEntity.class, DataSerializers.STRING);
-  private ItemStack boomerangThrown = ItemStack.EMPTY;
-  private PlayerEntity targetEntity;
-  protected Boomer boomerangType;
 
   public void setBoomerangThrown(ItemStack boomerangThrown) {
     this.boomerangThrown = boomerangThrown;
@@ -102,7 +102,7 @@ public class BoomerangEntity extends ProjectileItemEntity {
   private void movementReturnCheck() {
     boolean returning = dataManager.get(IS_RETURNING) == 1;
     if (returning) {
-      //reverse direction 
+      //reverse direction
       if (this.targetEntity != null) {
         this.moveTowardsTarget();
       }
@@ -148,8 +148,7 @@ public class BoomerangEntity extends ProjectileItemEntity {
         if (hasTriggered) {
           this.setRedstoneHasTriggered();
         }
-      }
-      catch (Throwable e) {
+      } catch (Throwable e) {
         //since activated can hit any block, be safe
         ModCyclic.LOGGER.error("Error on activate block", e);
       }
@@ -177,17 +176,15 @@ public class BoomerangEntity extends ProjectileItemEntity {
       //we have something to drop
       if (owner instanceof PlayerEntity) {
         PlayerEntity pl = (PlayerEntity) owner;
-        //try to give it to the player the nicest way possible 
+        //try to give it to the player the nicest way possible
         if (pl.getHeldItemMainhand().isEmpty()) {
           pl.setHeldItem(Hand.MAIN_HAND, boomerangThrown);
           boomerangThrown = ItemStack.EMPTY;
-        }
-        else {
+        } else {
           owner.entityDropItem(boomerangThrown, 0.5F);
           boomerangThrown = ItemStack.EMPTY;
         }
-      }
-      else {
+      } else {
         UtilItemStack.drop(world, this.getPosition().up(), boomerangThrown);
         boomerangThrown = ItemStack.EMPTY;
       }
@@ -197,6 +194,9 @@ public class BoomerangEntity extends ProjectileItemEntity {
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     super.tick();
     if (this.ticksExisted > TICKS_UNTIL_DEATH) {
       dropAsItem();
@@ -211,7 +211,7 @@ public class BoomerangEntity extends ProjectileItemEntity {
       dropAsItem();
       return;
     }
-    if (hasTriggeredRedstoneAlready() == false && world.isAirBlock(pos) == false) {
+    if (!hasTriggeredRedstoneAlready() && !world.isAirBlock(pos)) {
       tryToggleRedstone(pos);
     }
     tryPickupNearby();
@@ -223,13 +223,13 @@ public class BoomerangEntity extends ProjectileItemEntity {
     switch (result.getType()) {
       case BLOCK:
         onImpactBlock((BlockRayTraceResult) result);
-      break;
+        break;
       case ENTITY:
         onImpactEntity((EntityRayTraceResult) result);
-      break;
+        break;
       case MISS:
       default:
-      break;
+        break;
     }
   }
 
@@ -242,12 +242,12 @@ public class BoomerangEntity extends ProjectileItemEntity {
     //        //  block.getBlock().harvestBlock(world, p, mop.getBlockPos(), block, null, boomerangThrown);
     //        block.getBlock().removedByPlayer(block, world, mop.getPos(), p, true, null);
     //      }
-    //      //still break regardless of harvest 
+    //      //still break regardless of harvest
     //      world.destroyBlock(mop.getPos(), false);
     //    }
     if (mop.getFace() != Direction.UP
         && block.isSolidSide(this.getEntityWorld(), mop.getPos(), mop.getFace())) {
-      //ok return 
+      //ok return
       this.setIsReturning();
     }
   }
@@ -259,7 +259,7 @@ public class BoomerangEntity extends ProjectileItemEntity {
     }
     Entity owner = func_234616_v_();
     if (owner == entityHit) {
-      //player catch it on return 
+      //player catch it on return
       dropAsItem();
       return;
     }
@@ -268,30 +268,25 @@ public class BoomerangEntity extends ProjectileItemEntity {
         if (!entityHit.world.isRemote) {
           entityHit.startRiding(this);
         }
-      break;
+        break;
       case DAMAGE:
         if (entityHit instanceof LivingEntity) {
           LivingEntity live = (LivingEntity) entityHit;
           float damage = MathHelper.nextFloat(world.rand, DAMAGE_MIN, DAMAGE_MAX);
-          boolean attackSucc = live.attackEntityFrom(DamageSource.causeThrownDamage(this, owner), damage);
-          if (attackSucc && live.isAlive() == false) {
-            //           ("killed one");
-          }
+          live.attackEntityFrom(DamageSource.causeThrownDamage(this, owner), damage);
         }
-      break;
+        break;
       case STUN:
-        //!entityHit.getUniqueID().equals(owner.getUniqueID()) 
-        if (entityHit != owner && entityHit instanceof LivingEntity
-            && !(entityHit instanceof PlayerEntity)) {
+        if (entityHit instanceof LivingEntity && !(entityHit instanceof PlayerEntity)) {
           LivingEntity live = (LivingEntity) entityHit;
-          if (live.isPotionActive(PotionRegistry.PotionEffects.stun) == false) {
+          if (!live.isPotionActive(PotionRegistry.PotionEffects.stun)) {
             live.addPotionEffect(new EffectInstance(PotionRegistry.PotionEffects.stun, STUN_SECONDS * 20, 1));
             UtilSound.playSound(live, SoundEvents.ENTITY_IRON_GOLEM_ATTACK);
           }
         }
-      break;
+        break;
       default:
-      break;
+        break;
     }
   }
 

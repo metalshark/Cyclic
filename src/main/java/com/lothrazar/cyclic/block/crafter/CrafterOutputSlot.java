@@ -7,6 +7,10 @@ import net.minecraftforge.items.SlotItemHandler;
 
 public class CrafterOutputSlot extends SlotItemHandler {
 
+  public CrafterOutputSlot(IItemHandler itemHandler, int index, int xPosition, int yPosition) {
+    super(itemHandler, index, xPosition, yPosition);
+  }
+
   @Override
   public boolean isItemValid(ItemStack stack) {
     return false;
@@ -20,9 +24,5 @@ public class CrafterOutputSlot extends SlotItemHandler {
   @Override
   public void putStack(ItemStack stack) {
     super.putStack(stack);
-  }
-
-  public CrafterOutputSlot(IItemHandler itemHandler, int index, int xPosition, int yPosition) {
-    super(itemHandler, index, xPosition, yPosition);
   }
 }

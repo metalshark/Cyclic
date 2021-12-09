@@ -9,6 +9,7 @@ import com.lothrazar.cyclic.item.datacard.ShapeCard;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilShape;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -43,8 +44,7 @@ public class TileShapedata extends TileEntityBase implements INamedContainerProv
     public boolean isItemValid(int slot, ItemStack stack) {
       if (slot == SLOT_A || slot == SLOT_B) {
         return stack.getItem() instanceof LocationGpsCard;
-      }
-      else {
+      } else {
         return stack.getItem() instanceof ShapeCard;
       }
     }
@@ -53,17 +53,13 @@ public class TileShapedata extends TileEntityBase implements INamedContainerProv
   private RelativeShape copiedShape;
   private int hasStashIfOne;
 
-  static enum Fields {
-    RENDER, COMMAND, STASH;
-  }
-
-  static enum StructCommands {
-    READ, COPY, MERGE, PASTE;
+  public TileShapedata() {
+    super(TileRegistry.computer_shape);
   }
 
   /**
    * packet to trigger this from custom btn
-   * 
+   *
    * @param cmd
    */
   public void execute(StructCommands cmd) {
@@ -86,13 +82,13 @@ public class TileShapedata extends TileEntityBase implements INamedContainerProv
           ModCyclic.LOGGER.info(cmd + " success");
           /// shape set
         }
-      break;
+        break;
       case COPY:
         //copy shape from CARD to BUFFER
         //only works
         this.copiedShape = new RelativeShape(cardShape);
         ModCyclic.LOGGER.info(cmd + " success");
-      break;
+        break;
       case PASTE:
         //from BUFFER to CARD
         //only works on EMPTY CARDS
@@ -102,23 +98,19 @@ public class TileShapedata extends TileEntityBase implements INamedContainerProv
           this.copiedShape.write(shapeCard);
           ModCyclic.LOGGER.info(cmd + " success");
         }
-      break;
+        break;
       case MERGE:
         //from BUFFER to CARD
         //only works on NOT EMPTY cards
         if (this.copiedShape != null && cardShape.getShape().size() > 0) {
-          //  
+          //
           cardShape.merge(this.copiedShape);
           cardShape.write(shapeCard);
           ModCyclic.LOGGER.info(cmd + " success");
           //          this.copiedShape = null;
         }
-      break;
+        break;
     }
-  }
-
-  public TileShapedata() {
-    super(TileRegistry.computer_shape);
   }
 
   @Override
@@ -140,7 +132,13 @@ public class TileShapedata extends TileEntityBase implements INamedContainerProv
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     if (tag.contains("copiedShape")) {
       CompoundNBT cs = (CompoundNBT) tag.get("copiedShape");
@@ -150,6 +148,7 @@ public class TileShapedata extends TileEntityBase implements INamedContainerProv
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("stashToggle", hasStashIfOne);
@@ -163,14 +162,17 @@ public class TileShapedata extends TileEntityBase implements INamedContainerProv
 
   @Override
   public void tick() {
-    if (world.isRemote == false) {
+    if (world == null) {
+      return;
+    }
+    if (!world.isRemote) {
       hasStashIfOne = (this.copiedShape == null) ? 0 : 1;
     }
   }
 
   /**
    * is command available for use
-   * 
+   *
    * @param shape
    * @return
    */
@@ -210,7 +212,7 @@ public class TileShapedata extends TileEntityBase implements INamedContainerProv
   public int getField(int field) {
     switch (Fields.values()[field]) {
       case COMMAND:
-        return 0; //unused 
+        return 0; //unused
       case RENDER:
         return this.render;
       case STASH:
@@ -224,17 +226,25 @@ public class TileShapedata extends TileEntityBase implements INamedContainerProv
     switch (Fields.values()[field]) {
       case STASH:
         hasStashIfOne = value;
-      break;
+        break;
       case COMMAND:
         if (value >= StructCommands.values().length) {
           value = 0;
         }
         StructCommands cmd = StructCommands.values()[value];
         this.execute(cmd);
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
     }
+  }
+
+  static enum Fields {
+    RENDER, COMMAND, STASH;
+  }
+
+  static enum StructCommands {
+    READ, COPY, MERGE, PASTE;
   }
 }

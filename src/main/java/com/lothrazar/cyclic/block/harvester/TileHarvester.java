@@ -13,6 +13,7 @@ import com.lothrazar.cyclic.util.UtilWorld;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.CropsBlock;
@@ -44,87 +45,21 @@ import net.minecraftforge.energy.IEnergyStorage;
 
 public class TileHarvester extends TileEntityBase implements ITickableTileEntity, INamedContainerProvider {
 
-  static enum Fields {
-    REDSTONE, RENDER, SIZE, HEIGHT, DIRECTION;
-  }
-
   public static final Set<IHarvesterOverride> HARVEST_OVERRIDES = Sets.newIdentityHashSet();
   public static final int MAX_SIZE = 12;
   static final int MAX_ENERGY = 640000;
   static final int MAX_HEIGHT = 16;
   public static IntValue POWERCONF;
+  CustomEnergyStorage energy = new CustomEnergyStorage(MAX_ENERGY, MAX_ENERGY / 4);
   private int radius = MAX_SIZE;
   private int shapeIndex = 0;
   private int height = 1;
   private boolean directionIsUp = false;
-  CustomEnergyStorage energy = new CustomEnergyStorage(MAX_ENERGY, MAX_ENERGY / 4);
   private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
 
   public TileHarvester() {
     super(TileRegistry.HARVESTER);
     timer = 1;
-  }
-
-  @Override
-  public void tick() {
-    this.syncEnergy();
-    if (this.requiresRedstone() && !this.isPowered()) {
-      setLitProperty(false);
-      return;
-    }
-    final int cost = POWERCONF.get();
-    if (energy.getEnergyStored() < cost && cost > 0) {
-      setLitProperty(false);
-      return;
-    }
-    setLitProperty(true);
-    if (this.world.isRemote) {
-      return;
-    }
-    //get and update target
-    BlockPos targetPos = getShapeTarget();
-    shapeIndex++;
-    //does it exist
-    if (targetPos != null && tryHarvestSingle(this.world, targetPos)) {
-      //energy is per action
-      energy.extractEnergy(cost, false);
-    }
-  }
-
-  private BlockPos getShapeTarget() {
-    List<BlockPos> shape = this.getShape();
-    if (shape.size() == 0) {
-      return null;
-    }
-    if (this.shapeIndex < 0 || this.shapeIndex >= shape.size()) {
-      this.shapeIndex = 0;
-    }
-    return shape.get(shapeIndex);
-  }
-
-  //for harvest
-  public List<BlockPos> getShape() {
-    List<BlockPos> shape = UtilShape.cubeSquareBase(this.getCurrentFacingPos(radius + 1), radius, 0);
-    int diff = directionIsUp ? 1 : -1;
-    if (height > 0) {
-      shape = UtilShape.repeatShapeByHeight(shape, diff * height);
-    }
-    return shape;
-  }
-
-  //for render
-  public List<BlockPos> getShapeHollow() {
-    List<BlockPos> shape = UtilShape.squareHorizontalHollow(this.getCurrentFacingPos(radius + 1), radius);
-    int diff = directionIsUp ? 1 : -1;
-    if (height > 0) {
-      shape = UtilShape.repeatShapeByHeight(shape, diff * height);
-    }
-    return shape;
-  }
-
-  @Override
-  public AxisAlignedBB getRenderBoundingBox() {
-    return TileEntity.INFINITE_EXTENT_AABB;
   }
 
   public static boolean tryHarvestSingle(World world, BlockPos posCurrent) {
@@ -193,9 +128,8 @@ public class TileHarvester extends TileEntityBase implements ITickableTileEntity
   }
 
   private static boolean simpleBreakDrop(BlockState blockState) {
-    boolean breakit = blockState.isIn(DataTags.VINES) || blockState.isIn(DataTags.CROP_BLOCKS);
     // the list tells all
-    return breakit;
+    return blockState.isIn(DataTags.VINES) || blockState.isIn(DataTags.CROP_BLOCKS);
   }
 
   public static IntegerProperty getAgeProp(BlockState blockState) {
@@ -224,6 +158,68 @@ public class TileHarvester extends TileEntityBase implements ITickableTileEntity
   }
 
   @Override
+  public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
+    this.syncEnergy();
+    if (this.requiresRedstone() && !this.isPowered()) {
+      setLitProperty(false);
+      return;
+    }
+    final int cost = POWERCONF.get();
+    if (energy.getEnergyStored() < cost && cost > 0) {
+      setLitProperty(false);
+      return;
+    }
+    setLitProperty(true);
+    //get and update target
+    BlockPos targetPos = getShapeTarget();
+    shapeIndex++;
+    //does it exist
+    if (targetPos != null && tryHarvestSingle(this.world, targetPos)) {
+      //energy is per action
+      energy.extractEnergy(cost, false);
+    }
+  }
+
+  private BlockPos getShapeTarget() {
+    List<BlockPos> shape = this.getShape();
+    if (shape.size() == 0) {
+      return null;
+    }
+    if (this.shapeIndex < 0 || this.shapeIndex >= shape.size()) {
+      this.shapeIndex = 0;
+    }
+    return shape.get(shapeIndex);
+  }
+
+  //for harvest
+  public List<BlockPos> getShape() {
+    List<BlockPos> shape = UtilShape.cubeSquareBase(this.getCurrentFacingPos(radius + 1), radius, 0);
+    int diff = directionIsUp ? 1 : -1;
+    if (height > 0) {
+      shape = UtilShape.repeatShapeByHeight(shape, diff * height);
+    }
+    return shape;
+  }
+
+  //for render
+  public List<BlockPos> getShapeHollow() {
+    List<BlockPos> shape = UtilShape.squareHorizontalHollow(this.getCurrentFacingPos(radius + 1), radius);
+    int diff = directionIsUp ? 1 : -1;
+    if (height > 0) {
+      shape = UtilShape.repeatShapeByHeight(shape, diff * height);
+    }
+    return shape;
+  }
+
+  @Override
+  public AxisAlignedBB getRenderBoundingBox() {
+    return TileEntity.INFINITE_EXTENT_AABB;
+  }
+
+  @Override
   public int getField(int id) {
     switch (Fields.values()[id]) {
       case REDSTONE:
@@ -245,19 +241,19 @@ public class TileHarvester extends TileEntityBase implements ITickableTileEntity
     switch (Fields.values()[id]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
       case SIZE:
         radius = Math.min(value, MAX_SIZE);
-      break;
+        break;
       case DIRECTION:
         this.directionIsUp = value == 1;
-      break;
+        break;
       case HEIGHT:
         height = Math.min(value, MAX_HEIGHT);
-      break;
+        break;
     }
   }
 
@@ -270,7 +266,13 @@ public class TileHarvester extends TileEntityBase implements ITickableTileEntity
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     radius = tag.getInt("radius");
     height = tag.getInt("height");
     directionIsUp = tag.getBoolean("directionIsUp");
@@ -279,6 +281,7 @@ public class TileHarvester extends TileEntityBase implements ITickableTileEntity
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("radius", radius);
@@ -297,5 +300,9 @@ public class TileHarvester extends TileEntityBase implements ITickableTileEntity
   @Override
   public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
     return new ContainerHarvester(i, world, pos, playerInventory, playerEntity);
+  }
+
+  static enum Fields {
+    REDSTONE, RENDER, SIZE, HEIGHT, DIRECTION;
   }
 }

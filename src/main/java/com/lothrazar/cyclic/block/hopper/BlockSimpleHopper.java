@@ -26,6 +26,24 @@ public class BlockSimpleHopper extends BlockBase {
     super(properties.hardnessAndResistance(1.3F));
   }
 
+  public static VoxelShape getShapeHopper(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    try {
+      return Blocks.HOPPER.getShape(state, worldIn, pos, context);
+    } catch (Exception e) {
+      ModCyclic.LOGGER.error("An unknown has broken the vanilla hopper, causing compatibility issues", e);
+      return VoxelShapes.fullCube();
+    }
+  }
+
+  public static VoxelShape getRaytraceShapeHopper(BlockState state, IBlockReader worldIn, BlockPos pos) {
+    try {
+      return Blocks.HOPPER.getRaytraceShape(state, worldIn, pos);
+    } catch (Exception e) {
+      ModCyclic.LOGGER.error("An unknown has broken the vanilla hopper, causing compatibility issues", e);
+      return VoxelShapes.fullCube();
+    }
+  }
+
   @Override
   protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
     builder.add(FACING);
@@ -58,25 +76,5 @@ public class BlockSimpleHopper extends BlockBase {
   @Override
   public TileEntity createTileEntity(BlockState state, IBlockReader world) {
     return new TileSimpleHopper();
-  }
-
-  public static VoxelShape getShapeHopper(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-    try {
-      return Blocks.HOPPER.getShape(state, worldIn, pos, context);
-    }
-    catch (Exception e) {
-      ModCyclic.LOGGER.error("An unknown has broken the vanilla hopper, causing compatibility issues", e);
-      return VoxelShapes.fullCube();
-    }
-  }
-
-  public static VoxelShape getRaytraceShapeHopper(BlockState state, IBlockReader worldIn, BlockPos pos) {
-    try {
-      return Blocks.HOPPER.getRaytraceShape(state, worldIn, pos);
-    }
-    catch (Exception e) {
-      ModCyclic.LOGGER.error("An unknown has broken the vanilla hopper, causing compatibility issues", e);
-      return VoxelShapes.fullCube();
-    }
   }
 }

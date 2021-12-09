@@ -8,6 +8,7 @@ import com.lothrazar.cyclic.capability.ItemStackHandlerWrapper;
 import com.lothrazar.cyclic.recipe.CyclicRecipeType;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -32,18 +33,14 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileGeneratorFluid extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    TIMER, REDSTONE, BURNMAX, FLOWING;
-  }
-
   public static final int CAPACITY = 64 * FluidAttributes.BUCKET_VOLUME;
   static final int MAX = TileBattery.MENERGY * 10;
-  CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
-  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
-  ItemStackHandler inputSlots = new ItemStackHandler(0);
   protected final FluidTankBase tank = new FluidTankBase(this, CAPACITY, p -> true);
   private final LazyOptional<FluidTankBase> tankWrapper = LazyOptional.of(() -> tank);
+  CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
+  ItemStackHandler inputSlots = new ItemStackHandler(0);
   ItemStackHandler outputSlots = new ItemStackHandler(0);
+  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   private ItemStackHandlerWrapper inventory = new ItemStackHandlerWrapper(inputSlots, outputSlots);
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
   private int burnTimeMax = 0; //only non zero if processing
@@ -67,12 +64,12 @@ public class TileGeneratorFluid extends TileEntityBase implements INamedContaine
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.flowing == 1) {
       this.exportEnergyAllSides();
-    }
-    if (world.isRemote) {
-      return;
     }
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
@@ -91,10 +88,9 @@ public class TileGeneratorFluid extends TileEntityBase implements INamedContaine
     if (this.burnTime > 0 && this.energy.getEnergyStored() + currentRecipe.getRfpertick() <= this.energy.getMaxEnergyStored()) {
       setLitProperty(true);
       this.burnTime--;
-      //we have room in the tank, burn one tck and fill up 
+      //we have room in the tank, burn one tck and fill up
       energy.receiveEnergy(currentRecipe.getRfpertick(), false);
-    }
-    else if (this.burnTime <= 0) {
+    } else if (this.burnTime <= 0) {
       this.findMatchingRecipe();
       if (currentRecipe == null) {
         this.burnTime = 0;
@@ -146,13 +142,22 @@ public class TileGeneratorFluid extends TileEntityBase implements INamedContaine
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    tankWrapper.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     tank.readFromNBT(tag.getCompound(NBTFLUID));
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     CompoundNBT fluid = new CompoundNBT();
@@ -183,20 +188,24 @@ public class TileGeneratorFluid extends TileEntityBase implements INamedContaine
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case TIMER:
         this.burnTime = value;
-      break;
+        break;
       case BURNMAX:
         this.burnTimeMax = value;
-      break;
+        break;
       case FLOWING:
         this.flowing = value;
-      break;
+        break;
     }
   }
 
   public int getEnergyMax() {
     return TileGeneratorFluid.MAX;
+  }
+
+  static enum Fields {
+    TIMER, REDSTONE, BURNMAX, FLOWING;
   }
 }

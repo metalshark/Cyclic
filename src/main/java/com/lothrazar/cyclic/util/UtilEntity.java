@@ -66,7 +66,6 @@ public class UtilEntity {
   private static final int TICKS_FALLDIST_SYNC = 22; //tick every so often
 
   /**
-   *
    * @return true if teleport was a success
    */
   private static boolean enderTeleportEvent(LivingEntity player, World world, double x, double y, double z) {
@@ -75,7 +74,7 @@ public class UtilEntity {
     }
     EnderTeleportEvent event = new EnderTeleportEvent(player, x, y, z, 0);
     boolean wasCancelled = MinecraftForge.EVENT_BUS.post(event);
-    if (wasCancelled == false) {
+    if (!wasCancelled) {
       //new target? maybe, maybe not. https://github.com/PrinceOfAmber/Cyclic/issues/438
       UtilEntity.teleportWallSafe(player, world, event.getTargetX(), event.getTargetY(), event.getTargetZ());
     }
@@ -83,7 +82,6 @@ public class UtilEntity {
   }
 
   /**
-   *
    * @return true if teleport was a success
    */
   public static boolean enderTeleportEvent(LivingEntity player, World world, BlockPos target) {
@@ -102,7 +100,7 @@ public class UtilEntity {
   public static void moveEntityWallSafe(Entity entity, World world) {
     //    world.checkBlockCollision(bb)
     //    world.hasNoCollisions(p_226669_1_)
-    while (world.hasNoCollisions(entity) == false) {
+    while (!world.hasNoCollisions(entity)) {
       entity.setPositionAndUpdate(entity.prevPosX, entity.prevPosY + 1.0D, entity.prevPosZ);
     }
   }
@@ -139,23 +137,23 @@ public class UtilEntity {
       case EAST:
         velX = Math.abs(power);
         velZ = 0;
-      break;
+        break;
       case WEST:
         velX = -1 * Math.abs(power);
         velZ = 0;
-      break;
+        break;
       case NORTH:
         velX = 0;
         velZ = -1 * Math.abs(power);
-      break;
+        break;
       case SOUTH:
         velX = 0;
         velZ = Math.abs(power);
-      break;
+        break;
       case UP:
       case DOWN:
       default:
-      break;
+        break;
     }
     Entity ridingEntity = entity.getRidingEntity();
     if (ridingEntity != null) {
@@ -163,8 +161,7 @@ public class UtilEntity {
       entity.setMotion(entity.getMotion().x, 0, entity.getMotion().z);
       ridingEntity.fallDistance = 0;
       ridingEntity.addVelocity(velX, velY, velZ);
-    }
-    else {
+    } else {
       entity.setMotion(entity.getMotion().x, 0, entity.getMotion().z);
       entity.fallDistance = 0;
       entity.addVelocity(velX, velY, velZ);
@@ -199,8 +196,7 @@ public class UtilEntity {
       entity.setMotion(entity.getMotion().x, 0, entity.getMotion().z);
       ridingEntity.fallDistance = 0;
       ridingEntity.addVelocity(velX * mountPower, velY * mountPower, velZ * mountPower);
-    }
-    else {
+    } else {
       entity.setMotion(entity.getMotion().x, 0, entity.getMotion().z);
       entity.fallDistance = 0;
       entity.addVelocity(velX, velY, velZ);
@@ -229,7 +225,7 @@ public class UtilEntity {
   }
 
   public static List<Entity> getItemExp(World world, AxisAlignedBB range) {
-    List<Entity> all = new ArrayList<Entity>();
+    List<Entity> all = new ArrayList<>();
     all.addAll(world.getEntitiesWithinAABB(ItemEntity.class, range));
     all.addAll(world.getEntitiesWithinAABB(ExperienceOrbEntity.class, range));
     return all;
@@ -240,8 +236,7 @@ public class UtilEntity {
       if (entity.getRidingEntity() != null && entity.getRidingEntity() instanceof LivingEntity) {
         speedupEntity((LivingEntity) entity.getRidingEntity(), factor);
         return true;
-      }
-      else {
+      } else {
         speedupEntity(entity, factor);
         return true;
       }
@@ -263,9 +258,9 @@ public class UtilEntity {
 
   public static List<LivingEntity> getLivingHostile(World world, AxisAlignedBB range) {
     List<LivingEntity> all = world.getEntitiesWithinAABB(LivingEntity.class, range);
-    List<LivingEntity> nonPlayer = new ArrayList<LivingEntity>();
+    List<LivingEntity> nonPlayer = new ArrayList<>();
     for (LivingEntity ent : all) {
-      if (ent instanceof PlayerEntity == false) {
+      if (!(ent instanceof PlayerEntity)) {
         //&& ent.isCreatureType(EnumCreatureType.MONSTER, false)) {//players are not monsters so, redundant?
         nonPlayer.add(ent);
       }
@@ -323,8 +318,7 @@ public class UtilEntity {
       int ampMax = Math.max(p.getAmplifier(), newp.getAmplifier());
       int dur = newp.getDuration() + p.getDuration();
       player.addPotionEffect(new EffectInstance(newp.getPotion(), dur, ampMax));
-    }
-    else {
+    } else {
       player.addPotionEffect(newp);
     }
   }
@@ -367,8 +361,7 @@ public class UtilEntity {
     List<VillagerEntity> all = world.getEntitiesWithinAABB(VillagerEntity.class, new AxisAlignedBB(new BlockPos(x, y, z)));
     if (all.size() == 0) {
       return null;
-    }
-    else {
+    } else {
       return all.get(0);
     }
   }
@@ -384,8 +377,7 @@ public class UtilEntity {
   //  }
 
   public static float yawDegreesBetweenPoints(double posX, double posY, double posZ, double posX2, double posY2, double posZ2) {
-    float f = (float) ((180.0f * Math.atan2(posX2 - posX, posZ2 - posZ)) / (float) Math.PI);
-    return f;
+    return (float) ((180.0f * Math.atan2(posX2 - posX, posZ2 - posZ)) / (float) Math.PI);
   }
 
   public static float pitchDegreesBetweenPoints(double posX, double posY, double posZ, double posX2, double posY2, double posZ2) {
@@ -420,13 +412,13 @@ public class UtilEntity {
     switch (currentFacing) {
       case EAST:
         yaw = 270F;
-      break;
+        break;
       case NORTH:
         yaw = 180F;
-      break;
+        break;
       case WEST:
         yaw = 90F;
-      break;
+        break;
       case DOWN:
       case UP:
       case SOUTH:
@@ -462,8 +454,7 @@ public class UtilEntity {
       //      Method m = AbstractHorseEntity.class.getDeclaredMethod("eatingHorse");
       m.setAccessible(true);
       m.invoke(ahorse);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       ModCyclic.LOGGER.error("Horse eating animation error", e);
     }
   }
@@ -471,8 +462,7 @@ public class UtilEntity {
   public static void tryMakeEntityClimb(World worldIn, LivingEntity entity, double climbSpeed) {
     if (entity.isCrouching()) {
       entity.setMotion(entity.getMotion().x, 0.0, entity.getMotion().z);
-    }
-    else if (entity.moveForward > 0.0F && entity.getMotion().y < climbSpeed) {
+    } else if (entity.moveForward > 0.0F && entity.getMotion().y < climbSpeed) {
       entity.setMotion(entity.getMotion().x, climbSpeed, entity.getMotion().z);
       entity.fallDistance = 0.0F;
     } //setting fall distance on clientside wont work

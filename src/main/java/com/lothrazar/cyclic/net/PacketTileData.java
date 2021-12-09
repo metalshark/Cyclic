@@ -34,7 +34,8 @@ public class PacketTileData extends PacketBase {
     this.pos = pos;
   }
 
-  public PacketTileData() {}
+  public PacketTileData() {
+  }
 
   public static void handle(PacketTileData message, Supplier<NetworkEvent.Context> ctx) {
     ctx.get().enqueueWork(() -> {
@@ -47,8 +48,7 @@ public class PacketTileData extends PacketBase {
           //ignore message.value, do a ++
           int incr = base.getField(message.field) + 1;
           base.setField(message.field, incr);
-        }
-        else {
+        } else {
           base.setField(message.field, message.value);
         }
       }

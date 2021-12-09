@@ -6,6 +6,7 @@ import com.lothrazar.cyclic.data.BlockPosDim;
 import com.lothrazar.cyclic.item.datacard.LocationGpsCard;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilWorld;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -22,19 +23,16 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 public class TileWirelessFluid extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    RENDER, TRANSFER_RATE, REDSTONE;
-  }
-
   public static final int CAPACITY = 64 * FluidAttributes.BUCKET_VOLUME;
   static final int MAX = 64000;
   public static final int MAX_TRANSFER = MAX;
-  private int transferRate = FluidAttributes.BUCKET_VOLUME;
-  public FluidTankBase tank;
+  public final FluidTankBase tank = new FluidTankBase(this, CAPACITY, f -> true);
+  private final LazyOptional<IFluidHandler> fluidHandlerLazyOptional = LazyOptional.of(() -> tank);
   ItemStackHandler gpsSlots = new ItemStackHandler(1) {
 
     @Override
@@ -42,11 +40,11 @@ public class TileWirelessFluid extends TileEntityBase implements INamedContainer
       return stack.getItem() instanceof LocationGpsCard;
     }
   };
+  private int transferRate = FluidAttributes.BUCKET_VOLUME;
 
   public TileWirelessFluid() {
     super(TileRegistry.WIRELESS_FLUID.get());
     this.needsRedstone = 0;
-    tank = new FluidTankBase(this, CAPACITY, f -> true);
   }
 
   @Override
@@ -62,19 +60,26 @@ public class TileWirelessFluid extends TileEntityBase implements INamedContainer
   @Override
   public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
     if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-      return LazyOptional.of(() -> tank).cast();
+      return fluidHandlerLazyOptional.cast();
     }
     return super.getCapability(cap, side);
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    fluidHandlerLazyOptional.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     gpsSlots.deserializeNBT(tag.getCompound(NBTINV));
     this.transferRate = tag.getInt("transferRate");
     tank.readFromNBT(tag.getCompound(NBTFLUID));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("transferRate", transferRate);
@@ -97,19 +102,19 @@ public class TileWirelessFluid extends TileEntityBase implements INamedContainer
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
-      return;
-    }
-    if (world.isRemote) {
       return;
     }
     boolean moved = false;
     //run the transfer. one slot only
     BlockPosDim loc = getTargetInSlot(0);
     if (loc != null && UtilWorld.dimensionIsEqual(loc, world)) {
-      this.moveFluids(loc.getSide(), loc.getPos(), this.transferRate, tank);
+      moved = !moveFluidsToBlockPos(tank, loc.getPos(), loc.getSide(), transferRate).isEmpty();
     }
     this.setLitProperty(moved);
   }
@@ -123,13 +128,13 @@ public class TileWirelessFluid extends TileEntityBase implements INamedContainer
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
       case TRANSFER_RATE:
         transferRate = value;
-      break;
+        break;
     }
   }
 
@@ -164,5 +169,9 @@ public class TileWirelessFluid extends TileEntityBase implements INamedContainer
 
   public float getThick() {
     return 0.065F;
+  }
+
+  static enum Fields {
+    RENDER, TRANSFER_RATE, REDSTONE;
   }
 }

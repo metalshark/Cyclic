@@ -46,13 +46,13 @@ public class CyclicDataGenerator {
         switch (facing) {
           case EAST:
             y = 90;
-          break;
+            break;
           case SOUTH:
             y = 180;
-          break;
+            break;
           case WEST:
             y = 270;
-          break;
+            break;
           default:
             y = 0;
         }

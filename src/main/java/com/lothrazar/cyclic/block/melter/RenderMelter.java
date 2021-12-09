@@ -26,7 +26,7 @@ public class RenderMelter extends TileEntityRenderer<TileMelter> {
 
   @Override
   public void render(TileMelter tankHere, float v, MatrixStack matrixStack,
-      IRenderTypeBuffer buffer, int light, int overlayLight) {
+                     IRenderTypeBuffer buffer, int light, int overlayLight) {
     //TODO: recipe from tag
     IItemHandler itemHandler = tankHere.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, Direction.UP).orElse(null);
     if (itemHandler != null) {

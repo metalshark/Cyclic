@@ -9,6 +9,7 @@ import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
 public class ContainerPlacerFluid extends ContainerBase {
@@ -20,10 +21,11 @@ public class ContainerPlacerFluid extends ContainerBase {
     tile = (TilePlacerFluid) world.getTileEntity(pos);
     this.playerEntity = player;
     this.playerInventory = playerInventory;
-    tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> {
-      this.endInv = h.getSlots();
-      addSlot(new SlotItemHandler(h, 0, 80, 29));
-    });
+    final IItemHandler itemHandler = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null).orElse(null);
+    if (itemHandler != null) {
+      this.endInv = itemHandler.getSlots();
+      addSlot(new SlotItemHandler(itemHandler, 0, 80, 29));
+    }
     layoutPlayerInventorySlots(8, 84);
     this.trackAllIntFields(tile, TilePlacerFluid.Fields.values().length);
   }

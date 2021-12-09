@@ -41,20 +41,17 @@ public class ItemScaffolding extends BlockItem {
       doHoriz = false;
       pos = pos.up().up();
       //      facing = Direction.UP;
-    }
-    else if (player.rotationPitch > 82) {
+    } else if (player.rotationPitch > 82) {
       // really really down
       doHoriz = false;
       pos = pos.down();
       //      facing = Direction.DOWN;
-    }
-    else if (player.rotationPitch < -45) {
+    } else if (player.rotationPitch < -45) {
       // angle is pretty high up. so offset up again
       pos = pos.up();
       //      facing = Direction.UP;
       doHoriz = true;
-    }
-    else if (player.rotationPitch > 45) {
+    } else if (player.rotationPitch > 45) {
       // you are angled down, so bring down from eye level
       pos = pos.down();
       //      facing = Direction.DOWN;
@@ -80,7 +77,7 @@ public class ItemScaffolding extends BlockItem {
         //        facing = Direction.NORTH;
       }
     }
-    if (worldIn.isRemote == false && worldIn.isAirBlock(pos)) {
+    if (!worldIn.isRemote && worldIn.isAirBlock(pos)) {
       ItemStack stac = player.getHeldItem(hand);
       if (worldIn.setBlockState(pos, Block.getBlockFromItem(this).getDefaultState())) {
         UtilItemStack.shrink(player, stac);

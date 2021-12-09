@@ -4,6 +4,7 @@ import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
@@ -26,11 +27,12 @@ public class SoundmuffTile extends TileEntityBase {
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, @Nonnull CompoundNBT tag) {
     super.read(bs, tag);
     notInventory.deserializeNBT(tag.getCompound(NBTINV));
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTINV, notInventory.serializeNBT());
@@ -46,12 +48,19 @@ public class SoundmuffTile extends TileEntityBase {
   }
 
   @Override
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
   public AxisAlignedBB getRenderBoundingBox() {
     return TileEntity.INFINITE_EXTENT_AABB;
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {
@@ -59,7 +68,7 @@ public class SoundmuffTile extends TileEntityBase {
   }
 
   public List<BlockPos> getShape() {
-    List<BlockPos> lis = new ArrayList<BlockPos>();
+    List<BlockPos> lis = new ArrayList<>();
     lis.add(pos);
     return lis;
   }

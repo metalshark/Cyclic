@@ -42,9 +42,9 @@ public class ItemMagicNet extends ItemBase {
     int charge = this.getUseDuration(stack) - chargeTimer;
     float percentageCharged = BowItem.getArrowVelocity(charge); //never zero, its from [0.03,1];
     if (percentageCharged < 0.1) {
-      return; //not enough force to go with any realistic path 
+      return; //not enough force to go with any realistic path
     }
-    if (entity instanceof PlayerEntity == false) {
+    if (!(entity instanceof PlayerEntity)) {
       return;
     }
     PlayerEntity player = (PlayerEntity) entity;

@@ -18,9 +18,9 @@ import net.minecraft.util.text.ITextComponent;
 
 public class ScreenStructure extends ScreenBase<ContainerStructure> {
 
+  public ButtonMachineField btnRedstone;
   private EnergyBar energy;
   private List<ButtonMachine> shapeBtuns;
-  public ButtonMachineField btnRedstone;
   private ButtonMachineField btnRender;
 
   public ScreenStructure(ContainerStructure screenContainer, PlayerInventory inv, ITextComponent titleIn) {
@@ -82,11 +82,11 @@ public class ScreenStructure extends ScreenBase<ContainerStructure> {
       String shapeName = UtilChat.lang("buildertype." + shape.name().toLowerCase());
       ButtonMachine btnShape = addButton(new ButtonMachine(x, y, bsize, bsize,
           shapeName.substring(0, 2), (p) -> {
-            //      container.tile.setFlowing((container.getFlowing() + 1) % 2);
-            PacketRegistry.INSTANCE.sendToServer(
-                new PacketTileData(fld.ordinal(),
-                    shape.ordinal(), container.tile.getPos()));
-          }));
+        //      container.tile.setFlowing((container.getFlowing() + 1) % 2);
+        PacketRegistry.INSTANCE.sendToServer(
+            new PacketTileData(fld.ordinal(),
+                shape.ordinal(), container.tile.getPos()));
+      }));
       btnShape.setTooltip(shapeName);
       x += bsize;
       btnShape.setTileField(shape.ordinal());

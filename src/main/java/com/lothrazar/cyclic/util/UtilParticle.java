@@ -7,6 +7,9 @@ import net.minecraft.world.World;
 
 public class UtilParticle {
 
+  private static final double RANDOM_HORIZ = 0.8;
+  private static final double RANDOM_VERT = 1.5;
+
   public static void spawnParticleBeam(World world, IParticleData sparkle, BlockPos start, BlockPos end, int count) {
     // thanks to http://www.minecraftforge.net/forum/index.php?topic=30567.0
     // and http://mathforum.org/library/drmath/view/65721.html
@@ -21,9 +24,6 @@ public class UtilParticle {
       UtilParticle.spawnParticle(world, sparkle, x, y, z, count);
     }
   }
-
-  private static final double RANDOM_HORIZ = 0.8;
-  private static final double RANDOM_VERT = 1.5;
 
   private static double getVertRandom(World world, double rando) {
     return world.rand.nextDouble() * rando - 0.1;
@@ -41,7 +41,7 @@ public class UtilParticle {
 
   /**
    * always check IS CLIENTSIDE before this
-   * 
+   *
    * @param world
    * @param sparkle
    * @param x

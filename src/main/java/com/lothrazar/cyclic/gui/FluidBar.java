@@ -18,14 +18,14 @@ import net.minecraftforge.fluids.FluidStack;
 public class FluidBar {
 
   public String emtpyTooltip = "0";
+  public int guiLeft;
+  public int guiTop;
   private Screen parent;
   private int x;
   private int y;
   private int capacity;
   private int width = 18;
   private int height = 62;
-  public int guiLeft;
-  public int guiTop;
 
   public FluidBar(Screen p, int cap) {
     this(p, 132, 8, cap);

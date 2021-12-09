@@ -3,11 +3,10 @@ package com.lothrazar.cyclic.block.tankcask;
 import com.lothrazar.cyclic.base.FluidTankBase;
 import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.registry.TileRegistry;
+import com.lothrazar.cyclic.util.UtilDirection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Predicate;
-
-import com.lothrazar.cyclic.util.UtilDirection;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
@@ -17,34 +16,26 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 public class TileCask extends TileEntityBase implements ITickableTileEntity {
 
-  private Map<Direction, Boolean> poweredSides;
   public static final int CAPACITY = 8 * FluidAttributes.BUCKET_VOLUME;
   public static final int TRANSFER_FLUID_PER_TICK = CAPACITY / 2;
-  public FluidTankBase tank;
-
-  static enum Fields {
-    FLOWING, N, E, S, W, U, D;
-  }
+  public final FluidTankBase tank = new FluidTankBase(this, CAPACITY, p -> true);
+  private final LazyOptional<IFluidHandler> fluidHandlerLazyOptional = LazyOptional.of(() -> tank);
+  private final Map<Direction, Boolean> poweredSides = new HashMap<>();
 
   public TileCask() {
     super(TileRegistry.cask);
     flowing = 0;
-    tank = new FluidTankBase(this, CAPACITY, isFluidValid());
-    poweredSides = new HashMap<Direction, Boolean>();
     for (Direction f : Direction.values()) {
       poweredSides.put(f, false);
     }
   }
 
-  public Predicate<FluidStack> isFluidValid() {
-    return p -> true;
-  }
-
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, @Nonnull CompoundNBT tag) {
     for (Direction f : Direction.values()) {
       poweredSides.put(f, tag.getBoolean("flow_" + f.getName2()));
     }
@@ -53,8 +44,9 @@ public class TileCask extends TileEntityBase implements ITickableTileEntity {
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
-  public CompoundNBT write(CompoundNBT tag) {
+  public CompoundNBT write(@Nonnull CompoundNBT tag) {
     for (Direction f : Direction.values()) {
       tag.putBoolean("flow_" + f.getName2(), poweredSides.get(f));
     }
@@ -68,9 +60,15 @@ public class TileCask extends TileEntityBase implements ITickableTileEntity {
   @Override
   public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
     if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-      return LazyOptional.of(() -> tank).cast();
+      return fluidHandlerLazyOptional.cast();
     }
     return super.getCapability(cap, side);
+  }
+
+  @Override
+  public void invalidateCaps() {
+    fluidHandlerLazyOptional.invalidate();
+    super.invalidateCaps();
   }
 
   @Override
@@ -99,25 +97,25 @@ public class TileCask extends TileEntityBase implements ITickableTileEntity {
     switch (Fields.values()[field]) {
       case FLOWING:
         flowing = value;
-      break;
+        break;
       case D:
         this.setSideField(Direction.DOWN, value % 2);
-      break;
+        break;
       case E:
         this.setSideField(Direction.EAST, value % 2);
-      break;
+        break;
       case N:
         this.setSideField(Direction.NORTH, value % 2);
-      break;
+        break;
       case S:
         this.setSideField(Direction.SOUTH, value % 2);
-      break;
+        break;
       case U:
         this.setSideField(Direction.UP, value % 2);
-      break;
+        break;
       case W:
         this.setSideField(Direction.WEST, value % 2);
-      break;
+        break;
     }
   }
 
@@ -140,6 +138,9 @@ public class TileCask extends TileEntityBase implements ITickableTileEntity {
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     //drain below but only to one of myself
     if (this.flowing > 0) {
       tickCableFlow();
@@ -149,8 +150,12 @@ public class TileCask extends TileEntityBase implements ITickableTileEntity {
   private void tickCableFlow() {
     for (final Direction exportToSide : UtilDirection.getAllInDifferentOrder()) {
       if (this.poweredSides.get(exportToSide)) {
-        this.moveFluids(exportToSide, pos.offset(exportToSide), TRANSFER_FLUID_PER_TICK / 4, tank);
+        moveFluidsToAdjacent(tank, exportToSide, TRANSFER_FLUID_PER_TICK / 4);
       }
     }
+  }
+
+  static enum Fields {
+    FLOWING, N, E, S, W, U, D;
   }
 }

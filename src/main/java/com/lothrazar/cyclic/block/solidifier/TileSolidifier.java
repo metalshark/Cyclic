@@ -9,6 +9,7 @@ import com.lothrazar.cyclic.data.Const;
 import com.lothrazar.cyclic.recipe.CyclicRecipeType;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import java.util.List;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -41,19 +42,15 @@ public class TileSolidifier extends TileEntityBase implements ITickableTileEntit
   public static final int CAPACITY = 64 * FluidAttributes.BUCKET_VOLUME;
   public static final int TRANSFER_FLUID_PER_TICK = FluidAttributes.BUCKET_VOLUME / 20;
   public static IntValue POWERCONF;
-  private RecipeSolidifier currentRecipe;
   FluidTankBase tank;
+  private final LazyOptional<FluidTankBase> tankWrapper = LazyOptional.of(() -> tank);
   ItemStackHandler inputSlots = new ItemStackHandler(3);
   ItemStackHandler outputSlots = new ItemStackHandler(1);
+  CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
+  private final LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
+  private RecipeSolidifier currentRecipe;
   private ItemStackHandlerWrapper inventory = new ItemStackHandlerWrapper(inputSlots, outputSlots);
   private final LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
-  CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
-  private final LazyOptional<FluidTankBase> tankWrapper = LazyOptional.of(() -> tank);
-  private final LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
-
-  static enum Fields {
-    REDSTONE, TIMER, RENDER;
-  }
 
   public TileSolidifier() {
     super(TileRegistry.solidifier);
@@ -62,6 +59,9 @@ public class TileSolidifier extends TileEntityBase implements ITickableTileEntit
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     this.findMatchingRecipe();
     if (currentRecipe == null) {
@@ -87,13 +87,13 @@ public class TileSolidifier extends TileEntityBase implements ITickableTileEntit
     switch (Fields.values()[field]) {
       case TIMER:
         this.timer = value;
-      break;
+        break;
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case RENDER:
         this.render = value % 2;
-      break;
+        break;
     }
   }
 
@@ -121,7 +121,7 @@ public class TileSolidifier extends TileEntityBase implements ITickableTileEntit
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     tank.readFromNBT(tag.getCompound(NBTFLUID));
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
     inputSlots.deserializeNBT(tag.getCompound(NBTINV));
@@ -129,6 +129,7 @@ public class TileSolidifier extends TileEntityBase implements ITickableTileEntit
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     CompoundNBT fluid = new CompoundNBT();
@@ -152,6 +153,14 @@ public class TileSolidifier extends TileEntityBase implements ITickableTileEntit
       return inventoryCap.cast();
     }
     return super.getCapability(cap, side);
+  }
+
+  @Override
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    tankWrapper.invalidate();
+    super.invalidateCaps();
   }
 
   public float getCapacity() {
@@ -191,7 +200,7 @@ public class TileSolidifier extends TileEntityBase implements ITickableTileEntit
         return false;
         //there was non-empty left after this, so no room for all
       }
-      //ok it has room for all the fluid none will be wasted 
+      //ok it has room for all the fluid none will be wasted
       inputSlots.getStackInSlot(0).shrink(1);
       inputSlots.getStackInSlot(1).shrink(1);
       inputSlots.getStackInSlot(2).shrink(1);
@@ -205,5 +214,9 @@ public class TileSolidifier extends TileEntityBase implements ITickableTileEntit
 
   public ItemStack getStackInputSlot(int slot) {
     return inputSlots.getStackInSlot(slot);
+  }
+
+  static enum Fields {
+    REDSTONE, TIMER, RENDER;
   }
 }

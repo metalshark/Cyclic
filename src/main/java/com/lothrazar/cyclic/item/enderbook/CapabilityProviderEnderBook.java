@@ -19,7 +19,8 @@ public class CapabilityProviderEnderBook implements ICapabilitySerializable<Comp
     }
   });
 
-  public CapabilityProviderEnderBook() {}
+  public CapabilityProviderEnderBook() {
+  }
 
   @Override
   public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
@@ -31,11 +32,7 @@ public class CapabilityProviderEnderBook implements ICapabilitySerializable<Comp
 
   @Override
   public CompoundNBT serializeNBT() {
-    if (inventory.isPresent()) {
-      CompoundNBT nbt = inventory.resolve().get().serializeNBT();
-      return nbt;
-    }
-    return new CompoundNBT();
+    return inventory.map(ItemStackHandler::serializeNBT).orElse(new CompoundNBT());
   }
 
   @Override

@@ -5,6 +5,7 @@ import com.lothrazar.cyclic.item.datacard.SoundCard;
 import com.lothrazar.cyclic.registry.ItemRegistry;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilSound;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -61,11 +62,12 @@ public class TileSoundPlayer extends TileEntityBase implements INamedContainerPr
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void read(@Nonnull BlockState bs, @Nonnull CompoundNBT tag) {
     super.read(bs, tag);
     inventory.deserializeNBT(tag.getCompound(NBTINV));
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTINV, inventory.serializeNBT());
@@ -81,7 +83,14 @@ public class TileSoundPlayer extends TileEntityBase implements INamedContainerPr
   }
 
   @Override
-  public void setField(int field, int value) {}
+  public void invalidateCaps() {
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void setField(int field, int value) {
+  }
 
   @Override
   public int getField(int field) {

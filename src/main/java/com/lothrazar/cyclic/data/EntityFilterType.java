@@ -34,31 +34,31 @@ public enum EntityFilterType {
     switch (this) {
       case AMBIENT:
         list.addAll(world.getEntitiesWithinAABB(AmbientEntity.class, axisalignedbb));
-      break;
+        break;
       case ANIMAL:
         list.addAll(world.getEntitiesWithinAABB(AnimalEntity.class, axisalignedbb));
-      break;
+        break;
       case FLYING:
         list.addAll(world.getEntitiesWithinAABB(FlyingEntity.class, axisalignedbb));
-      break;
+        break;
       case LIVING:
         list.addAll(world.getEntitiesWithinAABB(LivingEntity.class, axisalignedbb));
-      break;
+        break;
       case MOB:
         list.addAll(world.getEntitiesWithinAABB(MobEntity.class, axisalignedbb));
-      break;
+        break;
       case PLAYERS:
         list.addAll(world.getEntitiesWithinAABB(PlayerEntity.class, axisalignedbb));
-      break;
+        break;
       case TAMEABLE:
         list.addAll(world.getEntitiesWithinAABB(TameableEntity.class, axisalignedbb));
-      break;
+        break;
       case WATER:
         list.addAll(world.getEntitiesWithinAABB(WaterMobEntity.class, axisalignedbb));
-      break;
+        break;
       case MONSTER:
         list.addAll(world.getEntitiesWithinAABB(MonsterEntity.class, axisalignedbb));
-      break;
+        break;
     }
     return list;
   }

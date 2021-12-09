@@ -2,17 +2,17 @@ package com.lothrazar.cyclic.util;
 
 import com.lothrazar.cyclic.data.Const;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3i;
 
 public class UtilShape {
 
   public static List<BlockPos> cubeSquareBase(final BlockPos pos, int radius, int height) {
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     // search in a cube
     int xMin = pos.getX() - radius;
     int xMax = pos.getX() + radius;
@@ -30,7 +30,7 @@ public class UtilShape {
   }
 
   public static List<BlockPos> squareHorizontalFull(final BlockPos pos, int radius) {
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     // search in a cube
     int xMin = pos.getX() - radius;
     int xMax = pos.getX() + radius;
@@ -47,7 +47,7 @@ public class UtilShape {
   }
 
   public static List<BlockPos> squareVerticalX(final BlockPos pos, int xRadius, int yRadius) {
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     // search in a cube
     int xMin = pos.getX() - xRadius;
     int xMax = pos.getX() + xRadius;
@@ -73,7 +73,7 @@ public class UtilShape {
 
   //SHOLD TO-DO: merge x/z vers
   public static List<BlockPos> squareVerticalZ(final BlockPos pos, int yRadius, int zRadius) {
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     // search in a cube
     int x = pos.getX();
     int zMin = pos.getZ() - zRadius;
@@ -98,7 +98,7 @@ public class UtilShape {
   }
 
   public static List<BlockPos> line(BlockPos pos, Direction efacing, int want) {
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     int skip = 1;
     for (int i = 1; i < want + 1; i = i + skip) {
       shape.add(pos.offset(efacing, i));
@@ -111,7 +111,7 @@ public class UtilShape {
   }
 
   public static List<BlockPos> rect(final BlockPos pos, final BlockPos target) {
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     //
     if (pos == null || target == null) {
       return shape;
@@ -134,7 +134,7 @@ public class UtilShape {
   }
 
   public static List<BlockPos> rectHollow(final BlockPos pos, int radiusX, int radiusZ) {
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     // search in a cube
     int xMin = pos.getX() - radiusX;
     int xMax = pos.getX() + radiusX;
@@ -179,7 +179,7 @@ public class UtilShape {
     int z = radius;
     int x = 0;
     int d = 2 - (2 * radius); //dont use Diameter again, for integer roundoff
-    List<BlockPos> circleList = new ArrayList<BlockPos>();
+    List<BlockPos> circleList = new ArrayList<>();
     do {
       circleList.add(new BlockPos(centerX + x, height, centerZ + z));
       circleList.add(new BlockPos(centerX + x, height, centerZ - z));
@@ -191,38 +191,29 @@ public class UtilShape {
       circleList.add(new BlockPos(centerX - z, height, centerZ - x));
       if (d < 0) {
         d = d + (4 * x) + 6;
-      }
-      else {
+      } else {
         d = d + 4 * (x - z) + 10;
         z--;
       }
       x++;
     }
     while (x <= z);
-    Collections.sort(circleList, new Comparator<BlockPos>() {
-
-      @Override
-      public int compare(final BlockPos object1, final BlockPos object2) {
-        return object1.getX() - object2.getX();
-      }
-    });
+    circleList.sort(Comparator.comparingInt(Vector3i::getX));
     return circleList;
   }
 
   public static List<BlockPos> repeatShapeByHeight(List<BlockPos> shape, final int height) {
-    List<BlockPos> newShape = new ArrayList<BlockPos>();
-    newShape.addAll(shape); //copy it
+    List<BlockPos> newShape = new ArrayList<>(shape); //copy it
     for (int i = 1; i <= Math.abs(height); i++) {
       for (BlockPos p : shape) {
         BlockPos newOffset = null;
         if (height > 0) {
           newOffset = p.up(i);
-        }
-        else {
+        } else {
           newOffset = p.down(i);
         }
         //        if (newOffset.getY() > 3) {}
-        // TODO: put in const, 
+        // TODO: put in const,
         if (newOffset.getY() >= 0 && newOffset.getY() <= Const.WORLDHEIGHT) {
           newShape.add(newOffset);
         }
@@ -245,7 +236,7 @@ public class UtilShape {
 
   /**
    * top and bottom should not be both true
-   * 
+   *
    * @param pos
    * @param radius
    * @param topHalfOnly
@@ -253,7 +244,7 @@ public class UtilShape {
    * @return
    */
   public static List<BlockPos> sphere(BlockPos pos, int radius, boolean topHalfOnly, boolean bottomHalfOnly) {
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     //http://www.minecraftforge.net/forum/index.php?topic=24403.0
     int x = pos.getX(), y = pos.getY(), z = pos.getZ();
     int squareDistance;
@@ -263,8 +254,7 @@ public class UtilShape {
     int yMax = y + radius;
     if (topHalfOnly) {
       yMin = pos.getY();
-    }
-    else if (bottomHalfOnly) {
+    } else if (bottomHalfOnly) {
       yMax = pos.getY();
     }
     for (xCurr = x - radius; xCurr <= x + radius; xCurr++) {
@@ -282,7 +272,7 @@ public class UtilShape {
   }
 
   public static List<BlockPos> squarePyramid(final BlockPos pos, final int radius, final int height) {
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     int radiusCurrent = radius;
     BlockPos posCurrent = new BlockPos(pos);
     for (int i = 0; i < radius; i++) {
@@ -294,12 +284,11 @@ public class UtilShape {
   }
 
   public static List<BlockPos> diagonal(BlockPos posCurrent, Direction pfacing, int want, boolean isLookingUp) {
-    List<BlockPos> shape = new ArrayList<BlockPos>();
+    List<BlockPos> shape = new ArrayList<>();
     for (int i = 1; i < want + 1; i++) {
       if (isLookingUp) {
         posCurrent = posCurrent.up();
-      }
-      else {
+      } else {
         posCurrent = posCurrent.down();
       } //go up and over each time
       posCurrent = posCurrent.offset(pfacing);

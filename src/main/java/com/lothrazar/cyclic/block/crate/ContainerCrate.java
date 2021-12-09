@@ -9,6 +9,7 @@ import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
 public class ContainerCrate extends ContainerBase {
@@ -20,17 +21,18 @@ public class ContainerCrate extends ContainerBase {
     tile = (TileCrate) world.getTileEntity(pos);
     this.playerEntity = player;
     this.playerInventory = playerInventory;
-    tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> {
-      this.endInv = h.getSlots();
+    final IItemHandler itemHandler = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null).orElse(null);
+    if (itemHandler != null) {
+      this.endInv = itemHandler.getSlots();
       for (int j = 0; j < 9; ++j) {
         for (int k = 0; k < 9; ++k) {
-          this.addSlot(new SlotItemHandler(h,
+          this.addSlot(new SlotItemHandler(itemHandler,
               k + j * 9,
               8 + k * 18,
               8 + j * 18));
         }
       }
-    });
+    }
     layoutPlayerInventorySlots(8, 174);
   }
 

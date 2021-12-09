@@ -2,6 +2,7 @@ package com.lothrazar.cyclic.block.screen;
 
 import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.registry.TileRegistry;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -16,19 +17,15 @@ import net.minecraft.util.text.StringTextComponent;
 public class TileScreentext extends TileEntityBase implements INamedContainerProvider {
 
   public static final int STRINGS = 4;
-  private String[] text = new String[STRINGS];
   int red = 255;
   int green = 255;
   int blue = 255;
   int padding = 0;
   int fontSize = 1;
   int offset = 0;
+  private String[] text = new String[STRINGS];
   //TODO: shadow toggle
   private boolean dropShadow;
-
-  static enum Fields {
-    REDSTONE, RED, GREEN, BLUE, PADDING, FONT, OFFSET;
-  }
 
   public TileScreentext() {
     super(TileRegistry.screen);
@@ -38,7 +35,7 @@ public class TileScreentext extends TileEntityBase implements INamedContainerPro
   public int getColor() {
     return ((red & 0xFF) << 16) | //red
         ((green & 0xFF) << 8) | //green
-        ((blue & 0xFF) << 0);
+        ((blue & 0xFF));
   }
 
   @Override
@@ -57,7 +54,7 @@ public class TileScreentext extends TileEntityBase implements INamedContainerPro
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tags) {
+  public void read(@Nonnull BlockState bs, @Nonnull CompoundNBT tags) {
     text = new String[STRINGS];
     for (int i = 0; i < STRINGS; i++) {
       text[i] = tags.getString("text" + i);
@@ -72,8 +69,9 @@ public class TileScreentext extends TileEntityBase implements INamedContainerPro
     super.read(bs, tags);
   }
 
+  @Nonnull
   @Override
-  public CompoundNBT write(CompoundNBT tags) {
+  public CompoundNBT write(@Nonnull CompoundNBT tags) {
     for (int i = 0; i < STRINGS; i++) {
       if (text[i] != null) {
         tags.putString("text" + i, text[i]);
@@ -125,29 +123,33 @@ public class TileScreentext extends TileEntityBase implements INamedContainerPro
     switch (Fields.values()[id]) {
       case BLUE:
         blue = value;
-      break;
+        break;
       case GREEN:
         green = value;
-      break;
+        break;
       case RED:
         red = value;
-      break;
+        break;
       case PADDING:
         padding = value;
-      break;
+        break;
       case FONT:
         fontSize = value;
-      break;
+        break;
       case OFFSET:
         offset = value;
-      break;
+        break;
       case REDSTONE:
         this.setNeedsRedstone(value);
-      break;
+        break;
     }
   }
 
   public boolean getDropShadow() {
     return this.dropShadow;
+  }
+
+  static enum Fields {
+    REDSTONE, RED, GREEN, BLUE, PADDING, FONT, OFFSET;
   }
 }

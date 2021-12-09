@@ -6,6 +6,7 @@ import com.lothrazar.cyclic.capability.ItemStackHandlerWrapper;
 import com.lothrazar.cyclic.data.DataTags;
 import com.lothrazar.cyclic.registry.TileRegistry;
 import com.lothrazar.cyclic.util.UtilItemStack;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -28,15 +29,19 @@ import net.minecraftforge.items.ItemStackHandler;
 
 public class TileAnvilAuto extends TileEntityBase implements INamedContainerProvider, ITickableTileEntity {
 
-  static enum Fields {
-    TIMER, REDSTONE;
-  }
-
   static final int MAX = 64000;
   public static IntValue POWERCONF;
   CustomEnergyStorage energy = new CustomEnergyStorage(MAX, MAX);
-  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   ItemStackHandler inputSlots = new ItemStackHandler(1) {
+    @Override
+    @Nonnull
+    public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+      if (!stack.isEmpty() && stack.isRepairable() && stack.getDamage() == 0) {
+        return outputSlots.insertItem(slot, stack, simulate);
+      } else {
+        return super.insertItem(slot, stack, simulate);
+      }
+    }
 
     @Override
     public boolean isItemValid(int slot, ItemStack stack) {
@@ -44,6 +49,7 @@ public class TileAnvilAuto extends TileEntityBase implements INamedContainerProv
     }
   };
   ItemStackHandler outputSlots = new ItemStackHandler(1);
+  private LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> energy);
   private ItemStackHandlerWrapper inventory = new ItemStackHandlerWrapper(inputSlots, outputSlots);
   private LazyOptional<IItemHandler> inventoryCap = LazyOptional.of(() -> inventory);
 
@@ -73,12 +79,20 @@ public class TileAnvilAuto extends TileEntityBase implements INamedContainerProv
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
     inventory.deserializeNBT(tag.getCompound(NBTINV));
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.put(NBTENERGY, energy.serializeNBT());
@@ -88,6 +102,9 @@ public class TileAnvilAuto extends TileEntityBase implements INamedContainerProv
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.requiresRedstone() && !this.isPowered()) {
       setLitProperty(false);
@@ -105,8 +122,8 @@ public class TileAnvilAuto extends TileEntityBase implements INamedContainerProv
         energy.getEnergyStored() >= repair &&
         stack.isRepairable() &&
         stack.getDamage() > 0) {
-      //we can repair so steal some power 
-      //ok drain power  
+      //we can repair so steal some power
+      //ok drain power
       energy.extractEnergy(repair, false);
       work = true;
     }
@@ -129,7 +146,7 @@ public class TileAnvilAuto extends TileEntityBase implements INamedContainerProv
       case TIMER:
         return this.timer;
       default:
-      break;
+        break;
     }
     return 0;
   }
@@ -139,14 +156,18 @@ public class TileAnvilAuto extends TileEntityBase implements INamedContainerProv
     switch (Fields.values()[field]) {
       case REDSTONE:
         this.needsRedstone = value % 2;
-      break;
+        break;
       case TIMER:
         this.timer = value;
-      break;
+        break;
     }
   }
 
   public int getEnergyMax() {
     return TileAnvilAuto.MAX;
+  }
+
+  static enum Fields {
+    TIMER, REDSTONE;
   }
 }

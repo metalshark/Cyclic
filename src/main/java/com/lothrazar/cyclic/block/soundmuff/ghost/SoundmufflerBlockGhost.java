@@ -65,8 +65,8 @@ public class SoundmufflerBlockGhost extends SoundmufflerBlock {
       stack.shrink(1); //eat it!!!
       return ActionResultType.SUCCESS;
     }
-    //else do we nuke it? 
-    //   
+    //else do we nuke it?
+    //
     return super.onBlockActivated(state, world, pos, player, handIn, hit);
   }
 }

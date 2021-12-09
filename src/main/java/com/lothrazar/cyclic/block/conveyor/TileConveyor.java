@@ -21,25 +21,6 @@ public class TileConveyor extends TileEntityBase implements ITickableTileEntity 
     super(TileRegistry.conveyor);
   }
 
-  @Override
-  public void setField(int field, int value) {}
-
-  @Override
-  public int getField(int field) {
-    return 0;
-  }
-
-  @Override
-  public void tick() {
-    if (world == null || pos == null) {
-      return;
-    }
-    List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(pos).expand(0.0F, 0.5F, 0.0F));
-    for (Entity e : entities) {
-      makeEntitiesTravel(e, this.getBlockState(), this.pos, world);
-    }
-  }
-
   /**
    * TODO: move to utility class
    */
@@ -74,11 +55,11 @@ public class TileConveyor extends TileEntityBase implements ITickableTileEntity 
     if (type.isCorner()) {
       //      Direction rotated = type == ConveyorType.CORNER_RIGHT ? facing.rotateYCCW() : facing.rotateY();
       //
-      //      if (Math.random() < 0.1) 
+      //      if (Math.random() < 0.1)
       //      if ((facing == Direction.NORTH && normalizedZ < 0.5D) || (facing == Direction.SOUTH && normalizedZ > 0.5D)) {
       //        ModCyclic.LOGGER.info("first half");
       //        xSpeed = rotated.getXOffset() * speed;
-      //                zSpeed = 0.0D; 
+      //                zSpeed = 0.0D;
       //      }
       //      if ((facing == Direction.WEST && normalizedX < 0.5D) || (facing == Direction.EAST && normalizedX > 0.5D)) {
       //        xSpeed = 0.0D;
@@ -107,6 +88,29 @@ public class TileConveyor extends TileEntityBase implements ITickableTileEntity 
     }
     if (xSpeed != 0.0D || ySpeed != 0.0D || zSpeed != 0.0D) {
       entity.setMotion(xSpeed, ySpeed, zSpeed);
+    }
+  }
+
+  @Override
+  public void setField(int field, int value) {
+  }
+
+  @Override
+  public int getField(int field) {
+    return 0;
+  }
+
+  @Override
+  public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
+    if (pos == null) {
+      return;
+    }
+    List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(pos).expand(0.0F, 0.5F, 0.0F));
+    for (Entity e : entities) {
+      makeEntitiesTravel(e, this.getBlockState(), this.pos, world);
     }
   }
 }

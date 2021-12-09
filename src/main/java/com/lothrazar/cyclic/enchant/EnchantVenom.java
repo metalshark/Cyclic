@@ -41,14 +41,14 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EnchantVenom extends EnchantBase {
 
+  public static final String ID = "venom";
+  public static BooleanValue CFG;
+  final int durationTicksPerLevel = 3 * Const.TICKS_PER_SEC;
+
   public EnchantVenom(Rarity rarityIn, EnchantmentType typeIn, EquipmentSlotType... slots) {
     super(rarityIn, typeIn, slots);
     MinecraftForge.EVENT_BUS.register(this);
   }
-
-  final int durationTicksPerLevel = 3 * Const.TICKS_PER_SEC;
-  public static BooleanValue CFG;
-  public static final String ID = "venom";
 
   @Override
   public boolean isEnabled() {
@@ -62,7 +62,7 @@ public class EnchantVenom extends EnchantBase {
 
   @SubscribeEvent
   public void onAttackEntity(AttackEntityEvent event) {
-    if (event.getTarget() instanceof LivingEntity == false) {
+    if (!(event.getTarget() instanceof LivingEntity)) {
       return;
     }
     LivingEntity target = (LivingEntity) event.getTarget();

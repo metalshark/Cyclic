@@ -39,11 +39,11 @@ import net.minecraft.world.storage.IWorldInfo;
 
 public class EnderWingSp extends ItemBase implements IHasClickToggle {
 
+  private static final int cooldown = 600;
+
   public EnderWingSp(Properties properties) {
     super(properties);
   }
-
-  private static final int cooldown = 600;
 
   @Override
   public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand handIn) {

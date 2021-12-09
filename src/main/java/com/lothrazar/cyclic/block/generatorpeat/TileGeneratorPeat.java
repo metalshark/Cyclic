@@ -4,6 +4,7 @@ import com.lothrazar.cyclic.base.TileEntityBase;
 import com.lothrazar.cyclic.capability.CustomEnergyStorage;
 import com.lothrazar.cyclic.item.PeatItem;
 import com.lothrazar.cyclic.registry.TileRegistry;
+import javax.annotation.Nonnull;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -24,10 +25,6 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 public class TileGeneratorPeat extends TileEntityBase implements ITickableTileEntity, INamedContainerProvider {
-
-  static enum Fields {
-    FLOWING, REDSTONE, RENDER, BURNTIME;
-  }
 
   public static final int BURNTIME = 40;
   ItemStackHandler inventory = new ItemStackHandler(1);
@@ -53,7 +50,14 @@ public class TileGeneratorPeat extends TileEntityBase implements ITickableTileEn
   }
 
   @Override
-  public void read(BlockState bs, CompoundNBT tag) {
+  public void invalidateCaps() {
+    energyCap.invalidate();
+    inventoryCap.invalidate();
+    super.invalidateCaps();
+  }
+
+  @Override
+  public void read(@Nonnull BlockState bs, CompoundNBT tag) {
     setFlowing(tag.getInt("flowing"));
     fuelRate = tag.getInt("fuelRate");
     energy.deserializeNBT(tag.getCompound(NBTENERGY));
@@ -61,6 +65,7 @@ public class TileGeneratorPeat extends TileEntityBase implements ITickableTileEn
     super.read(bs, tag);
   }
 
+  @Nonnull
   @Override
   public CompoundNBT write(CompoundNBT tag) {
     tag.putInt("flowing", getFlowing());
@@ -76,6 +81,9 @@ public class TileGeneratorPeat extends TileEntityBase implements ITickableTileEn
 
   @Override
   public void tick() {
+    if (world == null || world.isRemote) {
+      return;
+    }
     this.syncEnergy();
     if (this.requiresRedstone() && !this.isPowered()) {
       return;
@@ -92,7 +100,7 @@ public class TileGeneratorPeat extends TileEntityBase implements ITickableTileEn
     }
     fuelRate = 0;
     //now we can add power
-    //burnTime is zero grab another 
+    //burnTime is zero grab another
     ItemStack stack = inventory.getStackInSlot(0);
     if (stack.getItem() instanceof PeatItem) {
       PeatItem peat = (PeatItem) stack.getItem();
@@ -150,18 +158,18 @@ public class TileGeneratorPeat extends TileEntityBase implements ITickableTileEn
     switch (Fields.values()[field]) {
       case FLOWING:
         flowing = value;
-      break;
+        break;
       case REDSTONE:
         setNeedsRedstone(value);
-      break;
+        break;
       case RENDER:
         render = value % 2;
-      break;
+        break;
       case BURNTIME:
         this.setBurnTime(value);
-      break;
+        break;
       default:
-      break;
+        break;
     }
   }
 
@@ -178,5 +186,9 @@ public class TileGeneratorPeat extends TileEntityBase implements ITickableTileEn
         return this.timer;
     }
     return 0;
+  }
+
+  static enum Fields {
+    FLOWING, REDSTONE, RENDER, BURNTIME;
   }
 }
